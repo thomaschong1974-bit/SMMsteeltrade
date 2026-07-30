@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>全球贸易流向地图 · SMM 钢材贸易情报</title>
+<link href="./assets/maplibre-gl.css" rel="stylesheet">
+<script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+<script src="./assets/world_geo.js"></script>
+<script src="./assets/deck.gl.js"></script>
+<script src="./assets/pulse_data.js"></script>
+<style>
+@font-face{font-family:'MiSans';font-weight:100 900;font-display:swap;src:local('MiSans VF'),local('MiSans'),local('MiSans-Regular'),local('MiSans-Medium'),local('MiSans-Semibold'),local('MiSans-Bold');}
+
+  :root{
+    --bg:#070b16; --bg2:#0a0e1a; --panel:rgba(14,20,36,0.72);
+    --panel-solid:#0d1426; --line:rgba(120,150,210,0.16);
+    --txt:#e8edf7; --txt-dim:#8a97b4; --txt-faint:#5c6a88;
+    --smm:#c00000; --smm-bright:#ff3b3b;
+    --gold:#e8a13a; --blue:#2f6fed; --cyan:#39d0e8;
+    --glow:0 0 24px rgba(232,161,58,0.18);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%;width:100%;overflow:hidden;background:var(--bg);
+    font-family:'MiSans','MiSans VF','PingFang SC','Microsoft YaHei',system-ui,sans-serif;
+    color:var(--txt);-webkit-font-smoothing:antialiased}
+  .num{font-variant-numeric:tabular-nums;font-feature-settings:"tnum"}
+
+  /* top bar */
+  #topbar{position:fixed;top:0;left:0;right:0;height:50px;z-index:30;
+    display:flex;align-items:center;gap:18px;padding:0 20px;
+    background:linear-gradient(180deg,rgba(7,11,22,0.96),rgba(7,11,22,0.78));
+    backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+  #topbar img.logo{height:24px;width:auto;display:block;opacity:.95}
+  #topbar .div{width:1px;height:22px;background:var(--line)}
+  #topbar .ttl{font-size:13.5px;font-weight:600;letter-spacing:.5px}
+  #topbar .ttl span{color:var(--smm-bright)}
+  #topbar .back{margin-left:auto;font-size:12.5px;color:var(--txt-dim);
+    text-decoration:none;padding:6px 12px;border:1px solid var(--line);
+    border-radius:7px;transition:.18s;background:rgba(255,255,255,0.02)}
+  #topbar .back:hover{color:var(--txt);border-color:rgba(192,0,0,0.5);
+    background:rgba(192,0,0,0.08)}
+
+  /* map */
+  #map{position:fixed;top:50px;left:0;right:0;bottom:0;background:var(--bg2)}
+  .maplibregl-ctrl-attrib{font-size:9px!important;background:rgba(7,11,22,0.6)!important}
+  .maplibregl-ctrl-attrib a{color:#6b7796!important}
+
+  /* glass panels */
+  .glass{background:var(--panel);backdrop-filter:blur(16px) saturate(1.2);
+    -webkit-backdrop-filter:blur(16px) saturate(1.2);
+    border:1px solid var(--line);border-radius:14px;
+    box-shadow:0 12px 40px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.04)}
+
+  /* title block top-left */
+  #titleblock{position:fixed;top:66px;left:18px;z-index:20;padding:15px 18px 13px;width:286px}
+  #titleblock h1{font-size:19px;font-weight:700;letter-spacing:.5px;line-height:1.2}
+  #titleblock h1 .ac{color:var(--gold)}
+  #titleblock .sub{font-size:11px;color:var(--txt-dim);margin-top:6px;line-height:1.55}
+  #titleblock .sub b{color:var(--txt);font-weight:600}
+  #titleblock .stat{display:flex;gap:16px;margin-top:11px;padding-top:11px;border-top:1px solid var(--line)}
+  #titleblock .stat .it{flex:1}
+  #titleblock .stat .v{font-size:17px;font-weight:700;line-height:1}
+  #titleblock .stat .v.g{color:var(--gold)} #titleblock .stat .v.r{color:var(--smm-bright)}
+  #titleblock .stat .k{font-size:10px;color:var(--txt-dim);margin-top:4px}
+
+  /* control panel */
+  #controls{position:fixed;bottom:18px;left:18px;z-index:20;padding:14px 16px;width:286px}
+  #controls .grp{margin-bottom:13px}
+  #controls .grp:last-child{margin-bottom:0}
+  #controls .lab{font-size:10px;color:var(--txt-dim);letter-spacing:1px;
+    text-transform:uppercase;margin-bottom:7px;font-weight:600}
+  .seg{display:flex;gap:5px;flex-wrap:wrap}
+  .seg button{flex:1;min-width:0;padding:7px 4px;font-size:11.5px;font-weight:600;
+    color:var(--txt-dim);background:rgba(255,255,255,0.03);
+    border:1px solid var(--line);border-radius:8px;cursor:pointer;transition:.16s;
+    font-variant-numeric:tabular-nums;white-space:nowrap}
+  .seg button:hover{color:var(--txt);border-color:rgba(120,150,210,0.4)}
+  .seg button.on{color:#fff;background:linear-gradient(135deg,rgba(192,0,0,0.9),rgba(140,0,0,0.85));
+    border-color:rgba(255,59,59,0.6);box-shadow:0 0 14px rgba(192,0,0,0.35)}
+  .seg.gold button.on{background:linear-gradient(135deg,rgba(232,161,58,0.92),rgba(190,120,30,0.85));
+    border-color:rgba(232,161,58,0.6);box-shadow:0 0 14px rgba(232,161,58,0.3);color:#1a1206}
+  select.dd{width:100%;padding:8px 10px;font-size:12px;color:var(--txt);
+    background:rgba(255,255,255,0.03);border:1px solid var(--line);border-radius:8px;
+    cursor:pointer;appearance:none;outline:none;
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' fill='%238a97b4'><path d='M0 0l5 6 5-6z'/></svg>");
+    background-repeat:no-repeat;background-position:right 11px center}
+  select.dd option{background:var(--panel-solid);color:var(--txt)}
+  #controls .anim{display:flex;align-items:center;gap:9px;margin-top:3px;
+    padding-top:12px;border-top:1px solid var(--line)}
+  .tog{position:relative;width:38px;height:21px;border-radius:11px;
+    background:rgba(255,255,255,0.08);border:1px solid var(--line);cursor:pointer;
+    flex:0 0 auto;transition:.18s}
+  .tog::after{content:"";position:absolute;top:2px;left:2px;width:15px;height:15px;
+    border-radius:50%;background:var(--txt-dim);transition:.18s}
+  .tog.on{background:rgba(232,161,58,0.4);border-color:var(--gold)}
+  .tog.on::after{transform:translateX(17px);background:var(--gold);box-shadow:0 0 8px var(--gold)}
+  #controls .anim .t{font-size:11.5px;color:var(--txt-dim)}
+  #controls .anim .t b{color:var(--txt);font-weight:600;font-size:11.5px}
+
+  /* legend */
+  #legend{position:fixed;bottom:18px;right:18px;z-index:20;padding:13px 16px;width:190px}
+  #legend .lab{font-size:10px;color:var(--txt-dim);letter-spacing:1px;
+    text-transform:uppercase;margin-bottom:9px;font-weight:600}
+  #legend .row{display:flex;align-items:center;gap:9px;margin-bottom:8px;font-size:11.5px;color:var(--txt-dim)}
+  #legend .row:last-child{margin-bottom:0}
+  #legend .sw{width:22px;height:3px;border-radius:2px;flex:0 0 auto}
+  #legend .dot{width:11px;height:11px;border-radius:50%;flex:0 0 auto}
+  #legend .note{font-size:10px;color:var(--txt-faint);margin-top:9px;padding-top:9px;
+    border-top:1px solid var(--line);line-height:1.5}
+
+  /* tooltip */
+  #tip{position:fixed;z-index:40;pointer-events:none;display:none;padding:11px 13px;
+    max-width:240px;font-size:12px;line-height:1.5;
+    background:rgba(10,15,28,0.94);backdrop-filter:blur(12px);
+    border:1px solid rgba(232,161,58,0.4);border-radius:11px;
+    box-shadow:0 10px 30px rgba(0,0,0,.6),0 0 20px rgba(232,161,58,0.12)}
+  #tip .tt{font-weight:700;font-size:13px;margin-bottom:4px;color:#fff;
+    display:flex;align-items:center;gap:7px}
+  #tip .tt .arr{color:var(--gold)}
+  #tip .big{font-size:18px;font-weight:700;color:var(--gold);margin:5px 0 2px;
+    font-variant-numeric:tabular-nums}
+  #tip .sm{font-size:10.5px;color:var(--txt-dim)}
+  #tip .hint{font-size:10px;color:var(--txt-faint);margin-top:6px;
+    padding-top:6px;border-top:1px solid var(--line)}
+
+  /* loader */
+  #loader{position:fixed;inset:50px 0 0 0;z-index:50;display:flex;
+    flex-direction:column;align-items:center;justify-content:center;gap:18px;
+    background:radial-gradient(ellipse at center,#0c1426 0%,#070b16 70%);transition:opacity .5s}
+  #loader.hide{opacity:0;pointer-events:none}
+  .radar{width:64px;height:64px;border-radius:50%;border:2px solid rgba(232,161,58,0.18);
+    border-top-color:var(--gold);animation:spin 1s linear infinite;position:relative}
+  .radar::after{content:"";position:absolute;inset:9px;border-radius:50%;
+    border:2px solid rgba(192,0,0,0.15);border-bottom-color:var(--smm-bright);
+    animation:spin 1.6s linear infinite reverse}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  #loader .lt{font-size:13px;color:var(--txt-dim);letter-spacing:1px}
+  #loader .lp{font-size:11px;color:var(--txt-faint);font-variant-numeric:tabular-nums}
+
+  /* badge while querying */
+  #busy{position:fixed;top:62px;right:18px;z-index:25;display:none;
+    align-items:center;gap:8px;padding:6px 12px;font-size:11px;color:var(--gold);
+    background:rgba(10,15,28,0.85);border:1px solid rgba(232,161,58,0.35);border-radius:20px}
+  #busy.on{display:flex}
+  #busy .sp{width:11px;height:11px;border:2px solid rgba(232,161,58,0.25);
+    border-top-color:var(--gold);border-radius:50%;animation:spin .7s linear infinite}
+
+  @media (max-width:680px){
+    #titleblock{width:auto;right:18px;left:12px;top:60px;padding:12px 14px}
+    #controls{width:auto;left:12px;right:12px;bottom:12px}
+    #legend{display:none}
+  }
+</style>
+</head>
+<body>
+
+<div id="topbar">
+  <img class="logo" src="./assets/SMM_logo.svg" alt="SMM">
+  <div class="div"></div>
+  <div class="ttl">全球钢材贸易情报 · <span>Trade Map</span></div>
+  <a class="back" href="./flagship.html">← 返回旗舰首页</a>
+</div>
+
+<div id="map"></div>
+
+<div id="titleblock" class="glass">
+  <h1>全球贸易<span class="ac">流向地图</span></h1>
+  <div class="sub" id="subline">钢材双边贸易实时聚合 · 单位 <b>万吨</b> · 海关申报口径</div>
+  <div class="stat">
+    <div class="it"><div class="v g num" id="stExp">—</div><div class="k" id="stExpK">出口总量</div></div>
+    <div class="it"><div class="v r num" id="stRoute">—</div><div class="k">展示流向</div></div>
+  </div>
+</div>
+
+<div id="controls" class="glass">
+  <div class="grp">
+    <div class="lab">粒度 · Scale</div>
+    <div class="seg" id="segGran">
+      <button data-v="Y">年度</button><button data-v="Q">季度</button><button data-v="M">月度</button>
+    </div>
+  </div>
+  <div class="grp">
+    <div class="lab">时段 · Period</div>
+    <select class="dd" id="ddPeriod"></select>
+  </div>
+  <div class="grp">
+    <div class="lab">品种 · Product</div>
+    <select class="dd" id="ddGroup">
+      <option value="">全部钢材</option>
+    </select>
+  </div>
+  <div class="grp">
+    <div class="lab">流向 · Flow</div>
+    <div class="seg" id="segFlow">
+      <button data-v="EXPORT" class="on">出口 EXPORT</button>
+      <button data-v="IMPORT">进口 IMPORT</button>
+    </div>
+  </div>
+  <div class="grp">
+    <div class="lab">展示条数 · Top N</div>
+    <div class="seg gold" id="segTop">
+      <button data-v="20">20</button>
+      <button data-v="30" class="on">30</button>
+      <button data-v="50">50</button>
+    </div>
+  </div>
+  <div class="anim">
+    <div class="tog on" id="togAnim"></div>
+    <div class="t">流动动画 <b id="animState">开</b></div>
+  </div>
+</div>
+
+<div id="legend" class="glass">
+  <div class="lab">图例 · Legend</div>
+  <div class="row"><span class="sw" style="background:linear-gradient(90deg,rgba(232,161,58,0.2),#e8a13a)"></span>增长流向</div>
+  <div class="row"><span class="sw" style="background:linear-gradient(90deg,rgba(192,0,0,0.2),#ff3b3b)"></span>收缩流向</div>
+  <div class="row"><span class="sw" style="background:linear-gradient(90deg,rgba(47,111,237,0.2),#2f6fed)"></span>平稳流向</div>
+  <div class="row"><span class="dot" style="background:radial-gradient(circle,#ffd98a,#e8a13a)"></span>枢纽节点（量级）</div>
+  <div class="note">弧宽 ∝ √贸易量 · 颜色按同比变化 · 点击弧线看双边，点击节点看国家</div>
+</div>
+
+<div id="tip"></div>
+
+<div id="busy"><span class="sp"></span><span>聚合查询中…</span></div>
+
+<div id="loader">
+  <div class="radar"></div>
+  <div class="lt">正在初始化贸易情报终端</div>
+  <div class="lp" id="loadProg">加载分析引擎…</div>
+</div>
+
+<script>
+(function(){
+const { MapboxOverlay, ArcLayer, ScatterplotLayer, TripsLayer } = deck;
+const PULSE = window.PULSE || {data:{},centroids:{}};
+
+/* ===================== 质心字典 (中文国名 → [lon,lat])：优先 PULSE 内置，离线兜底 ===================== */
+const CENTROIDS = (PULSE.centroids && Object.keys(PULSE.centroids).length) ? PULSE.centroids : {
+  "中国":[104,35],"印度尼西亚":[117,-2.5],"印度":[78,22],"美国":[-98,39],
+  "德国":[10.5,51.2],"意大利":[12.5,42],"比利时":[4.5,50.5],"韩国":[128,36.5],
+  "越南":[106,16],"墨西哥":[-102,23.5],"土耳其":[35,39],"日本":[138,36],
+  "荷兰":[5.3,52.3],"芬兰":[26,64],"西班牙":[-3.7,40],"法国":[2.2,46.2],
+  "马来西亚":[109.7,4.2],"泰国":[100.5,15.8],"俄罗斯":[90,60],"中国台湾":[121,23.8],
+  "阿联酋":[54.4,24],"英国":[-1.5,52.5],"波兰":[19.4,52],"巴西":[-51,-10],
+  "加拿大":[-106,56],"沙特阿拉伯":[45,24],"南非":[24,-29],"瑞典":[15,62],
+  "奥地利":[14.5,47.5],"捷克":[15.5,49.8],
+  "中国香港":[114.1,22.3],"新加坡":[103.8,1.35],"埃及":[30,27],"孟加拉国":[90,24],
+  "巴基斯坦":[69,30],"罗马尼亚":[25,46],"葡萄牙":[-8,39.5],"希腊":[22,39],
+  "瑞士":[8.2,46.8],"丹麦":[10,56],"挪威":[8.5,61],"乌克兰":[31,49],
+  "斯洛文尼亚":[14.8,46.1],"匈牙利":[19.5,47.2],"伊朗":[53,32],"以色列":[35,31.5],
+  "澳大利亚":[134,-25],"哥伦比亚":[-73,4],"智利":[-71,-30],"秘鲁":[-76,-10],
+  "菲律宾":[122,12],"斯里兰卡":[81,7.5],"摩洛哥":[-7,32],"尼日利亚":[8,9.5],
+  "斯洛伐克":[19.5,48.7],"保加利亚":[25,42.7],
+  "哈萨克斯坦":[67,48],"乌兹别克斯坦":[64,41.5],"卡塔尔":[51.2,25.3],"科威特":[47.5,29.3],
+  "阿曼":[57,21],"伊拉克":[44,33],"约旦":[36,31],"克罗地亚":[16,45.3],"立陶宛":[24,55.3],
+  "爱沙尼亚":[26,59],"爱尔兰":[-8,53.3],"卢森堡":[6.1,49.8],"新西兰":[174,-41],
+  "柬埔寨":[105,12.5],"缅甸":[96,21],"尼泊尔":[84,28],"阿尔及利亚":[3,28],
+  "阿根廷":[-64,-35],"厄瓜多尔":[-78.5,-1.5],"危地马拉":[-90.5,15.5],"肯尼亚":[38,0],
+  "坦桑尼亚":[35,-6],"加纳":[-1.2,7.9]
+};
+
+/* ===================== 状态 ===================== */
+const state = { gran:"Q", period:"", group:"", flow:"EXPORT", topN:30, anim:true };
+const PERIODS = (window.PULSE&&window.PULSE.periods)?window.PULSE.periods:[];
+const DEF_PERIOD=(function(){var q=PERIODS.filter(p=>p.gran==="Q");return q.length?q[q.length-1].id:(PERIODS.length?PERIODS[PERIODS.length-1].id:"2025Q4");})();
+state.period=DEF_PERIOD;
+const PRODUCTS = (window.PULSE&&window.PULSE.groups?window.PULSE.groups.filter(g=>g!=='ALL'):[]);
+const COL = { up:[232,161,58], down:[192,0,0], flat:[47,111,237] };
+
+let overlay, map, mapReady=false;
+let deckInst=null, BASE=[];
+function setLayers(ls){ if(overlay){ overlay.setProps({layers:ls}); } else if(deckInst){ deckInst.setProps({layers:BASE.concat(ls)}); } }
+function initDeckStandalone(containerId){
+  const el=document.getElementById(containerId); if(!el) return;
+  const geo=window.WORLD_GEOJSON;
+  BASE = geo ? [new deck.GeoJsonLayer({id:'world-base', data:geo, stroked:true, filled:true,
+    getFillColor:[17,24,39,255], getLineColor:[40,56,88,255], lineWidthMinPixels:0.6, pickable:false,
+    parameters:{depthTest:false}})] : [];
+  deckInst = new deck.Deck({ parent:el,
+    initialViewState:{longitude:60, latitude:28, zoom:1.55, minZoom:0.8, maxZoom:7},
+    controller:true, layers:BASE });
+}
+
+let curArcs = [], curTrips = [], curNodes = [];
+let animTime = 0, rafId = null, lastTs = 0;
+const ANIM_LOOP = 2400; // ms per full sweep
+const TRAIL = 360;
+
+const $ = s => document.querySelector(s);
+const fmt = n => (Math.round(n*10)/10).toLocaleString('en-US',{minimumFractionDigits:1,maximumFractionDigits:1});
+
+/* ===================== UI 构建 ===================== */
+function buildUI(){
+  const segG = $('#segGran'), ddP = $('#ddPeriod');
+  function fillPeriods(){
+    ddP.innerHTML='';
+    PERIODS.filter(p=>p.gran===state.gran).forEach(p=>{ const o=document.createElement('option'); o.value=p.id; o.textContent=p.label; ddP.appendChild(o); });
+    const ids=PERIODS.filter(p=>p.gran===state.gran).map(p=>p.id);
+    if(ids.indexOf(state.period)<0) state.period=ids[ids.length-1];
+    ddP.value=state.period;
+  }
+  segG.querySelectorAll('button').forEach(b=>{ if(b.dataset.v===state.gran) b.classList.add('on'); });
+  fillPeriods();
+  segG.addEventListener('click',e=>{ if(e.target.tagName!=='BUTTON')return;
+    segG.querySelectorAll('button').forEach(b=>b.classList.remove('on'));
+    e.target.classList.add('on'); state.gran=e.target.dataset.v; fillPeriods(); refresh(); });
+  ddP.addEventListener('change',e=>{ state.period=e.target.value; refresh(); });
+  const dd = $('#ddGroup');
+  PRODUCTS.forEach(p=>{ const o=document.createElement('option'); o.value=p; o.textContent=(window.TP?TP(p):p.replace(/\s*\(.*\)$/,'')); dd.appendChild(o); });
+  $('#segFlow').addEventListener('click',e=>{ if(e.target.tagName!=='BUTTON')return;
+    $('#segFlow').querySelectorAll('button').forEach(b=>b.classList.remove('on'));
+    e.target.classList.add('on'); state.flow=e.target.dataset.v; refresh(); });
+  $('#segTop').addEventListener('click',e=>{ if(e.target.tagName!=='BUTTON')return;
+    $('#segTop').querySelectorAll('button').forEach(b=>b.classList.remove('on'));
+    e.target.classList.add('on'); state.topN=+e.target.dataset.v; refresh(); });
+  dd.addEventListener('change',e=>{ state.group=e.target.value; refresh(); });
+  $('#togAnim').addEventListener('click',()=>{
+    state.anim=!state.anim;
+    $('#togAnim').classList.toggle('on',state.anim);
+    $('#animState').textContent=state.anim?'开':'关';
+    if(state.anim){ lastTs=0; startAnim(); } else { stopAnim(); render(); }
+  });
+}
+
+/* ===================== 从 PULSE 取切片（纯前端，无网络/DB） ===================== */
+/* slice.f = [[reporter,partner,v,v_prev], ...]（已按 v 降序）  slice.n = {country:[exp,imp]} */
+function getSlice(){
+  const grp = state.group || 'ALL';
+  if(state.flow==='ALL'){
+    const e=PULSE.data['EXPORT|'+state.period+'|'+grp]||{f:[],n:{}};
+    const im=PULSE.data['IMPORT|'+state.period+'|'+grp]||{f:[],n:{}};
+    // 进口流向按真实货流方向反转(partner=来源 -> reporter=进口国)，与出口统一为 出口国->进口国
+    const imSwap=(im.f||[]).map(r=>[r[1],r[0],r[2],r[3]]);
+    const f=(e.f||[]).concat(imSwap).sort((a,b)=>b[2]-a[2]);
+    const n={};
+    const mrg=src=>{Object.keys(src||{}).forEach(k=>{const v=src[k]||[0,0]; if(!n[k])n[k]=[0,0]; n[k][0]=Math.max(n[k][0],v[0]||0); n[k][1]=Math.max(n[k][1],v[1]||0);});};
+    mrg(e.n); mrg(im.n);
+    return {f,n};
+  }
+  const key = state.flow + '|' + state.period + '|' + grp;
+  return PULSE.data[key] || {f:[], n:{}};
+}
+
+/* ===================== 数据 → 图层数据 ===================== */
+function colorFor(v,pv){
+  if(pv<=0.01) return COL.flat;
+  const g=(v-pv)/pv;
+  if(g>0.05) return COL.up;
+  if(g<-0.05) return COL.down;
+  return COL.flat;
+}
+function arcInterp(s,t,n){
+  const pts=[];
+  for(let i=0;i<=n;i++){
+    const f=i/n;
+    pts.push([s[0]+(t[0]-s[0])*f, s[1]+(t[1]-s[1])*f]);
+  }
+  return pts;
+}
+
+function processData(slice){
+  const arcs=[], trips=[];
+  let missing=0, total=0, expSum=0;
+  const rows=(slice.f||[]).slice(0, state.topN);
+  rows.forEach((r,i)=>{
+    total++;
+    const src=r[0], dst=r[1], v=r[2], pv=r[3];
+    const s=CENTROIDS[src], t=CENTROIDS[dst];
+    if(!s||!t){ missing++; return; }
+    // 经度解卷：避免跨太平洋直线
+    let _tx=t[0]; if(_tx-s[0]>180)_tx-=360; else if(_tx-s[0]<-180)_tx+=360; const tu=[_tx,t[1]];
+    const col=colorFor(v,pv);
+    const grow = pv>0.01 ? (v-pv)/pv : null;
+    expSum += v;
+    arcs.push({ from:s, to:tu, src, dst, v, pv, grow, col });
+    // trips path（错峰起点，避免同步）
+    const path = arcInterp(s,tu,28);
+    const ts = path.map((_,k)=> k/(path.length-1) * (ANIM_LOOP*0.62));
+    const offset = (i*173 % ANIM_LOOP);
+    trips.push({ path, timestamps:ts.map(x=>x+offset), col, src, dst, v });
+  });
+
+  // 节点：来自切片 n = {country:[exp,imp]}
+  const nodes=[];
+  const N=slice.n||{};
+  Object.keys(N).forEach(c=>{
+    const pos=CENTROIDS[c]; if(!pos) return;
+    const exp=N[c][0], imp=N[c][1], tot=exp+imp;
+    if(tot<2) return; // 过滤极小节点
+    nodes.push({ pos, c, exp, imp, tot });
+  });
+  nodes.sort((a,b)=>b.tot-a.tot);
+
+  return { arcs, trips, nodes, missing, total, expSum };
+}
+
+/* ===================== deck 图层 ===================== */
+function buildLayers(){
+  const layers=[];
+
+  // 节点光晕（大半径低透明）
+  layers.push(new ScatterplotLayer({
+    id:'nodes-glow', data:curNodes, pickable:false,
+    getPosition:d=>d.pos,
+    getRadius:d=>Math.sqrt(d.tot)*26000,
+    radiusUnits:'meters', radiusMinPixels:6, radiusMaxPixels:60,
+    getFillColor:d=>[232,161,58,28], stroked:false,
+    parameters:{depthTest:false}
+  }));
+  // 节点实心点
+  layers.push(new ScatterplotLayer({
+    id:'nodes', data:curNodes, pickable:true,
+    getPosition:d=>d.pos,
+    getRadius:d=>Math.max(Math.sqrt(d.tot)*8000, 18000),
+    radiusUnits:'meters', radiusMinPixels:3.5, radiusMaxPixels:22,
+    getFillColor:d=>[255,217,138,235],
+    stroked:true, getLineColor:[255,255,255,140], lineWidthMinPixels:1,
+    onHover:onHoverNode, onClick:()=>location.href='./stainless_country_report.html',
+    parameters:{depthTest:false}
+  }));
+
+  // 弧线
+  layers.push(new ArcLayer({
+    id:'arcs', data:curArcs, pickable:true, greatCircle:false,
+    getSourcePosition:d=>d.from, getTargetPosition:d=>d.to,
+    getSourceColor:d=>[d.col[0],d.col[1],d.col[2],55],
+    getTargetColor:d=>[d.col[0],d.col[1],d.col[2],235],
+    getWidth:d=>Math.max(Math.sqrt(d.v)*0.85, 1.2),
+    widthMinPixels:1, widthMaxPixels:9, getHeight:0.4,
+    updateTriggers:{getSourceColor:[state.flow,state.period],getTargetColor:[state.flow,state.period]},
+    onHover:onHoverArc, onClick:()=>location.href='./bilateral.html',
+    parameters:{depthTest:false}
+  }));
+
+  // 流动动画
+  if(state.anim){
+    layers.push(new TripsLayer({
+      id:'trips', data:curTrips,
+      getPath:d=>d.path, getTimestamps:d=>d.timestamps,
+      getColor:d=>[Math.min(d.col[0]+30,255),Math.min(d.col[1]+30,255),Math.min(d.col[2]+40,255)],
+      getWidth:d=>Math.max(Math.sqrt(d.v)*0.9,1.4),
+      widthMinPixels:1.6, widthMaxPixels:7,
+      opacity:0.92, trailLength:TRAIL, fadeTrail:true,
+      currentTime:animTime, capRounded:true, jointRounded:true,
+      parameters:{depthTest:false}
+    }));
+  }
+  return layers;
+}
+
+function render(){
+  if(!overlay) return;
+  setLayers(buildLayers());
+}
+
+/* ===================== 动画循环 ===================== */
+function startAnim(){
+  if(rafId) return;
+  const tick=(ts)=>{
+    if(!lastTs) lastTs=ts;
+    const dt=ts-lastTs; lastTs=ts;
+    animTime=(animTime+dt) % ANIM_LOOP;
+    if(overlay && state.anim){
+      setLayers(buildLayers());
+    }
+    if(state.anim) rafId=requestAnimationFrame(tick); else rafId=null;
+  };
+  rafId=requestAnimationFrame(tick);
+}
+function stopAnim(){ if(rafId){ cancelAnimationFrame(rafId); rafId=null; } }
+
+/* ===================== hover ===================== */
+function showTip(x,y,html){
+  const tip=$('#tip'); tip.innerHTML=html; tip.style.display='block';
+  const w=tip.offsetWidth, h=tip.offsetHeight, pad=14;
+  let px=x+pad, py=y+pad;
+  if(px+w>window.innerWidth) px=x-w-pad;
+  if(py+h>window.innerHeight) py=y-h-pad;
+  tip.style.left=px+'px'; tip.style.top=py+'px';
+}
+function hideTip(){ $('#tip').style.display='none'; }
+
+function onHoverArc(info){
+  if(!info.object){ hideTip(); return; }
+  const d=info.object;
+  let badge='';
+  if(d.grow!==null){
+    const up=d.grow>=0;
+    badge=`<span style="color:${up?'#e8a13a':'#ff5b5b'}">${up?'▲':'▼'} ${(Math.abs(d.grow)*100).toFixed(1)}% 同比</span>`;
+  } else badge=`<span style="color:#5c6a88">新增/无去年同期</span>`;
+  showTip(info.x,info.y,`
+    <div class="tt">${d.src}<span class="arr">→</span>${d.dst}</div>
+    <div class="big num">${window.fmtVol?fmtVol(d.v):fmt(d.v)+" 万吨"} <span style="font-size:11px;color:#8a97b4">万吨</span></div>
+    <div class="sm">${state.period} · ${state.flow==='EXPORT'?'出口':(state.flow==='IMPORT'?'进口':'综合')}口径 · ${badge}</div>
+    <div class="hint">点击弧线 → 双边流向详情</div>`);
+}
+function onHoverNode(info){
+  if(!info.object){ hideTip(); return; }
+  const d=info.object;
+  showTip(info.x,info.y,`
+    <div class="tt">${d.c}</div>
+    <div class="sm" style="margin-top:5px">出口 <b style="color:#e8a13a" class="num">${window.fmtVol?fmtVol(d.exp):fmt(d.exp)+" 万吨"}</b></div>
+    <div class="sm">进口 <b style="color:#39d0e8" class="num">${window.fmtVol?fmtVol(d.imp):fmt(d.imp)+" 万吨"}</b></div>
+    <div class="hint">点击节点 → 国家画像报告</div>`);
+}
+
+/* ===================== 刷新（筛选触发：纯前端切片重建，瞬时）===================== */
+function refresh(){
+  const p=processData(getSlice());
+  curArcs=p.arcs; curTrips=p.trips; curNodes=p.nodes;
+  // 更新标题块统计
+  $('#stExp').textContent=fmt(p.expSum);
+  $('#stExpK').textContent= state.flow==='EXPORT'?'TopN 出口量':(state.flow==='IMPORT'?'TopN 进口量':'TopN 流向量');
+  $('#stRoute').textContent=p.arcs.length;
+  const gtxt = state.group ? (window.TP?TP(state.group):state.group) : (window.LGT?LGT('全部钢材'):'全部钢材');
+  const ftxt = state.flow==='EXPORT'?(window.LGT?LGT('出口'):'出口'):(state.flow==='IMPORT'?(window.LGT?LGT('进口'):'进口'):(window.LGT?LGT('综合'):'综合'));
+  $('#subline').innerHTML=`${state.period} · ${gtxt} · ${ftxt}${window.LGT?LGT("口径"):"口径"} · ${window.LGT?LGT("单位"):"单位"} <b>${window.LGT?LGT("万吨"):"万吨"}</b>`;
+  if(p.missing>0) console.warn(`[centroid] ${p.missing}/${p.total} 条流向因缺质心被跳过`);
+  render();
+  if(state.anim){ lastTs=0; startAnim(); }
+}
+
+/* ===================== 地图（瓦片失败也不影响 deck overlay）===================== */
+function initMap(){
+  if(!window.maplibregl || !maplibregl.Map) throw new Error('maplibre unavailable (offline?)');
+  map=new maplibregl.Map({
+    container:'map',
+    style:{ version:8,
+      sources:{ carto:{ type:'raster',
+        tiles:['https://a.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png',
+               'https://b.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png',
+               'https://c.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png'],
+        tileSize:256,
+        attribution:'© OpenStreetMap © CARTO' } },
+      layers:[ {id:'bg',type:'background',paint:{'background-color':'#0a0e1a'}},
+               {id:'carto',type:'raster',source:'carto',paint:{'raster-opacity':0.82}} ] },
+    center:[60,28], zoom:1.6, minZoom:1, maxZoom:7,
+    attributionControl:{compact:true}
+  });
+  map.addControl(new maplibregl.NavigationControl({showCompass:false}),'top-right');
+  // interleaved:false → 保证标签/弧线按层序、国家标签压在飞线上（与 flagship 一致）
+  overlay=new MapboxOverlay({ interleaved:false, layers:[] });
+  map.addControl(overlay);
+  // 瓦片加载失败/断网不抛错、不阻断弧线（背景色兜底）
+  map.on('error', e=>{ console.warn('[map] tile/source error (ignored, arcs still render):', e && e.error && e.error.message); });
+}
+
+/* ===================== 建层 + 隐藏 loader（地图 load 后或兜底超时后调用一次）===================== */
+function ensureLayers(){
+  if(mapReady) return;
+  mapReady=true;
+  refresh();
+  setTimeout(()=>{ const l=$('#loader'); if(l) l.classList.add('hide'); }, 200);
+}
+
+/* ===================== 启动（无 DuckDB / 无 parquet，秒开）===================== */
+function boot(){
+  buildUI();
+  try{
+    initMap();
+    map.on('load', ensureLayers);
+    // 兜底：1.5s 内 load 未触发也强制建层并隐藏 loader（瓦片慢/失败时仍出弧线）
+    setTimeout(ensureLayers, 1500);
+  }catch(err){
+    console.warn('maplibre unavailable, fallback to standalone deck:',err&&err.message); try{ initDeckStandalone('map'); }catch(e2){}
+    try{ ensureLayers(); }catch(e){}
+  }
+}
+window.addEventListener('pagehide',stopAnim);
+boot();
+window.__relang=function(){ try{ refresh(); }catch(e){} };
+})();
+</script>
+<script>window.__MT_OK=true;</script>
+<script src="./assets/i18n_dict.js"></script>
+<script src="./assets/i18n.js"></script>
+<script src="./assets/version.js"></script>
+<script src="./assets/version_badge.js"></script>
+<script src="./assets/update_banner.js"></script>
+<script src="./assets/gate.js"></script>
+
+</body>
+</html>

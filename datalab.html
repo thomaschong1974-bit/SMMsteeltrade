@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>数据实验室 · SMM 钢材贸易查询与导出</title>
+<script src="./assets/echarts.min.js"></script>
+<script src="./assets/tradeflow_data.js"></script>
+<style>
+@font-face{font-family:'MiSans';font-weight:100 900;font-display:swap;src:local('MiSans VF'),local('MiSans'),local('MiSans-Regular'),local('MiSans-Medium'),local('MiSans-Semibold'),local('MiSans-Bold');}
+
+:root{--red:#C00000;--red2:#e23b3b;--gold:#e8a13a;--blue:#2f6fed;
+  --bg0:#0a0e1a;--bg1:#0d1424;--pan:#111a2e;--line:#22304d;--text:#e8edf6;--mut:#8b97ad;--up:#5ad19a;--dn:#ff7a6e}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'MiSans','MiSans VF','PingFang SC','Microsoft YaHei',system-ui,sans-serif;background:var(--bg0);color:var(--text);line-height:1.5}
+.num{font-variant-numeric:tabular-nums}
+a{color:inherit;text-decoration:none}
+.nav{position:sticky;top:0;z-index:50;display:flex;gap:2px;align-items:center;padding:0 20px;height:54px;
+  background:rgba(10,14,26,.92);backdrop-filter:blur(12px);border-bottom:1px solid rgba(255,255,255,.07);overflow-x:auto;white-space:nowrap}
+.nav .brand{font-size:12px;font-weight:800;letter-spacing:.12em;color:#cfd7e6;margin-right:14px;flex:0 0 auto}
+.nav .brand b{color:var(--red2)}
+.ni{padding:6px 10px;border-radius:8px;color:#c2cad8;font-size:13px;font-weight:600;flex:0 0 auto}
+.ni span{display:block;font-size:8.5px;letter-spacing:.06em;color:#69748a;text-transform:uppercase}
+.ni:hover{background:rgba(255,255,255,.06)}.ni.on{color:#fff;box-shadow:inset 0 -2px 0 var(--red)}
+.hd{padding:22px 24px 6px}
+.hd .eye{font-size:11px;font-weight:700;letter-spacing:.16em;color:var(--gold);text-transform:uppercase}
+.hd h1{font-size:24px;font-weight:850;margin:6px 0 4px}
+.hd p{font-size:12.5px;color:var(--mut);max-width:900px}
+.ctl{display:flex;flex-wrap:wrap;gap:14px;align-items:flex-end;padding:14px 24px;border-bottom:1px solid var(--line);background:var(--bg1)}
+.fld{display:flex;flex-direction:column;gap:4px}
+.fld label{font-size:10.5px;color:var(--mut);font-weight:600;letter-spacing:.04em}
+.seg{display:inline-flex;background:rgba(255,255,255,.05);border:1px solid var(--line);border-radius:8px;padding:3px;gap:2px}
+.seg button{border:none;background:transparent;color:#9aa6bb;font-size:12px;font-weight:650;padding:6px 12px;border-radius:6px;cursor:pointer;font-family:inherit}
+.seg button.on{background:var(--red);color:#fff}
+.seg.b button.on{background:var(--blue)}.seg.g button.on{background:linear-gradient(135deg,var(--gold),#b97a13);color:#1a1206}
+select,input[type=text],input[type=number]{font-family:inherit;font-size:12.5px;color:var(--text);background:rgba(255,255,255,.05);
+  border:1px solid var(--line);border-radius:8px;padding:7px 10px;outline:none;min-width:120px}
+select option{background:#0d1426}
+.btn{font-family:inherit;font-size:12.5px;font-weight:700;border:1px solid var(--line);background:rgba(255,255,255,.06);color:var(--text);
+  border-radius:8px;padding:8px 13px;cursor:pointer;transition:.15s}
+.btn:hover{background:rgba(255,255,255,.12)}
+.btn.x{background:linear-gradient(135deg,#0f7a4a,#0b5c38);border-color:#0f7a4a;color:#eafff4}
+.btn.x:hover{filter:brightness(1.12)}
+.lang{margin-left:auto;border:1px solid rgba(140,160,200,.35);background:rgba(255,255,255,.06);color:#e8edf6;font-weight:700;font-size:12px;padding:7px 12px;border-radius:8px;cursor:pointer}
+.lang:hover{background:var(--red);border-color:var(--red);color:#fff}
+.kpis{display:flex;flex-wrap:wrap;gap:0;padding:0 24px;border-bottom:1px solid var(--line)}
+.kpi{flex:1;min-width:150px;padding:14px 18px;border-right:1px solid rgba(255,255,255,.06)}
+.kpi:last-child{border-right:none}
+.kpi .v{font-size:22px;font-weight:850;color:#fff}
+.kpi .v .u{font-size:12px;color:var(--mut);font-weight:600;margin-left:3px}
+.kpi .k{font-size:11px;color:var(--mut);margin-top:3px}
+.wrap{display:grid;grid-template-columns:1.15fr .85fr;gap:20px;padding:20px 24px 30px}
+@media(max-width:1000px){.wrap{grid-template-columns:1fr}}
+.card{background:var(--pan);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.card .ch{display:flex;align-items:center;justify-content:space-between;padding:13px 16px;border-bottom:1px solid var(--line)}
+.card .ch .t{font-size:14px;font-weight:780}
+.card .ch .s{font-size:11px;color:var(--mut)}
+.tbl-wrap{max-height:620px;overflow:auto}
+table{width:100%;border-collapse:collapse;font-size:12.5px}
+thead th{position:sticky;top:0;background:#0e1730;color:#9fb0cc;text-align:right;padding:9px 12px;font-weight:600;border-bottom:1px solid var(--line);z-index:2}
+thead th.l{text-align:left}
+tbody td{padding:8px 12px;border-bottom:1px solid rgba(255,255,255,.05);text-align:right}
+tbody td.l{text-align:left}
+tr.l1{cursor:pointer}
+tr.l1:hover{background:rgba(255,255,255,.04)}
+tr.l1 td{font-weight:650}
+tr.l1 .tw{display:inline-block;width:14px;color:var(--gold);font-weight:800}
+tr.l2 td{color:#aeb9cd;font-size:12px}
+tr.l2 td.l{padding-left:34px}
+tr.l2{background:rgba(255,255,255,.015)}
+.bar{display:inline-block;height:6px;border-radius:3px;background:linear-gradient(90deg,var(--red),#e35b5b);vertical-align:middle;margin-left:8px}
+.yoy.up{color:var(--up)}.yoy.dn{color:var(--dn)}
+.chart-box{height:600px;padding:6px}
+.hint{padding:9px 24px;font-size:11px;color:#69748a;border-bottom:1px solid var(--line);background:var(--bg1)}
+.foot{padding:22px 24px 40px;font-size:11px;color:#5a657d;line-height:1.7;border-top:1px solid var(--line)}
+.foot b{color:#8b97ad}
+.empty{padding:40px;text-align:center;color:var(--mut);font-size:13px}
+</style>
+</head>
+<body>
+<nav class="nav">
+  <span class="brand">SMM <b>TRADE INTEL</b></span>
+  <a class="ni" href="./flagship.html">全球脉搏<span>Pulse</span></a>
+  <a class="ni" href="./tradeflow.html">流向地图<span>Trade Map</span></a>
+  <a class="ni" href="./country_report.html">国家画像<span>Country</span></a>
+  <a class="ni" href="./product_report.html">产品市场<span>Product</span></a>
+  <a class="ni" href="./bilateral.html">双边流向<span>Bilateral</span></a>
+  <a class="ni" href="./signals_report.html">市场信号<span>Signals</span></a>
+  <a class="ni" href="./policy.html">政策壁垒<span>Policy</span></a>
+  <a class="ni on" href="./datalab.html">数据实验室<span>Data Lab</span></a>
+  <button class="lang" id="langBtnFloat" onclick="__toggleLang&&__toggleLang()">EN</button>
+</nav>
+
+<div class="hd">
+  <div class="eye">Analyst Data Lab · 内部分析工具</div>
+  <h1>钢材进出口数据查询与导出</h1>
+  <p>面向分析师的进出口明细查询台：选定<b>报告国 · 流向 · 时段</b>，即可按<b>国别 → 品种</b>（或<b>品种 → 国别</b>）两级下钻，并一键导出 Excel / CSV 用于自建图表。数据可精确到 <b>年 / 季 / 月</b>。</div>
+</div>
+
+<div class="ctl">
+  <div class="fld"><label>流向 · Flow</label>
+    <div class="seg" id="segFlow"><button data-v="1" class="on">进口</button><button data-v="0">出口</button></div></div>
+  <div class="fld"><label>报告国 · Reporter</label><select id="selReporter"></select></div>
+  <div class="fld"><label>粒度 · Scale</label>
+    <div class="seg b" id="segGran"><button data-v="Y">年度</button><button data-v="Q" class="on">季度</button><button data-v="M">月度</button></div></div>
+  <div class="fld"><label>时段 · Period</label><select id="selPeriod"></select></div>
+  <div class="fld"><label>下钻顺序 · Drill</label>
+    <div class="seg g" id="segDrill"><button data-v="CP" class="on">先国别·后品种</button><button data-v="PC">先品种·后国别</button></div></div>
+  <div class="fld"><label>最小量 · Min (万吨)</label><input type="number" id="minVol" value="0" min="0" step="1" style="width:96px"></div>
+  <div class="fld"><label>搜索 · Filter</label><input type="text" id="search" placeholder="国家/品种…" style="width:130px"></div>
+  <div class="fld"><label>导出 · Export</label>
+    <div style="display:flex;gap:8px"><button class="btn x" id="btnXls">⤓ Excel</button><button class="btn" id="btnCsv">⤓ CSV</button></div></div>
+</div>
+
+<div class="kpis" id="kpis"></div>
+<div class="hint" id="hint"></div>
+
+<div class="wrap">
+  <div class="card">
+    <div class="ch"><div class="t" id="tblTitle">明细（两级下钻）</div><div class="s" id="tblSub"></div></div>
+    <div class="tbl-wrap"><table id="pivot"><thead></thead><tbody></tbody></table></div>
+  </div>
+  <div class="card">
+    <div class="ch"><div class="t" id="chTitle">Top 15 · 一级维度</div><div class="s" id="chUnit">万吨</div></div>
+    <div class="chart-box" id="chart"></div>
+  </div>
+</div>
+
+<div class="foot">
+  <b>口径与数据来源：</b>数据取自各国海关进出口镜像数据库（SMM 整理），主口径为报告国自报量；单位<b>万吨</b>（1 万吨 = 10,000 公吨），<b>仅含数量、不含金额</b>。EXPORT（出口国自报）与 IMPORT（进口国自报）为镜像口径，请勿直接相加。年度段 2010–2020、季度段 2021–2025、月度段 2026（1–6 月）；季度/月度可聚合为年。<b>为聚焦可核验的主要流向，本表仅纳入 ≥ 1 千吨的双边×品种记录；</b>小规模流向仅作支撑，不作为独立结论。<b>本页为组内分析工具，非对外发布物；引用前请结合官方公告与 SMM 现货/期货数据库核对。</b>
+</div>
+
+<script>window.__MT_OK=true;</script>
+<script src="./assets/i18n_dict.js"></script>
+<script src="./assets/i18n.js"></script>
+<script>
+(function(){
+'use strict';
+var TF = window.TF || {countries:[],groups:[],periods:[],rows:[]};
+var C=TF.countries, G=TF.groups, PERIODS=TF.periods;
+var PID=PERIODS.map(function(p){return p.id;});
+var PIDX={}; PID.forEach(function(id,i){PIDX[id]=i;});
+var $=function(s){return document.querySelector(s);};
+
+var repSet={}; TF.rows.forEach(function(r){repSet[r[2]]=1;});
+var reporters=Object.keys(repSet).map(function(i){return C[+i];});
+var MAJOR=["中国","日本","韩国","印度","印度尼西亚","德国","意大利","土耳其","美国","越南","俄罗斯","巴西","比利时","墨西哥","加拿大","西班牙","法国","荷兰","伊朗","中国台湾","泰国","马来西亚","乌克兰","埃及","沙特阿拉伯"];
+var majorAvail=MAJOR.filter(function(c){return reporters.indexOf(c)>=0;});
+var others=reporters.filter(function(c){return MAJOR.indexOf(c)<0;}).sort();
+
+var YEARS=[]; PID.forEach(function(id){var y=id.slice(0,4); if(YEARS.indexOf(y)<0)YEARS.push(y);}); YEARS.sort();
+var Q_DIRECT=PID.filter(function(id){return id.indexOf('Q')>0;});
+var M_IDS=PID.filter(function(id){return id.indexOf('M')>0;});
+var Q_2026=[]; M_IDS.forEach(function(id){var y=id.slice(0,4),m=+id.slice(5),q=y+'Q'+Math.ceil(m/3); if(Q_2026.indexOf(q)<0)Q_2026.push(q);});
+var Q_OPTS=Q_DIRECT.concat(Q_2026);
+function optsFor(gran){ return gran==='Y'?YEARS.slice():(gran==='Q'?Q_OPTS.slice():M_IDS.slice()); }
+function labelOf(gran,id){ if(gran==='M'){return id.slice(0,4)+'-'+id.slice(5);} return id; }
+function pidsFor(gran,period){
+  if(gran==='Y') return PID.filter(function(id){return id.slice(0,4)===period;});
+  if(gran==='M') return [period];
+  if(PIDX[period]!==undefined) return [period];
+  var y=period.slice(0,4), q=+period.slice(period.indexOf('Q')+1);
+  return M_IDS.filter(function(id){return id.slice(0,4)===y && Math.ceil(+id.slice(5)/3)===q;});
+}
+function priorPeriod(gran,period){
+  if(gran==='Y'){ var py=(+period-1)+''; return YEARS.indexOf(py)>=0?py:null; }
+  if(gran==='M'){ var y=period.slice(0,4),m=+period.slice(5); return m>1?y+'M'+('0'+(m-1)).slice(-2):null; }
+  var yy=+period.slice(0,4), qq=+period.slice(period.indexOf('Q')+1); var pq=(yy-1)+'Q'+qq;
+  return Q_OPTS.indexOf(pq)>=0?pq:null;
+}
+
+var state={flow:1, reporter:"中国", gran:"Q", period:"2025Q4", drill:"CP", min:0, q:""};
+
+function buildReporterSel(){
+  var s=$('#selReporter'); s.innerHTML='';
+  var en=(window.SP_LANG&&SP_LANG()==='en');
+  var o0=document.createElement('option'); o0.value="__ALL__"; o0.textContent=en?'Global (all)':'全球汇总'; s.appendChild(o0);
+  function grp(label,arr){ var g=document.createElement('optgroup'); g.label=label; arr.forEach(function(c){var o=document.createElement('option');o.value=c;o.textContent=(window.TN?TN(c):c);g.appendChild(o);}); s.appendChild(g); }
+  grp(en?'Major steel economies':'主要钢材经济体', majorAvail);
+  grp(en?'Other reporters':'其他报告国', others);
+  s.value=state.reporter;
+}
+function buildPeriodSel(){
+  var s=$('#selPeriod'); s.innerHTML='';
+  optsFor(state.gran).slice().reverse().forEach(function(id){var o=document.createElement('option');o.value=id;o.textContent=labelOf(state.gran,id);s.appendChild(o);});
+  var opts=optsFor(state.gran);
+  if(opts.indexOf(state.period)<0) state.period=opts[opts.length-1];
+  s.value=state.period;
+}
+
+function aggregate(flow,repIdx,pidSet){
+  var cell={}, total=0, rows=TF.rows;
+  for(var i=0;i<rows.length;i++){
+    var r=rows[i];
+    if(r[0]!==flow) continue;
+    if(repIdx>=0 && r[2]!==repIdx) continue;
+    if(!pidSet[r[1]]) continue;
+    var k=r[3]*100+r[4];
+    cell[k]=(cell[k]||0)+r[5]; total+=r[5];
+  }
+  return {cell:cell,total:total};
+}
+function pidSetOf(gran,period){ var s={}; pidsFor(gran,period).forEach(function(id){ if(PIDX[id]!==undefined) s[PIDX[id]]=1; }); return s; }
+
+var W=1/1e5;
+var lastFlat=[];
+
+function compute(){
+  var repIdx = state.reporter==="__ALL__" ? -1 : C.indexOf(state.reporter);
+  var cur=aggregate(state.flow, repIdx, pidSetOf(state.gran,state.period));
+  var pp=priorPeriod(state.gran,state.period);
+  var prev=pp?aggregate(state.flow, repIdx, pidSetOf(state.gran,pp)):{cell:{},total:0};
+  var L1isPartner = state.drill==='CP';
+  var l1={}, prevL1={};
+  var k,pi,gi,l1k,l2k;
+  for(k in cur.cell){ pi=Math.floor(k/100); gi=k%100; l1k=L1isPartner?pi:gi; l2k=L1isPartner?gi:pi;
+    if(!l1[l1k]) l1[l1k]={tot:0,sub:{}}; l1[l1k].tot+=cur.cell[k]; l1[l1k].sub[l2k]=(l1[l1k].sub[l2k]||0)+cur.cell[k]; }
+  for(k in prev.cell){ pi=Math.floor(k/100); gi=k%100; l1k=L1isPartner?pi:gi; prevL1[l1k]=(prevL1[l1k]||0)+prev.cell[k]; }
+  var minRaw=state.min/W;
+  var arr=Object.keys(l1).map(function(l1k){
+    var e=l1[l1k];
+    var name = L1isPartner?C[+l1k]:G[+l1k];
+    var subArr=Object.keys(e.sub).map(function(l2k){ return {key:l2k, name:(L1isPartner?G[+l2k]:C[+l2k]), v:e.sub[l2k]}; })
+      .filter(function(x){return x.v>=minRaw;}).sort(function(a,b){return b.v-a.v;});
+    return {key:l1k, name:name, v:e.tot, prev:(prevL1[l1k]||0), sub:subArr};
+  }).filter(function(x){return x.v>=minRaw;}).sort(function(a,b){return b.v-a.v;});
+  return {arr:arr, total:cur.total, prevTotal:prev.total, pp:pp, L1isPartner:L1isPartner};
+}
+
+var chart=null;
+function fmt(n,d){ d=(d==null?1:d); return (Math.round(n*Math.pow(10,d))/Math.pow(10,d)).toLocaleString('en-US',{minimumFractionDigits:d,maximumFractionDigits:d}); }
+function T(zh){ return window.LGT?LGT(zh):zh; }
+window.__l1name=function(name,isPartner){ return isPartner?(window.TN?TN(name):name):(window.TP?TP(name):String(name).replace(/\s*\(.*\)$/,'')); };
+
+function render(){
+  var res=compute();
+  var arr=res.arr, tot=res.total*W;
+  var en=(window.SP_LANG&&SP_LANG()==='en');
+  var q=state.q.trim().toLowerCase();
+  var L1isPartner=res.L1isPartner;
+  var view=arr;
+  if(q){ view=arr.map(function(g){
+    var l1n=(window.__l1name(g.name,L1isPartner)||'').toLowerCase();
+    var subM=g.sub.filter(function(s){ var sn=(L1isPartner?(window.TP?TP(s.name):s.name):(window.TN?TN(s.name):s.name)); return String(sn).toLowerCase().indexOf(q)>=0; });
+    if(l1n.indexOf(q)>=0) return g;
+    if(subM.length) return {key:g.key,name:g.name,v:g.v,prev:g.prev,sub:subM};
+    return null;
+  }).filter(Boolean); }
+  var topL1=arr[0];
+  var nL1=arr.length, nL2=(function(){var s={};arr.forEach(function(g){g.sub.forEach(function(x){s[x.key]=1;});});return Object.keys(s).length;})();
+  var yoyTot = res.prevTotal>0? ((res.total-res.prevTotal)/res.prevTotal*100):null;
+  var flowTxt = state.flow===1?T('进口'):T('出口');
+  var repTxt = state.reporter==="__ALL__"?(en?'Global':'全球'):(window.TN?TN(state.reporter):state.reporter);
+  $('#kpis').innerHTML=[
+    ['<span class="num">'+(window.fmtVol?fmtVolNum(tot):fmt(tot,1))+'</span><span class="u"> '+(window.volUnit?volUnit():T('万吨'))+'</span>', repTxt+' · '+flowTxt+' · '+labelOf(state.gran,state.period)+(yoyTot!=null?(' · '+(en?'YoY ':'同比 ')+'<span class="'+(yoyTot>=0?'yoy up':'yoy dn')+'">'+(yoyTot>=0?'+':'')+yoyTot.toFixed(1)+'%</span>'):'')],
+    ['<span class="num">'+nL1+'</span>', L1isPartner?(en?'Partner countries':'贸易伙伴国'):(en?'Product groups':'品种数')],
+    ['<span class="num">'+nL2+'</span>', L1isPartner?(en?'Product groups':'涉及品种'):(en?'Partner countries':'涉及国别')],
+    [topL1?(window.__l1name(topL1.name,L1isPartner)+' · <span class="num">'+(window.fmtVol?fmtVolNum(topL1.v*W):fmt(topL1.v*W,1))+'</span>'):'—', (en?'Largest ':'最大 ')+(L1isPartner?(en?'partner':'伙伴'):(en?'product':'品种'))]
+  ].map(function(x){return '<div class="kpi"><div class="v num">'+x[0]+'</div><div class="k">'+x[1]+'</div></div>';}).join('');
+  $('#hint').innerHTML = (en?'Showing: ':'当前展示：')+repTxt+' · '+flowTxt+' · '+labelOf(state.gran,state.period)+' · '+(state.drill==='CP'?(en?'Country → Product':'国别 → 品种'):(en?'Product → Country':'品种 → 国别'))+(res.pp?(' · '+(en?'vs ':'对比 ')+labelOf(state.gran,res.pp)):'');
+  var h1=L1isPartner?(en?'Partner / Source':'国别'):(en?'Product':'品种');
+  var thead='<tr><th class="l">'+h1+'</th><th>'+(window.volUnit?volUnit():T('万吨'))+'</th><th>'+(en?'Share':'占比')+'</th><th>'+(en?'YoY':'同比')+'</th></tr>';
+  $('#pivot').querySelector('thead').innerHTML=thead;
+  var max=arr.length?arr[0].v:1;
+  var rowsHtml=view.map(function(g,i){
+    var share=tot>0?(g.v*W/tot*100):0;
+    var yoy=g.prev>0?((g.v-g.prev)/g.prev*100):null;
+    var nm=window.__l1name(g.name,L1isPartner);
+    var sub=g.sub.map(function(s){
+      var sh=g.v>0?(s.v/g.v*100):0;
+      var sn=L1isPartner?(window.TP?TP(s.name):s.name):(window.TN?TN(s.name):s.name);
+      return '<tr class="l2 g'+i+'" style="display:none"><td class="l">'+sn+'</td><td class="num">'+(window.fmtVol?fmtVolNum(s.v*W):fmt(s.v*W,2))+'</td><td class="num">'+sh.toFixed(1)+'%</td><td></td></tr>';
+    }).join('');
+    return '<tr class="l1" data-g="'+i+'"><td class="l"><span class="tw">▸</span>'+nm+'</td>'+
+      '<td class="num">'+(window.fmtVol?fmtVolNum(g.v*W):fmt(g.v*W,1))+'<i class="bar" style="width:'+(g.v/max*60)+'px"></i></td>'+
+      '<td class="num">'+share.toFixed(1)+'%</td>'+
+      '<td class="num '+(yoy==null?'':(yoy>=0?'yoy up':'yoy dn'))+'">'+(yoy==null?'—':((yoy>=0?'+':'')+yoy.toFixed(1)+'%'))+'</td></tr>'+sub;
+  }).join('');
+  $('#pivot').querySelector('tbody').innerHTML = view.length?rowsHtml:'<tr><td colspan="4" class="empty">'+(en?'No data for this selection.':'该筛选下暂无数据。')+'</td></tr>';
+  $('#pivot').querySelectorAll('tr.l1').forEach(function(tr){
+    tr.onclick=function(){ var g=tr.getAttribute('data-g'); var open=tr.classList.toggle('open');
+      tr.querySelector('.tw').textContent=open?'▾':'▸';
+      $('#pivot').querySelectorAll('tr.l2.g'+g).forEach(function(x){x.style.display=open?'':'none';}); };
+  });
+  $('#tblTitle').textContent = (state.drill==='CP'?(en?'Detail · Country → Product':'明细 · 国别 → 品种'):(en?'Detail · Product → Country':'明细 · 品种 → 国别'));
+  $('#tblSub').textContent = (en?'click a row to drill down':'点击展开下一级');
+  $('#chTitle').textContent = 'Top 15 · '+(L1isPartner?(en?'Countries':'国别'):(en?'Products':'品种'));
+  var _cu=document.getElementById('chUnit'); if(_cu) _cu.textContent=(window.volUnit?volUnit():'万吨');
+  drawChart(arr.slice(0,15), L1isPartner, en);
+  lastFlat=[];
+  arr.forEach(function(g){
+    var l1n=L1isPartner?(en?(window.TN?TN(g.name):g.name):g.name):(en?(window.TP?TP(g.name):g.name):String(g.name).replace(/\s*\(.*\)$/,''));
+    g.sub.forEach(function(s){
+      var l2n=L1isPartner?(en?(window.TP?TP(s.name):s.name):String(s.name).replace(/\s*\(.*\)$/,'')):(en?(window.TN?TN(s.name):s.name):s.name);
+      lastFlat.push({reporter:repTxt, flow:flowTxt, period:labelOf(state.gran,state.period), L1:l1n, L2:l2n, wan:Math.round(s.v*W*100)/100});
+    });
+  });
+}
+
+function drawChart(top,isPartner,en){
+  if(!window.echarts) return;
+  if(!chart) chart=echarts.init(document.getElementById('chart'));
+  var names=top.map(function(g){return window.__l1name(g.name,isPartner);}).reverse();
+  var _mt=(window.SP_LANG&&SP_LANG()==='en'); var vals=top.map(function(g){var w=g.v*W; return _mt?Math.round(w/100*100)/100:Math.round(w*10)/10;}).reverse();
+  chart.setOption({
+    animationDuration:500,
+    grid:{left:6,right:50,top:8,bottom:8,containLabel:true},
+    tooltip:{trigger:'axis',axisPointer:{type:'shadow'},backgroundColor:'rgba(13,18,32,.96)',borderColor:'#22304d',textStyle:{color:'#e8edf6',fontSize:12},
+      formatter:function(p){return p[0].name+'<br/><b>'+p[0].value.toLocaleString('en-US',{minimumFractionDigits:_mt?2:1,maximumFractionDigits:_mt?2:1})+'</b> '+(window.volUnit?volUnit():T('万吨'));}},
+    xAxis:{type:'value',axisLabel:{show:false},splitLine:{show:false},axisLine:{show:false},axisTick:{show:false}},
+    yAxis:{type:'category',data:names,axisLine:{lineStyle:{color:'#2a3a58'}},axisTick:{show:false},axisLabel:{color:'#cfd7e6',fontSize:11.5}},
+    series:[{type:'bar',data:vals,barWidth:'62%',
+      label:{show:true,position:'right',color:'#9aa6bb',fontSize:10.5,formatter:function(p){return p.value.toLocaleString('en-US',{minimumFractionDigits:1,maximumFractionDigits:1});}},
+      itemStyle:{borderRadius:[0,4,4,0],color:state.flow===1?new echarts.graphic.LinearGradient(0,0,1,0,[{offset:0,color:'#1f3a6e'},{offset:1,color:'#2f6fed'}]):new echarts.graphic.LinearGradient(0,0,1,0,[{offset:0,color:'#8a0000'},{offset:1,color:'#e23b3b'}])}}]
+  });
+  chart.resize();
+}
+window.addEventListener('resize',function(){ if(chart)chart.resize(); });
+
+function exportRows(){
+  var en=(window.SP_LANG&&SP_LANG()==='en');
+  var head=en?['Reporter','Flow','Period','Level1','Level2','Volume ('+(window.volUnit?volUnit():'Mt')+')']:['报告国','流向','时段','一级','二级','数量(万吨)'];
+  var toU=function(w){ return en?Math.round(w/100*1000)/1000:w; };
+  return [head].concat(lastFlat.map(function(r){return [r.reporter,r.flow,r.period,r.L1,r.L2,toU(r.wan)];}));
+}
+function exportName(){ return 'SMM_'+(state.reporter==="__ALL__"?'Global':state.reporter)+'_'+(state.flow===1?'IMPORT':'EXPORT')+'_'+state.period+'_'+state.drill; }
+function downloadCSV(){
+  var data=exportRows();
+  var csv='﻿'+data.map(function(row){return row.map(function(c){return '"'+String(c).replace(/"/g,'""')+'"';}).join(',');}).join('\n');
+  var blob=new Blob([csv],{type:'text/csv;charset=utf-8'}); var a=document.createElement('a');
+  a.href=URL.createObjectURL(blob); a.download=exportName()+'.csv'; a.click();
+}
+function writeXLSX(){
+  var ws=XLSX.utils.aoa_to_sheet(exportRows());
+  ws['!cols']=[{wch:16},{wch:10},{wch:10},{wch:24},{wch:24},{wch:14}];
+  var wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,'Data'); XLSX.writeFile(wb,exportName()+'.xlsx');
+}
+function downloadXLSX(){
+  if(window.XLSX){ writeXLSX(); return; }
+  var s=document.createElement('script'); s.src='https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+  s.onload=writeXLSX;
+  s.onerror=function(){ alert((window.SP_LANG&&SP_LANG()==='en')?'Excel engine unavailable offline — exporting CSV instead.':'离线无法加载 Excel 引擎，已改为导出 CSV。'); downloadCSV(); };
+  document.head.appendChild(s);
+}
+
+function segWire(id,key,cb){ $(id).addEventListener('click',function(e){ if(e.target.tagName!=='BUTTON')return;
+  $(id).querySelectorAll('button').forEach(function(b){b.classList.remove('on');}); e.target.classList.add('on');
+  state[key]=(key==='flow'?+e.target.dataset.v:e.target.dataset.v); if(cb)cb(); render(); }); }
+segWire('#segFlow','flow');
+segWire('#segDrill','drill');
+segWire('#segGran','gran',function(){ buildPeriodSel(); });
+$('#selReporter').addEventListener('change',function(e){ state.reporter=e.target.value; render(); });
+$('#selPeriod').addEventListener('change',function(e){ state.period=e.target.value; render(); });
+$('#minVol').addEventListener('input',function(e){ state.min=+e.target.value||0; render(); });
+$('#search').addEventListener('input',function(e){ state.q=e.target.value; render(); });
+$('#btnCsv').addEventListener('click',downloadCSV);
+$('#btnXls').addEventListener('click',downloadXLSX);
+
+window.__relang=function(){ buildReporterSel(); render(); };
+
+buildReporterSel(); buildPeriodSel(); render();
+})();
+</script>
+<script src="./assets/version.js"></script>
+<script src="./assets/version_badge.js"></script>
+<script src="./assets/update_banner.js"></script>
+<script src="./assets/gate.js"></script>
+
+</body>
+</html>

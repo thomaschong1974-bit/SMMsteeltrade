@@ -1,0 +1,1247 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>全球钢材贸易脉搏 | Global Steel Trade Intelligence</title>
+<link href="./assets/maplibre-gl.css" rel="stylesheet">
+<script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+<script src="./assets/world_geo.js"></script>
+<script src="./assets/deck.gl.js"></script>
+<script src="./assets/echarts.min.js"></script>
+<script src="./assets/pulse_data.js"></script>
+<script>window.__MT_OK=true;</script>
+<script src="./assets/i18n_flagship.js"></script>
+<style>
+@font-face{font-family:'MiSans';font-weight:100 900;font-display:swap;src:local('MiSans VF'),local('MiSans'),local('MiSans-Regular'),local('MiSans-Medium'),local('MiSans-Semibold'),local('MiSans-Bold');}
+
+/* ============================================================
+   旗舰首页 · 深色情报驾驶舱 + 滚动叙事研报
+   强调色 = SMM 红 #C00000;辅助金 #e8a13a / 蓝 #2f6fed
+   ============================================================ */
+:root{
+  --red:#C00000;--red2:#e23b3b;--gold:#e8a13a;--blue:#2f6fed;
+  --ink:#16191d;--muted:#79808a;--line:#e9ebee;--hair:#eef0f2;
+  --bg:#ffffff;
+  --d-bg0:#0a0e1a;--d-bg1:#0b1220;
+  --d-line:#22304d;--d-text:#e8edf6;--d-mut:#8b97ad;
+  --up:#c0392b;--down:#1f9d6b;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'MiSans','MiSans VF','PingFang SC','Microsoft YaHei',system-ui,sans-serif;
+  color:var(--d-text);background:var(--d-bg0);line-height:1.6;-webkit-font-smoothing:antialiased}
+.num{font-variant-numeric:tabular-nums;font-feature-settings:"tnum"}
+a{color:inherit;text-decoration:none}
+
+/* ============ 顶部导航 ============ */
+.nav{position:fixed;top:0;left:0;right:0;height:60px;z-index:100;
+  display:flex;align-items:center;gap:28px;padding:0 30px;
+  background:rgba(10,14,26,.72);backdrop-filter:blur(14px);
+  border-bottom:1px solid rgba(255,255,255,.06)}
+.nav.scrolled{background:rgba(8,11,20,.92)}
+.nav-brand{display:flex;align-items:center;gap:11px;flex:0 0 auto}
+.nav-brand img{height:24px;width:auto;display:block}
+.nav-brand .bdiv{width:1px;height:20px;background:rgba(255,255,255,.14)}
+.nav-brand .btxt{font-size:12.5px;font-weight:800;letter-spacing:.14em;color:#cfd7e6}
+.nav-menu{display:flex;align-items:center;gap:3px;margin-left:6px}
+.nav-item{position:relative;padding:8px 13px;border-radius:8px;cursor:pointer;display:block}
+.nav-item .zh{font-size:14px;font-weight:650;color:#d7deea;line-height:1.15}
+.nav-item .en{font-size:9.5px;letter-spacing:.08em;color:#69748a;text-transform:uppercase;line-height:1.1}
+.nav-item:hover{background:rgba(255,255,255,.05)}
+.nav-item.active .zh{color:#fff}
+.nav-item.active::after{content:"";position:absolute;left:13px;right:13px;bottom:2px;height:2px;background:var(--red);border-radius:2px}
+.nav-drop{position:relative}
+.nav-drop>.nav-item{display:flex;align-items:center;gap:5px}
+.nav-drop .caret{font-size:9px;color:#8a96ab;transition:transform .2s}
+.nav-drop:hover .caret{transform:rotate(180deg)}
+.drop-menu{position:absolute;top:calc(100% + 8px);left:0;min-width:200px;
+  background:rgba(13,18,32,.97);backdrop-filter:blur(16px);
+  border:1px solid var(--d-line);border-radius:12px;padding:7px;
+  box-shadow:0 18px 50px rgba(0,0,0,.55);opacity:0;visibility:hidden;
+  transform:translateY(-6px);transition:.18s;z-index:120}
+.nav-drop:hover .drop-menu{opacity:1;visibility:visible;transform:translateY(0)}
+.drop-menu a{display:flex;align-items:center;gap:9px;padding:9px 12px;border-radius:8px;
+  font-size:13.5px;color:#c2cad8;font-weight:550}
+.drop-menu a:hover{background:rgba(192,0,0,.14);color:#fff}
+.drop-menu a .dot{width:5px;height:5px;border-radius:50%;background:var(--gold);flex:0 0 auto;opacity:.8}
+.nav-right{margin-left:auto;display:flex;align-items:center;gap:14px}
+.nav-live{display:flex;align-items:center;gap:7px;font-size:11px;color:#9aa6bb;font-weight:600;letter-spacing:.04em}
+.live-dot{width:7px;height:7px;border-radius:50%;background:#22c275;animation:pulse 2s infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(34,194,117,.55)}70%{box-shadow:0 0 0 7px rgba(34,194,117,0)}100%{box-shadow:0 0 0 0 rgba(34,194,117,0)}}
+
+/* ============ 第一屏:全球雷达 ============ */
+.hero{position:relative;min-height:100vh;overflow:hidden;
+  background:
+   radial-gradient(1200px 700px at 72% 30%, rgba(47,111,237,.10), transparent 60%),
+   radial-gradient(900px 600px at 20% 75%, rgba(192,0,0,.08), transparent 60%),
+   linear-gradient(160deg,#0a0e1a 0%,#0b1220 55%,#090d18 100%)}
+.hero::before{content:"";position:absolute;inset:0;pointer-events:none;
+  background-image:linear-gradient(rgba(255,255,255,.025) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(255,255,255,.025) 1px,transparent 1px);
+  background-size:46px 46px;
+  -webkit-mask-image:radial-gradient(1100px 700px at 60% 45%,#000 30%,transparent 85%);
+  mask-image:radial-gradient(1100px 700px at 60% 45%,#000 30%,transparent 85%)}
+#worldMap{position:absolute;inset:60px 0 0 0;z-index:1;background:#0a0e1a}
+#worldMap canvas{outline:none}
+#worldMap .maplibregl-ctrl-attrib{font-size:9px!important;background:rgba(7,11,22,.6)!important}
+#worldMap .maplibregl-ctrl-attrib a{color:#6b7796!important}
+#worldMap .maplibregl-ctrl-bottom-right{margin-bottom:64px}
+.heroBusy{position:absolute;top:74px;right:28px;z-index:9;display:none;align-items:center;gap:8px;
+  padding:6px 12px;font-size:11px;color:var(--gold);background:rgba(10,15,28,.85);
+  border:1px solid rgba(232,161,58,.35);border-radius:20px}
+.heroBusy.on{display:flex}
+.heroBusy .sp{width:11px;height:11px;border:2px solid rgba(232,161,58,.25);
+  border-top-color:var(--gold);border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+/* deck.gl 高级悬浮信息卡（玻璃质感） */
+#deckTip{position:absolute;z-index:9;pointer-events:none;opacity:0;transition:opacity .12s;
+  min-width:172px;max-width:260px;padding:11px 13px;border-radius:12px;
+  background:linear-gradient(180deg,rgba(18,25,44,.93),rgba(11,17,31,.93));
+  backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+  border:1px solid rgba(120,150,210,.26);box-shadow:0 18px 54px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,255,255,.06);
+  transform:translate(-50%,-118%)}
+#deckTip .tipRoute{font-size:13px;font-weight:750;color:#fff;display:flex;align-items:center;gap:7px;margin-bottom:5px}
+#deckTip .tipRoute .ar{color:var(--red2);font-weight:800}
+#deckTip .tipRow{font-size:11.5px;color:#9aa6bb;line-height:1.55}
+#deckTip .tipRow b{color:#fff;font-weight:750}
+#deckTip .tipRow b.g{color:var(--gold)}#deckTip .tipRow b.b{color:#5a8cf2}
+#deckTip .tipUp{color:#5ad19a;font-weight:700}#deckTip .tipDn{color:#ff7a6e;font-weight:700}
+#deckTip .tipGo{font-size:10px;color:#69748a;margin-top:6px}
+.hero-grad-bottom{position:absolute;left:0;right:0;bottom:0;height:160px;z-index:3;pointer-events:none;
+  background:linear-gradient(to bottom,transparent,#0a0e1a 92%)}
+.hero-grad-top{position:absolute;left:0;right:0;top:0;height:52%;z-index:3;pointer-events:none;
+  background:linear-gradient(to bottom, rgba(4,8,16,.82) 0%, rgba(4,8,16,.55) 30%, rgba(4,8,16,.22) 62%, transparent 100%)}
+
+/* 左上标题块 */
+.hero-title{position:absolute;left:42px;top:104px;z-index:6;max-width:520px;pointer-events:none}
+.hero-title .hm .v{} /* 文字阴影已移除，改用顶部渐变蒙层 */
+.ht-tag{display:inline-flex;align-items:center;gap:8px;font-size:11px;font-weight:700;letter-spacing:.16em;
+  color:var(--gold);text-transform:uppercase;margin-bottom:14px}
+.ht-tag::before{content:"";width:22px;height:2px;background:var(--gold)}
+.hero-title h1{font-size:46px;line-height:1.08;font-weight:850;letter-spacing:-.01em;color:#fff;
+  text-shadow:0 2px 30px rgba(0,0,0,.5)}
+.hero-title h1 .em{color:var(--red2)}
+.hero-sub{margin-top:16px;font-size:13px;color:#9fadc4;line-height:1.7;max-width:420px}
+.hero-sub b{color:#d7deea;font-weight:700}
+.hero-meta{margin-top:20px;display:flex;gap:22px}
+.hm{pointer-events:auto}
+.hm .v{font-size:25px;font-weight:800;color:#fff;letter-spacing:-.01em}
+.hm .v .u{font-size:12px;color:var(--d-mut);font-weight:600;margin-left:3px}
+.hm .k{font-size:11px;color:#7e8aaa;margin-top:2px}
+.hm .up{color:#5ad19a}
+
+/* 右侧玻璃浮层 核心判断 */
+.intel{position:absolute;right:34px;top:100px;width:368px;z-index:7;
+  background:linear-gradient(180deg,rgba(20,28,48,.66),rgba(13,19,34,.62));
+  backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
+  border:1px solid rgba(120,150,210,.16);border-radius:16px;padding:18px 18px 14px;
+  box-shadow:0 24px 70px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.05)}
+.intel-h{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;
+  padding-bottom:12px;border-bottom:1px solid rgba(255,255,255,.08)}
+.intel-h .t{font-size:14.5px;font-weight:800;color:#fff;letter-spacing:.02em}
+.intel-h .t .en{display:block;font-size:9px;letter-spacing:.16em;color:#6b7790;font-weight:600;margin-top:2px}
+.intel-h .badge{font-size:10px;font-weight:700;color:var(--red2);border:1px solid rgba(226,59,59,.4);
+  padding:3px 8px;border-radius:20px;letter-spacing:.05em}
+.icard{display:flex;gap:11px;padding:11px 4px;border-bottom:1px dashed rgba(255,255,255,.07)}
+.icard:last-child{border-bottom:none}
+.icard .no{flex:0 0 auto;width:26px;height:26px;border-radius:7px;display:flex;align-items:center;justify-content:center;
+  font-size:11px;font-weight:800;color:#fff;background:linear-gradient(135deg,var(--red),#8a0000)}
+.icard:nth-child(odd) .no{background:linear-gradient(135deg,var(--gold),#b97a13)}
+.icard .body{flex:1;min-width:0}
+.icard .ti{font-size:13px;font-weight:700;color:#eef2f8;line-height:1.35}
+.icard .ds{font-size:11.5px;color:#9aa7bd;margin-top:3px;line-height:1.45}
+.icard .ds b{color:#fff;font-weight:700}
+.icard .ds b.g{color:var(--gold)}.icard .ds b.r{color:var(--red2)}
+.icard .ev{display:flex;flex-wrap:wrap;gap:6px;margin-top:7px}
+.icard .ev a{font-size:10.5px;font-weight:600;color:#bcc7da;background:rgba(255,255,255,.06);
+  border:1px solid rgba(255,255,255,.08);padding:3px 9px;border-radius:6px;transition:.15s}
+.icard .ev a:hover{background:var(--red);border-color:var(--red);color:#fff}
+
+/* 底部模式横条 */
+.hero-bar{position:absolute;left:0;right:0;bottom:0;z-index:8;
+  display:flex;align-items:center;gap:18px;padding:14px 34px;flex-wrap:wrap;
+  background:linear-gradient(to top,rgba(8,11,20,.94),rgba(8,11,20,.55));
+  border-top:1px solid rgba(255,255,255,.07);backdrop-filter:blur(8px)}
+.hb-group{display:flex;align-items:center;gap:9px}
+.hb-lab{font-size:11px;color:#7e8aaa;font-weight:600;letter-spacing:.05em}
+.seg{display:inline-flex;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);
+  border-radius:8px;padding:3px;gap:2px}
+.seg button{border:none;background:transparent;color:#9aa6bb;font-size:12px;font-weight:650;
+  padding:5px 13px;border-radius:6px;cursor:pointer;font-family:inherit;transition:.15s}
+.seg button.on{background:var(--red);color:#fff}
+.pill{font-size:11px;color:#8b97ad;border:1px solid rgba(255,255,255,.1);padding:5px 12px;
+  border-radius:8px;background:rgba(255,255,255,.03)}
+.seg.gold button.on{background:linear-gradient(135deg,#e8a13a,#b97a13);color:#1a1206}
+.hb-dd{font-size:12px;color:#cfd7e6;background:rgba(255,255,255,.05);
+  border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:5px 26px 5px 11px;cursor:pointer;
+  appearance:none;outline:none;font-family:inherit;font-weight:600;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' fill='%238a97b4'><path d='M0 0l5 6 5-6z'/></svg>");
+  background-repeat:no-repeat;background-position:right 9px center}
+.hb-dd option{background:#0d1426;color:#e8edf6}
+.hb-tog{position:relative;width:36px;height:20px;border-radius:11px;background:rgba(255,255,255,.08);
+  border:1px solid rgba(255,255,255,.1);cursor:pointer;flex:0 0 auto;transition:.18s}
+.hb-tog::after{content:"";position:absolute;top:1.5px;left:1.5px;width:15px;height:15px;border-radius:50%;
+  background:#8b97ad;transition:.18s}
+.hb-tog.on{background:rgba(232,161,58,.4);border-color:var(--gold)}
+.hb-tog.on::after{transform:translateX(16px);background:var(--gold);box-shadow:0 0 8px var(--gold)}
+.hb-legend{margin-left:auto;display:flex;gap:16px;align-items:center}
+.lg{display:flex;align-items:center;gap:6px;font-size:11px;color:#9aa6bb;font-weight:550}
+.lg i{width:16px;height:3px;border-radius:2px;display:inline-block}
+.scrollcue{position:absolute;left:50%;bottom:78px;transform:translateX(-50%);z-index:8;
+  font-size:10.5px;letter-spacing:.18em;color:#6b7790;text-align:center;pointer-events:none}
+.scrollcue .ar{display:block;margin:6px auto 0;width:14px;height:14px;border-right:2px solid #6b7790;
+  border-bottom:2px solid #6b7790;transform:rotate(45deg);animation:bob 1.8s infinite}
+@keyframes bob{0%,100%{transform:rotate(45deg) translate(0,0);opacity:.5}50%{transform:rotate(45deg) translate(3px,3px);opacity:1}}
+
+/* ============ 滚动研报区 (浅色) ============ */
+.report{position:relative;background:linear-gradient(to bottom,#0a0e1a 0,#0a0e1a 1px,#fbfbfc 120px,#fff 100%);
+  color:var(--ink);padding-top:1px}
+.rwrap{max-width:1180px;margin:0 auto;padding:0 40px}
+.sec{padding:60px 0}
+.sec-head{margin-bottom:30px}
+.sec-eyebrow{font-size:11px;font-weight:700;letter-spacing:.16em;color:var(--red);text-transform:uppercase;
+  display:flex;align-items:center;gap:9px}
+.sec-eyebrow::before{content:"";width:24px;height:2px;background:var(--red)}
+.sec-head h2{font-size:30px;font-weight:820;letter-spacing:-.01em;color:var(--ink);margin-top:12px}
+.sec-head p{font-size:14px;color:var(--muted);margin-top:8px;max-width:680px}
+
+/* 大数字情报条 */
+.bignum-bar{background:linear-gradient(135deg,#0c1018,#11151f);border-radius:18px;
+  padding:34px 10px;display:flex;flex-wrap:wrap;align-items:stretch;
+  box-shadow:0 30px 70px rgba(10,15,30,.18)}
+.bn{flex:1;min-width:150px;padding:6px 26px;border-right:1px solid rgba(255,255,255,.08)}
+.bn:last-child{border-right:none}
+.bn .v{font-size:33px;font-weight:850;color:#fff;letter-spacing:-.02em;line-height:1}
+.bn .v .u{font-size:14px;font-weight:600;color:#7e8aaa;margin-left:3px}
+.bn .v .up{font-size:14px;color:#5ad19a;font-weight:700;margin-left:5px}
+.bn .v .dn{font-size:14px;color:#ff7a6e;font-weight:700;margin-left:5px}
+.bn .v.sm{font-size:23px;color:var(--gold)}
+.bn .k{font-size:12px;color:#8b97ad;margin-top:9px;line-height:1.4}
+
+/* 排名条 */
+.rank-grid{display:grid;grid-template-columns:1fr 1fr;gap:46px}
+@media(max-width:900px){.rank-grid{grid-template-columns:1fr}}
+.rank-col h3{font-size:16px;font-weight:780;color:var(--ink);margin-bottom:4px;display:flex;align-items:center;gap:8px}
+.rank-col h3 .tag{font-size:10px;font-weight:700;letter-spacing:.1em;padding:2px 7px;border-radius:4px;
+  background:rgba(192,0,0,.08);color:var(--red)}
+.rank-col h3 .tag.b{background:rgba(47,111,237,.1);color:var(--blue)}
+.rank-col .csub{font-size:12px;color:var(--muted);margin-bottom:16px}
+.rrow{display:grid;grid-template-columns:18px 96px 1fr 78px;align-items:center;gap:10px;padding:7px 0;
+  border-bottom:1px solid var(--hair)}
+.rrow .ri{font-size:11px;color:#b8bdc7;font-weight:700;text-align:right}
+.rrow .rn{font-size:13px;font-weight:650;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rrow .rn .ren{font-size:9.5px;color:#a6adb8;font-weight:500;margin-left:4px}
+.rbar{height:7px;border-radius:4px;background:#eef0f3;position:relative;overflow:hidden}
+.rbar i{position:absolute;left:0;top:0;bottom:0;border-radius:4px;
+  background:linear-gradient(90deg,var(--red),#e35b5b)}
+.rank-col.imp .rbar i{background:linear-gradient(90deg,var(--blue),#5a8cf2)}
+.rrow .rv{text-align:right;font-size:12.5px;font-weight:700;color:var(--ink)}
+.rrow .rv .rs{display:block;font-size:10px;color:#a6adb8;font-weight:600}
+
+/* 双边 top20 */
+.bil-wrap{margin-top:8px}
+.bil-row{display:grid;grid-template-columns:20px 1fr 130px 64px;align-items:center;gap:12px;
+  padding:9px 14px;border-radius:10px;cursor:pointer;transition:.14s;border:1px solid transparent}
+.bil-row:hover{background:#fafbfc;border-color:var(--line)}
+.bil-row .bi{font-size:11px;color:#b8bdc7;font-weight:700;text-align:center}
+.bil-route{font-size:13.5px;font-weight:600;color:var(--ink);display:flex;align-items:center;gap:8px}
+.bil-route .ar{color:var(--red);font-weight:800}
+.bil-bar{height:6px;border-radius:3px;background:#eef0f3;position:relative;overflow:hidden}
+.bil-bar i{position:absolute;inset:0 auto 0 0;border-radius:3px;background:linear-gradient(90deg,var(--gold),#f0b860)}
+.bil-row .bv{text-align:right;font-size:13px;font-weight:750;color:var(--ink)}
+.bil-yoy{text-align:right;font-size:11.5px;font-weight:700}
+.bil-yoy.up{color:#1f9d6b}.bil-yoy.dn{color:var(--red)}
+
+/* 情报卡片墙 */
+.card-wall{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+@media(max-width:980px){.card-wall{grid-template-columns:1fr 1fr}}
+@media(max-width:640px){.card-wall{grid-template-columns:1fr}}
+.icw{background:#fff;border:1px solid var(--line);border-radius:14px;padding:20px;cursor:pointer;
+  transition:.18s;position:relative;overflow:hidden}
+.icw::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--red);transform:scaleY(0);transform-origin:top;transition:.2s}
+.icw:hover{transform:translateY(-3px);box-shadow:0 18px 40px rgba(20,25,40,.1);border-color:#dfe3e9}
+.icw:hover::before{transform:scaleY(1)}
+.icw .ctag{font-size:10.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--red)}
+.icw .ctag.g{color:var(--gold)}.icw .ctag.b{color:var(--blue)}.icw .ctag.dn{color:#1f9d6b}
+.icw h4{font-size:16px;font-weight:780;color:var(--ink);margin:9px 0 7px;line-height:1.3}
+.icw .cstat{font-size:24px;font-weight:850;color:var(--ink);letter-spacing:-.01em;margin:4px 0}
+.icw .cstat .up{color:#1f9d6b;font-size:15px;font-weight:700}
+.icw .cstat .dn{color:var(--red);font-size:15px;font-weight:700}
+.icw p{font-size:12.5px;color:var(--muted);line-height:1.55}
+.icw .go{margin-top:12px;font-size:12px;font-weight:700;color:var(--red);display:flex;align-items:center;gap:5px}
+.icw .go .a{transition:.18s}.icw:hover .go .a{transform:translateX(3px)}
+
+/* 深度入口 */
+.entry-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+@media(max-width:900px){.entry-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:560px){.entry-grid{grid-template-columns:1fr}}
+.entry{display:block;background:#fafbfc;border:1px solid var(--line);border-radius:14px;padding:22px;transition:.18s}
+.entry:hover{background:#fff;border-color:#d4d9e0;box-shadow:0 14px 34px rgba(20,25,40,.08);transform:translateY(-2px)}
+.entry .ico{width:38px;height:38px;border-radius:10px;background:linear-gradient(135deg,#0c1018,#1a2236);
+  display:flex;align-items:center;justify-content:center;margin-bottom:13px}
+.entry .ico svg{width:20px;height:20px;stroke:#e8a13a;fill:none;stroke-width:1.8}
+.entry h4{font-size:15.5px;font-weight:780;color:var(--ink)}
+.entry .een{font-size:10px;letter-spacing:.1em;color:#aab0bb;text-transform:uppercase;margin-top:2px}
+.entry p{font-size:12.5px;color:var(--muted);margin-top:9px;line-height:1.5}
+
+/* footer */
+.foot{background:#0a0e1a;color:#8b97ad;padding:40px 0 50px;margin-top:30px}
+.foot .rwrap{display:flex;flex-wrap:wrap;gap:28px;justify-content:space-between;align-items:flex-start}
+.foot .fb{display:flex;align-items:center;gap:11px;margin-bottom:14px}
+.foot .fb img{height:22px;width:auto}
+.foot .fb .ft{font-size:12px;font-weight:800;letter-spacing:.12em;color:#cfd7e6}
+.foot .cap{font-size:12px;line-height:1.7;max-width:560px}
+.foot .cap b{color:#c2cad8}
+.foot .fcols{display:flex;gap:40px}
+.foot .fcol h5{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#69748a;margin-bottom:10px}
+.foot .fcol a{display:block;font-size:13px;color:#9aa6bb;padding:3px 0;transition:.15s}
+.foot .fcol a:hover{color:#fff}
+.foot .copy{width:100%;border-top:1px solid rgba(255,255,255,.07);margin-top:8px;padding-top:18px;font-size:11px;color:#5a657d}
+
+@media(max-width:1180px){
+  .intel{display:none}
+  .hero-title{max-width:60%}
+}
+@media(max-width:760px){
+  .nav-menu{display:none}
+  .hero-title{left:20px;top:90px;max-width:90%}
+  .hero-title h1{font-size:32px}
+  .bn{min-width:130px;padding:6px 16px}
+}
+/* KPI sparkline 容器 */
+.bn .spark{height:26px;margin-top:10px;width:100%;opacity:.92}
+/* 研报区 ECharts 玻璃图卡 */
+.echart-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:24px;margin-top:8px}
+@media(max-width:900px){.echart-grid{grid-template-columns:1fr}}
+.echart-card{background:linear-gradient(160deg,#0c1018,#11151f);border-radius:16px;
+  padding:22px 22px 14px;box-shadow:0 24px 60px rgba(10,15,30,.16);position:relative;overflow:hidden}
+.echart-card::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--red);opacity:.85}
+.echart-card .ec-h{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:4px}
+.echart-card .ec-t{font-size:15.5px;font-weight:780;color:#fff;letter-spacing:.01em}
+.echart-card .ec-tag{font-size:10px;font-weight:700;letter-spacing:.1em;color:var(--gold);text-transform:uppercase}
+.echart-card .ec-sub{font-size:12px;color:#8b97ad;margin-bottom:6px}
+.echart-box{width:100%;height:312px}
+.lang-btn{border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.06);color:#d7deea;
+  font-size:11px;font-weight:700;padding:5px 12px;border-radius:8px;cursor:pointer;font-family:inherit;
+  letter-spacing:.06em;transition:.15s}
+.lang-btn:hover{background:var(--red);border-color:var(--red);color:#fff}
+body.en .rrow .ren{display:none}
+body.en .hero-title h1{font-size:37px}
+/* reveal */
+.reveal{opacity:0;transform:translateY(22px);transition:opacity .7s ease,transform .7s ease}
+.reveal.in{opacity:1;transform:none}
+</style>
+</head>
+<body>
+<!-- ============ 访问口令 ============ -->
+<div id="pwGate" style="position:fixed;inset:0;z-index:9999;background:radial-gradient(900px 600px at 30% 70%,rgba(192,0,0,.10),transparent 60%),radial-gradient(1100px 700px at 70% 25%,rgba(47,111,237,.12),transparent 60%),#090d18;display:flex;align-items:center;justify-content:center">
+  <div style="width:min(360px,86vw);background:linear-gradient(180deg,rgba(20,28,48,.72),rgba(13,19,34,.7));backdrop-filter:blur(18px);border:1px solid rgba(120,150,210,.2);border-radius:18px;padding:30px 28px;box-shadow:0 30px 80px rgba(0,0,0,.55)">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
+      <img src="./assets/SMM_logo.svg" alt="SMM" style="height:22px">
+      <span style="font-size:12px;font-weight:800;letter-spacing:.14em;color:#cfd7e6">TRADE INTEL</span>
+    </div>
+    <div style="font-size:20px;font-weight:850;color:#fff;line-height:1.3">全球钢材贸易<span style="color:#e23b3b">脉搏</span></div>
+    <div style="font-size:12px;color:#8b97ad;margin:8px 0 18px">Global Steel Trade Intelligence · 请输入访问口令</div>
+    <input id="pwInput" type="password" placeholder="访问口令" autocomplete="off" style="width:100%;padding:11px 13px;border-radius:10px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.06);color:#fff;font-size:14px;outline:none;font-family:inherit">
+    <div id="pwErr" style="display:none;font-size:11.5px;color:#ff7a6e;margin-top:8px">口令不正确，请重试</div>
+    <button id="pwBtn" style="width:100%;margin-top:14px;padding:11px;border:none;border-radius:10px;background:linear-gradient(135deg,#C00000,#8a0000);color:#fff;font-size:14px;font-weight:750;cursor:pointer;font-family:inherit;letter-spacing:.04em">进入平台</button>
+  </div>
+</div>
+<script>
+(function(){
+  var g=document.getElementById('pwGate');
+  if(sessionStorage.getItem('steelPulseAuth')==='1'){ g.style.display='none'; return; }
+  document.documentElement.style.overflow='hidden';
+  function check(){
+    if(document.getElementById('pwInput').value==='smm12345'){
+      sessionStorage.setItem('steelPulseAuth','1');
+      g.style.display='none';
+      document.documentElement.style.overflow='';
+    }else{
+      document.getElementById('pwErr').style.display='block';
+    }
+  }
+  document.getElementById('pwBtn').addEventListener('click',check);
+  document.getElementById('pwInput').addEventListener('keydown',function(e){ if(e.key==='Enter') check(); });
+})();
+</script>
+
+<!-- ============ NAV ============ -->
+<nav class="nav" id="nav">
+  <a class="nav-brand" href="./flagship.html">
+    <img src="./assets/SMM_logo.svg" alt="SMM" style="height:24px;width:auto">
+    <span class="bdiv"></span>
+    <span class="btxt">TRADE INTEL</span>
+  </a>
+  <div class="nav-menu">
+    <a class="nav-item active" href="./flagship.html"><div class="zh">全球脉搏</div><div class="en">Global Pulse</div></a>
+    <a class="nav-item" href="./tradeflow.html"><div class="zh">流向地图</div><div class="en">Trade Map</div></a>
+    <a class="nav-item" href="./country_report.html"><div class="zh">国家画像</div><div class="en">Country</div></a>
+    <a class="nav-item" href="./product_report.html"><div class="zh">产品市场</div><div class="en">Product</div></a>
+    <a class="nav-item" href="./bilateral.html"><div class="zh">双边流向</div><div class="en">Bilateral</div></a>
+    <a class="nav-item" href="./signals_report.html"><div class="zh">市场信号</div><div class="en">Signals</div></a>
+    <a class="nav-item" href="./policy.html"><div class="zh">政策壁垒</div><div class="en">Policy</div></a>
+    <a class="nav-item" href="./datalab.html"><div class="zh">数据实验室</div><div class="en">Data Lab</div></a>
+    <div class="nav-drop">
+      <div class="nav-item"><div><div class="zh">高级分析</div><div class="en">Advanced</div></div><span class="caret">&#9660;</span></div>
+      <div class="drop-menu">
+        <a href="./trade_shift.html"><span class="dot"></span>贸易转移 · Trade Shift</a>
+        <a href="./competition.html"><span class="dot"></span>出口竞争 · Competition</a>
+        <a href="./destination.html"><span class="dot"></span>进口市场 · Destination</a>
+        <a href="./risk.html"><span class="dot"></span>风险依赖 · Risk</a>
+        <a href="./trend.html"><span class="dot"></span>趋势诊断 · Trend</a>
+        <a href="./rankings.html"><span class="dot"></span>全球榜单 · Rankings</a>
+        <a href="./methodology.html"><span class="dot"></span>方法论 · Methodology</a>
+      </div>
+    </div>
+  </div>
+  <div class="nav-right">
+    <button class="lang-btn" id="langBtn" onclick="__toggleLang()">EN</button>
+    <div class="nav-live"><span class="live-dot"></span>2010–2026 · 主口径 EXPORT</div>
+  </div>
+</nav>
+
+<!-- ============ HERO 第一屏 ============ -->
+<section class="hero">
+  <div id="worldMap"></div>
+  <div id="deckTip"></div>
+  <div class="heroBusy" id="heroBusy"><span class="sp"></span><span>聚合查询中…</span></div>
+  <div class="hero-grad-top"></div>
+  <div class="hero-grad-bottom"></div>
+
+  <div class="hero-title">
+    <span class="ht-tag">Global Steel Trade Radar</span>
+    <h1>全球钢材<br>贸易<span class="em">脉搏</span></h1>
+    <div class="hero-sub">2010–2026 海关贸易数据（年/季/月）· 71 报告国· 主口径 <b>EXPORT</b> · 单位 <b>万吨</b><br>实时追踪全球供给重心、流向迁移与品类结构。</div>
+    <div class="hero-meta">
+      <div class="hm"><div class="v num"><span data-wan="43724.7">43,724.7</span><span class="u">万吨</span></div><div class="k">全球出口量 2025 <span style="color:#ff7a6e">−1.0%</span></div></div>
+      <div class="hm"><div class="v num">30.6<span class="u">%</span></div><div class="k">中国出口份额 · 全球第一</div></div>
+      <div class="hm"><div class="v num">6,552<span class="u">条</span></div><div class="k">在册贸易流向 · Top50 上图</div></div>
+    </div>
+  </div>
+
+  <!-- 玻璃浮层 核心判断 -->
+  <aside class="intel">
+    <div class="intel-h">
+      <div class="t">核心判断<span class="en">KEY INTELLIGENCE</span></div>
+      <div class="badge">2025 → 2026</div>
+    </div>
+    <div class="icard">
+      <div class="no">01</div>
+      <div class="body">
+        <div class="ti">中国独大：份额 30.7% 创新高，但拐点信号已现</div>
+        <div class="ds">2025 出口 <b>1.31 亿吨</b>（+14.1%）、份额 <b>30.7%</b>（2020 年仅 13.0%）；2026 年 1–5 月出口 4,455 万吨、同比 <b class="r">−8.1%</b>，反倾销集中落地后动能降温。</div>
+        <div class="ev"><a href="#glance">本期速览</a><a href="./country_report.html">中国画像</a></div>
+      </div>
+    </div>
+    <div class="icard">
+      <div class="no">02</div>
+      <div class="body">
+        <div class="ti">壁垒从"点"到"面"：影响量约百万吨/月</div>
+        <div class="ds">2025Q4 以来韩国热轧 <b>28–33%</b>、印度硅钢、巴西涂镀、越南冷轧等案件密集终裁，SMM 模型口径合计影响约 <b>130–150 万吨/月</b>，相当于中国月出口量的一成以上。</div>
+        <div class="ev"><a href="./policy.html">政策壁垒</a><a href="./trade_shift.html">贸易转移</a></div>
+      </div>
+    </div>
+    <div class="icard">
+      <div class="no">03</div>
+      <div class="body">
+        <div class="ti">流向大迁移：传统市场退、新兴市场进</div>
+        <div class="ds">对印度 <b class="r">−29%</b>、台湾 <b class="r">−32%</b>、越南 <b class="r">−20%</b>；对吉布提 <b class="g">+123%</b>、新加坡 <b class="g">+73%</b>、尼日利亚 <b class="g">+66%</b>——2026 年海关数据中吉布提已居增量第一，趋势延续。</div>
+        <div class="ev"><a href="#moved">重点变化</a><a href="./destination.html">进口市场</a></div>
+      </div>
+    </div>
+    <div class="icard">
+      <div class="no">04</div>
+      <div class="body">
+        <div class="ti">北美收缩 · 中东重排：两大区域变局</div>
+        <div class="ds">232 扩围下加↔美走廊 <b class="r">−31%/−28%</b>；美伊停战后伊朗（出口 <b class="g">+23.8%</b>）恢复方坯报价，SMM 估算中东重建可回补 <b>170–210 万吨</b>级缺口。</div>
+        <div class="ev"><a href="./bilateral.html">双边流向</a><a href="./signals_report.html">市场信号</a></div>
+      </div>
+    </div>
+    <div class="icard">
+      <div class="no">05</div>
+      <div class="body">
+        <div class="ti">供给东移下半场：印度 272Mtpa 在建拟建</div>
+        <div class="ds">GEM 口径印度在建+拟建产能 <b>272.5Mtpa</b>（全球第一）、伊朗 50、越南 31、印尼 22——SMM 判断 <b>2028 年前后</b>海外投产与壁垒累积共振，中国出口窗口面临质变。</div>
+        <div class="ev"><a href="./rankings.html">全球榜单</a><a href="./risk.html">风险依赖</a></div>
+      </div>
+    </div>
+  </aside>
+
+  <div class="scrollcue">向下滚动 · 解读发生了什么<span class="ar"></span></div>
+
+  <!-- 底部筛选条（前端切片即时重建，无网络/DB） -->
+  <div class="hero-bar">
+    <div class="hb-group">
+      <span class="hb-lab">粒度</span>
+      <div class="seg" id="segGran">
+        <button data-v="Y">年度</button>
+        <button data-v="Q">季度</button>
+        <button data-v="M">月度</button>
+      </div>
+    </div>
+    <div class="hb-group">
+      <span class="hb-lab">时段</span>
+      <select class="hb-dd" id="ddPeriod"></select>
+    </div>
+    <div class="hb-group">
+      <span class="hb-lab">品种</span>
+      <select class="hb-dd" id="ddGroup"><option value="">全部钢材</option></select>
+    </div>
+    <div class="hb-group">
+      <span class="hb-lab">流向</span>
+      <div class="seg" id="segFlow">
+        <button data-v="ALL" class="on">全部</button>
+        <button data-v="EXPORT">EXPORT</button>
+        <button data-v="IMPORT">IMPORT</button>
+      </div>
+    </div>
+    <div class="hb-group">
+      <span class="hb-lab">飞线数量</span>
+      <div class="seg gold" id="segTop">
+        <button data-v="20">Top 20</button>
+        <button data-v="30">Top 30</button>
+        <button data-v="50" class="on">Top 50</button>
+      </div>
+    </div>
+    <div class="hb-group">
+      <span class="hb-lab">流动动画</span>
+      <div class="hb-tog on" id="togAnim"></div>
+    </div>
+    <div class="hb-group">
+      <span class="hb-lab">贸易热区</span>
+      <div class="hb-tog on" id="togHeat"></div>
+    </div>
+    <div class="hb-legend">
+      <span class="lg"><i style="background:linear-gradient(90deg,#e8a13a,#f0b860)"></i>增长流向</span>
+      <span class="lg"><i style="background:linear-gradient(90deg,#C00000,#e23b3b)"></i>收缩流向</span>
+      <span class="lg"><i style="background:linear-gradient(90deg,#2f6fed,#5a8cf2)"></i>平稳流向</span>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 滚动研报区 ============ -->
+<div class="report">
+
+  <!-- 1. 大数字情报条 -->
+  <section class="sec rwrap" id="glance">
+    <div class="sec-head reveal">
+      <div class="sec-eyebrow">本期速览 · At a Glance</div>
+      <h2>一屏读懂全球钢材贸易格局</h2>
+      <p>基于 2025 完整年度海关数据（EXPORT 口径，单位万吨），刻画总量、集中度、结构与最显著的流向变化。</p>
+    </div>
+    <div class="bignum-bar reveal" id="bigBar"></div>
+  </section>
+
+  <!-- 2. 全球格局 排名条 -->
+  <section class="sec rwrap" id="landscape">
+    <div class="sec-head reveal">
+      <div class="sec-eyebrow">全球格局 · Landscape</div>
+      <h2>谁在出口，谁在进口</h2>
+      <p>出口高度集中于中国;进口需求分散，美国、意大利、德国、土耳其领跑。</p>
+    </div>
+    <div class="rank-grid reveal">
+      <div class="rank-col exp">
+        <h3>出口国 TOP 10 <span class="tag">EXPORT</span></h3>
+        <div class="csub">2025 全年 · 万吨 / 全球份额</div>
+        <div id="expRank"></div>
+      </div>
+      <div class="rank-col imp">
+        <h3>进口国 TOP 10 <span class="tag b">IMPORT</span></h3>
+        <div class="csub">2025 全年 · 万吨 / 全球份额</div>
+        <div id="impRank"></div>
+      </div>
+    </div>
+    <div style="margin-top:48px" class="reveal">
+      <div class="sec-head" style="margin-bottom:18px">
+        <div class="sec-eyebrow">双边流向 · Bilateral</div>
+        <h2 style="font-size:22px">最大的 20 条贸易走廊</h2>
+      </div>
+      <div class="bil-wrap" id="bilList"></div>
+    </div>
+
+    <div style="margin-top:52px" class="reveal">
+      <div class="sec-head" style="margin-bottom:20px">
+        <div class="sec-eyebrow">结构透视 · Structure</div>
+        <h2 style="font-size:22px">出口排名与品类结构</h2>
+        <p>左：2025 全年出口国 Top 10（万吨）;右：全球出口品类结构占比。</p>
+      </div>
+      <div class="echart-grid">
+        <div class="echart-card">
+          <div class="ec-h"><div class="ec-t">出口国 TOP 10</div><div class="ec-tag">2025 · EXPORT</div></div>
+          <div class="ec-sub">单位 万吨 · 出口国申报口径</div>
+          <div class="echart-box" id="ecRank"></div>
+        </div>
+        <div class="echart-card">
+          <div class="ec-h"><div class="ec-t">出口品类结构</div><div class="ec-tag">2025 · 占比</div></div>
+          <div class="ec-sub">热轧 / 涂镀 / 钢坯 / 螺纹钢 …</div>
+          <div class="echart-box" id="ecProduct"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3. 情报卡片墙 -->
+  <section class="sec rwrap" id="moved">
+    <div class="sec-head reveal">
+      <div class="sec-eyebrow">本期重点变化 · What Moved</div>
+      <h2>六张卡片看懂结构性变化</h2>
+      <p>基于 2025 年度海关数据与上年同期对比自动测算。</p>
+    </div>
+    <div class="card-wall reveal">
+      <a class="icw" href="#landscape">
+        <div class="ctag dn">收缩 · CONTRACTION</div>
+        <h4>加拿大→美国大幅回落</h4>
+        <div class="cstat num">409.6 万吨 <span class="dn">−31%</span></div>
+        <p>232 关税与贸易摩擦压制北美双向走廊，美国→加拿大同步 −28%。</p>
+        <div class="go">查看贸易走廊 <span class="a">&rarr;</span></div>
+      </a>
+      <a class="icw" href="#moved">
+        <div class="ctag dn">收缩 · CONTRACTION</div>
+        <h4>中国→印度持续退坡</h4>
+        <div class="cstat num">213.9 万吨 <span class="dn">−29%</span></div>
+        <p>印度贸易救济与国产替代加速，中国对台湾流向亦收缩 −32%。</p>
+        <div class="go">查看重点变化 <span class="a">&rarr;</span></div>
+      </a>
+      <a class="icw" href="#landscape">
+        <div class="ctag g">扩张 · EXPANSION</div>
+        <h4>印尼→越南放量</h4>
+        <div class="cstat num">164.3 万吨 <span class="up">+85%</span></div>
+        <p>东盟内互供提速，越南→柬埔寨 +36%，区域一体化特征强化。</p>
+        <div class="go">查看贸易走廊 <span class="a">&rarr;</span></div>
+      </a>
+      <a class="icw" href="#moved">
+        <div class="ctag g">放量 · SURGE</div>
+        <h4>中国转向非洲与拉美</h4>
+        <div class="cstat num"><span class="up">+34~66%</span></div>
+        <p>对尼日利亚 +66%、坦桑尼亚 +60%、秘鲁 +34%、新加坡 +73%，新兴市场承接中国增量。</p>
+        <div class="go">查看重点变化 <span class="a">&rarr;</span></div>
+      </a>
+      <a class="icw" href="#products">
+        <div class="ctag">品类 · PRODUCT</div>
+        <h4>热轧+涂镀占近四成</h4>
+        <div class="cstat num">38.3%</div>
+        <p>热轧 8,590.7 万吨、涂镀 7,777.6 万吨，扁平材主导全球钢材贸易结构。</p>
+        <div class="go">查看品种雷达 <span class="a">&rarr;</span></div>
+      </a>
+      <a class="icw" href="#landscape">
+        <div class="ctag dn">信号 · SIGNAL</div>
+        <h4>第一大走廊连续收缩</h4>
+        <div class="cstat num">1,009.0 万吨 <span class="dn">−20%</span></div>
+        <p>中国→越南仍为全球最大钢材走廊，但越南自产替代叠加贸易防御，量级持续回落。</p>
+        <div class="go">查看贸易走廊 <span class="a">&rarr;</span></div>
+      </a>
+    </div>
+  </section>
+
+  <!-- 4. 深度入口 -->
+  <section class="sec rwrap" id="products">
+    <div class="sec-head reveal">
+      <div class="sec-eyebrow">品种雷达 · Product Radar</div>
+      <h2>十七大钢材品种一览</h2>
+      <p>2025 年全球出口量与份额。点击任意品种，回到顶部地图查看该品种的全球流向。</p>
+    </div>
+    <div class="entry-grid reveal" id="prodGrid"></div>
+  </section>
+
+</div>
+
+<!-- ============ FOOTER ============ -->
+<footer class="foot">
+  <div class="rwrap">
+    <div>
+      <div class="fb"><img src="./assets/SMM_logo.svg" alt="SMM" style="height:22px;width:auto"><span class="ft">TRADE INTEL</span></div>
+      <div class="cap">
+        <b>组内分析工具（非对外发布）：</b>本平台面向 SMM 分析师日常调用进出口数据，<b>暂不作为对外商品发布</b>。
+        <b>数据来源：</b>各国海关进出口镜像数据库（中国海关总署 GACC、印尼 BPS/DJBC、欧盟 Eurostat COMEXT、美国 USA Trade Online、UN Comtrade/ITC 等），由 SMM 整理。
+        <b>口径：</b>主口径 <b>EXPORT</b>（出口国申报，71 报告国），单位<b>万吨</b>，<b>仅含数量、不含金额</b>；EXPORT 与 IMPORT 为镜像口径，<b>请勿直接相加</b>。时间覆盖 <b>2010–2026</b>（年/季/月）。
+        观点层综合 <b>SMM 钢铁产业链研究报告、SMM 钢材出口专题报告（周度）、SMM 反倾销跟踪模型</b>与 <b>GEM 全球钢铁产能追踪</b>交叉验证；引用前请以官方公告与 SMM 现货/期货数据库为准。
+      </div>
+    </div>
+    <div class="fcols">
+      <div class="fcol">
+        <h5>核心终端</h5>
+        <a href="./flagship.html">全球脉搏</a>
+        <a href="./country_report.html">国家画像</a>
+        <a href="./product_report.html">产品市场</a>
+        <a href="./bilateral.html">双边流向</a>
+      </div>
+      <div class="fcol">
+        <h5>高级分析</h5>
+        <a href="./trade_shift.html">贸易转移</a>
+        <a href="./competition.html">出口竞争</a>
+        <a href="./destination.html">进口市场</a>
+        <a href="./rankings.html">全球榜单</a>
+        <a href="./methodology.html">方法论</a>
+      </div>
+      <div class="fcol">
+        <h5>姊妹平台</h5>
+        <a href="https://bc050603.github.io/sstrade/flagship.html" target="_blank">全球不锈钢贸易脉搏</a>
+      </div>
+    </div>
+    <div class="copy">      </div>
+    </div>
+    <div class="copy">SMM 全球钢材贸易情报 · 组内分析工具 · Global Steel Trade Intelligence (internal) · 数据覆盖 2010–2026 · 本页离线自包含</div>
+  </div>
+</footer>
+
+<script src="./assets/flagship_data.js"></script>
+<script>
+/* ---- ECharts 数据：由 PULSE 逐年聚合预算后内联（EXPORT 口径，单位万吨/%） ---- */
+window.EC_DATA = {"years": [2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025], "globalExp": [39576.0, 41908.8, 42270.6, 41422.9, 44982.5, 46726.1, 46375.3, 44765.5, 44069.8, 43028.3, 40079.5, 45454.5, 39998.3, 41591.2, 44145.4, 43724.7], "top1Share": [10.8, 11.7, 13.2, 15.0, 20.9, 24.1, 23.5, 16.9, 15.7, 15.0, 13.4, 14.6, 16.8, 22.5, 26.6, 30.6], "top2Share": [10.8, 9.7, 9.8, 10.3, 9.2, 8.8, 8.7, 8.4, 8.1, 7.7, 7.7, 7.4, 7.9, 7.7, 7.1, 6.8], "prodShare": [19.9, 19.5, 18.8, 19.8, 20.2, 20.8, 21.2, 21.4, 20.3, 20.8, 20.5, 19.5, 19.9, 21.3, 21.1, 19.7], "top12Share": [21.6, 21.4, 23.0, 25.3, 30.0, 32.8, 32.2, 25.3, 23.9, 22.6, 21.1, 22.0, 24.8, 30.2, 33.6, 37.4], "expTop10": [["中国", 13385.6], ["日本", 2980.9], ["韩国", 2788.5], ["德国", 2232.0], ["土耳其", 1726.0], ["比利时", 1592.7], ["意大利", 1487.9], ["伊朗", 1348.7], ["印度尼西亚", 1163.3], ["越南", 1109.3]], "prodStruct": [["热轧 (Hot Rolled)", 8599.5], ["涂镀 (Coated Steel)", 7399.0], ["钢坯 (Billet)", 5664.3], ["棒材 (Steel Bar)", 3898.8], ["钢管 (Steel Pipe)", 3711.8], ["线盘 (Wire Rod)", 2737.6], ["冷轧 (Cold Rolled)", 2264.1], ["不锈钢 (Stainless Steel)", 2151.1]]};
+(function(){
+  var D = window.FLAGSHIP_DATA, K = D.kpi;
+  var fmt = function(n,d){ d=(d==null?1:d); return Number(n).toLocaleString('en-US',{minimumFractionDigits:d,maximumFractionDigits:d}); };
+
+  /* ---------- NAV scroll ---------- */
+  var nav=document.getElementById('nav');
+  window.addEventListener('scroll',function(){ nav.classList.toggle('scrolled',window.scrollY>40); });
+
+  /* =================== BIG NUMBER BAR (+ ECharts sparkline) =================== */
+  /* 真实序列均来自 PULSE 逐年聚合（见 EC_DATA），无坐标轴/网格,纯线 */
+  var EC = window.EC_DATA || {};
+  var bn = [
+    {v:'<span data-wan="'+K.global_exp+'">'+fmt(K.global_exp,1)+'</span>', u:'万吨', ch:'<span class="dn">'+K.global_exp_yoy+'%</span>', k:'全球出口量 · 2025', sid:'sp0', series:EC.globalExp, up:true},
+    {v:K.top1_share, u:'%', k:'中国份额 · 全球第一', sid:'sp1', series:EC.top1Share, up:true},
+    {v:K.top2_share, u:'%', k:'日本份额 · 全球第二', sid:'sp2', series:EC.top2Share, up:false},
+    {v:'印尼→越南', sm:true, k:'显著增长走廊 · +85%'},
+    {v:'加→美', sm:true, k:'显著收缩走廊 · −31%'},
+    {v:K.top_prod_share, u:'%', k:'热轧占比 · 第一品类', sid:'sp5', series:EC.prodShare, up:true},
+    {v:K.top12_share, u:'%', k:'中国+日本 合计份额', sid:'sp6', series:EC.top12Share, up:true}
+  ];
+  document.getElementById('bigBar').innerHTML = bn.map(function(x){
+    var sp = x.sid ? '<div class="spark" id="'+x.sid+'"></div>' : '';
+    return '<div class="bn"><div class="v num'+(x.sm?' sm':'')+'">'+x.v+(x.u?'<span class="u">'+x.u+'</span>':'')+(x.ch||'')+'</div><div class="k">'+x.k+'</div>'+sp+'</div>';
+  }).join('');
+
+  /* ---- KPI mini sparklines (ECharts, 纯线, 增长金/收缩蓝) ---- */
+  var sparkInst = [];
+  function mkSpark(el, series, up){
+    if(!series || !series.length || !window.echarts) return;
+    var color = up ? '#e8a13a' : '#5a8cf2';
+    var ch = echarts.init(el, null, {renderer:'canvas'});
+    ch.setOption({
+      animation:false, grid:{left:1,right:1,top:3,bottom:3},
+      xAxis:{type:'category', show:false, boundaryGap:false, data:series.map(function(_,i){return i;})},
+      yAxis:{type:'value', show:false, scale:true},
+      tooltip:{show:false},
+      series:[{type:'line', data:series, smooth:true, symbol:'none',
+        lineStyle:{width:2, color:color},
+        areaStyle:{color:new echarts.graphic.LinearGradient(0,0,0,1,[
+          {offset:0,color:up?'rgba(232,161,58,.28)':'rgba(90,140,242,.28)'},
+          {offset:1,color:'rgba(0,0,0,0)'}])}
+      }]
+    });
+    sparkInst.push(ch);
+  }
+  bn.forEach(function(x){ if(x.sid) mkSpark(document.getElementById(x.sid), x.series, x.up); });
+
+  /* ---- 研报区 ECharts: 出口Top10条形 + 品类结构环形 (容器可见时init+resize) ---- */
+  var ecRankInst=null, ecProdInst=null;
+  function initBigCharts(){
+    if(!window.echarts || !EC.expTop10) return;
+    if(!ecRankInst){
+      var el=document.getElementById('ecRank');
+      var names=EC.expTop10.map(function(d){return window.TN?TN(d[0]):d[0];});
+      var _en=(window.SP_LANG&&SP_LANG()==='en'); var vals=EC.expTop10.map(function(d){return _en?Math.round(d[1]/100*100)/100:d[1];});
+      ecRankInst=echarts.init(el);
+      ecRankInst.setOption({
+        animationDuration:700,
+        grid:{left:6,right:46,top:6,bottom:6,containLabel:true},
+        tooltip:{trigger:'axis',axisPointer:{type:'shadow'},backgroundColor:'rgba(13,18,32,.96)',
+          borderColor:'#22304d',textStyle:{color:'#e8edf6',fontSize:12},
+          formatter:function(p){return p[0].name+'<br/><b>'+p[0].value.toLocaleString('en-US',{minimumFractionDigits:1,maximumFractionDigits:1})+'</b> '+(window.LGT?LGT('万吨'):'万吨');}},
+        xAxis:{type:'value',axisLabel:{show:false},splitLine:{show:false},axisLine:{show:false},axisTick:{show:false}},
+        yAxis:{type:'category',inverse:true,data:names,
+          axisLine:{lineStyle:{color:'#2a3a58'}},axisTick:{show:false},
+          axisLabel:{color:'#cfd7e6',fontSize:12,fontWeight:600}},
+        series:[{type:'bar',data:vals,barWidth:'62%',
+          label:{show:true,position:'right',color:'#9aa6bb',fontSize:11,
+            formatter:function(p){return p.value.toLocaleString('en-US',{minimumFractionDigits:_en?2:1,maximumFractionDigits:_en?2:1});}},
+          itemStyle:{borderRadius:[0,4,4,0],color:function(p){
+            if(p.dataIndex===0)return new echarts.graphic.LinearGradient(0,0,1,0,[{offset:0,color:'#8a0000'},{offset:1,color:'#e23b3b'}]);
+            if(p.dataIndex<=4)return new echarts.graphic.LinearGradient(0,0,1,0,[{offset:0,color:'#1f3a6e'},{offset:1,color:'#2f6fed'}]);
+            return new echarts.graphic.LinearGradient(0,0,1,0,[{offset:0,color:'#24304a'},{offset:1,color:'#3a4d72'}]);
+          }}
+        }]
+      });
+    }
+    if(!ecProdInst){
+      var el2=document.getElementById('ecProduct');
+      var palette=['#C00000','#e8a13a','#2f6fed','#5a8cf2','#e23b3b','#b97a13','#5b6b8c'];
+      var pdata=EC.prodStruct.map(function(d,i){return {name:(window.TP?TP(d[0]):d[0].replace(/\s*\(.*\)$/,'')),value:(_en?Math.round(d[1]/100*100)/100:d[1]),itemStyle:{color:palette[i%palette.length]}};});
+      ecProdInst=echarts.init(el2);
+      ecProdInst.setOption({
+        animationDuration:700,
+        tooltip:{trigger:'item',backgroundColor:'rgba(13,18,32,.96)',borderColor:'#22304d',
+          textStyle:{color:'#e8edf6',fontSize:12},
+          formatter:function(p){return p.name+'<br/><b>'+p.value.toLocaleString('en-US',{minimumFractionDigits:_en?2:1,maximumFractionDigits:_en?2:1})+'</b> '+(window.volUnit?volUnit():'万吨')+' · '+p.percent+'%';}},
+        legend:{type:'scroll',orient:'vertical',right:6,top:'center',itemWidth:9,itemHeight:9,
+          textStyle:{color:'#a9b4c8',fontSize:11.5},itemGap:9},
+        series:[{type:'pie',radius:['46%','72%'],center:['36%','50%'],avoidLabelOverlap:true,
+          label:{show:false},labelLine:{show:false},
+          itemStyle:{borderColor:'#0c1018',borderWidth:2},
+          data:pdata}]
+      });
+    }
+  }
+  window.__relangCharts=function(){
+    if(ecRankInst){ ecRankInst.dispose(); ecRankInst=null; }
+    if(ecProdInst){ ecProdInst.dispose(); ecProdInst=null; }
+    initBigCharts();
+  };
+  // 容器进入视口时初始化
+  var ecIO=new IntersectionObserver(function(es){
+    es.forEach(function(e){ if(e.isIntersecting){ initBigCharts(); } });
+  },{threshold:.15});
+  var ecHost=document.getElementById('ecRank'); if(ecHost) ecIO.observe(ecHost);
+  // 自适应
+  window.addEventListener('resize',function(){
+    sparkInst.forEach(function(c){c.resize();});
+    if(ecRankInst)ecRankInst.resize(); if(ecProdInst)ecProdInst.resize();
+  });
+
+  /* =================== RANK BARS =================== */
+  function rankHtml(arr){
+    var max = arr[0].wan;
+    return arr.map(function(d,i){
+      return '<div class="rrow"><div class="ri num">'+(i+1)+'</div>'+
+        '<div class="rn">'+d.cn+'<span class="ren">'+d.en+'</span></div>'+
+        '<div class="rbar"><i style="width:'+(d.wan/max*100)+'%"></i></div>'+
+        '<div class="rv num"><span data-wan="'+d.wan+'">'+fmt(d.wan,1)+'</span><span class="rs">'+d.share+'%</span></div></div>';
+    }).join('');
+  }
+  document.getElementById('expRank').innerHTML = rankHtml(D.exporters);
+  document.getElementById('impRank').innerHTML = rankHtml(D.importers);
+
+  /* =================== BILATERAL TOP20 =================== */
+  var bmax = D.bil_top20[0].wan;
+  document.getElementById('bilList').innerHTML = D.bil_top20.map(function(d,i){
+    var yc = d.yoy==null?'':(d.yoy>=0?'up':'dn');
+    var yt = d.yoy==null?'—':((d.yoy>=0?'+':'')+d.yoy+'%');
+    return '<div class="bil-row">'+
+      '<div class="bi num">'+(i+1)+'</div>'+
+      '<div class="bil-route">'+d.from_cn+' <span class="ar">&rarr;</span> '+d.to_cn+'</div>'+
+      '<div class="bil-bar"><i style="width:'+(d.wan/bmax*100)+'%"></i></div>'+
+      '<div class="bv num"><span data-wan="'+d.wan+'">'+fmt(d.wan,1)+'</span></div>'+
+      '<div class="bil-yoy '+yc+'">'+yt+'</div></div>';
+  }).join('');
+
+  /* =================== PRODUCT RADAR GRID =================== */
+  (function(){
+    var PU=window.PULSE||{}, pg=document.getElementById('prodGrid');
+    if(!pg||!PU.groups) return;
+    var items=[];
+    PU.groups.forEach(function(g){
+      if(g==='ALL') return;
+      var sl=PU.data['EXPORT|2025|'+g]; if(!sl||!sl.n) return;
+      var t=0; Object.keys(sl.n).forEach(function(c){ t+=(sl.n[c][0]||0); });
+      items.push([g,t]);
+    });
+    var all=0; items.forEach(function(x){ all+=x[1]; });
+    items.sort(function(a,b){ return b[1]-a[1]; });
+    pg.innerHTML=items.map(function(x){
+      var cn=x[0].replace(/\s*\(.*\)$/,''), m=x[0].match(/\((.*)\)/), en=m?m[1]:'';
+      return '<a class="entry" href="javascript:void(0)" onclick="selectGroup(\''+x[0].replace(/'/g,"\\'")+'\')">'+
+        '<h4>'+cn+'</h4><div class="een">'+en+'</div>'+
+        '<p class="num">'+Math.round(x[1]).toLocaleString('en-US')+' <span>万吨 · 份额</span> '+(x[1]/all*100).toFixed(1)+'%</p></a>';
+    }).join('');
+  })();
+
+  /* =================== REVEAL ON SCROLL =================== */
+  var io = new IntersectionObserver(function(es){
+    es.forEach(function(e){ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target);} });
+  },{threshold:.12});
+  document.querySelectorAll('.reveal').forEach(function(el){ io.observe(el); });
+
+})();
+</script>
+
+<!-- ============ 第一屏地图引擎：MapLibre + deck.gl(MapboxOverlay) · 读预计算聚合 window.PULSE ============ -->
+<script>
+(function(){
+const { MapboxOverlay, ArcLayer, ScatterplotLayer, TripsLayer, TextLayer, HeatmapLayer } = deck;
+const PULSE = window.PULSE || {data:{},centroids:{}};
+
+/* 核心国家标签白名单（仅 ~16 个，克制中文小字）。键为 PULSE 质心字典中文名 */
+const LABEL_COUNTRIES = {
+  "中国":"中国","日本":"日本","韩国":"韩国","印度":"印度","美国":"美国","德国":"德国",
+  "意大利":"意大利","土耳其":"土耳其","越南":"越南","印度尼西亚":"印尼","巴西":"巴西",
+  "墨西哥":"墨西哥","俄罗斯":"俄罗斯","伊朗":"伊朗","比利时":"比利时","加拿大":"加拿大"
+};
+
+/* ---------- 质心字典（优先用 PULSE 内置；下面为离线兜底） ---------- */
+const CENTROIDS = PULSE.centroids && Object.keys(PULSE.centroids).length ? PULSE.centroids : {
+  "中国":[104,35],"印度尼西亚":[117,-2.5],"印度":[78,22],"美国":[-98,39],
+  "德国":[10.5,51.2],"意大利":[12.5,42],"比利时":[4.5,50.5],"韩国":[128,36.5],
+  "越南":[106,16],"墨西哥":[-102,23.5],"土耳其":[35,39],"日本":[138,36],
+  "荷兰":[5.3,52.3],"芬兰":[26,64],"西班牙":[-3.7,40],"法国":[2.2,46.2],
+  "马来西亚":[109.7,4.2],"泰国":[100.5,15.8],"俄罗斯":[90,60],"中国台湾":[121,23.8],
+  "阿联酋":[54.4,24],"英国":[-1.5,52.5],"波兰":[19.4,52],"巴西":[-51,-10],
+  "加拿大":[-106,56],"沙特阿拉伯":[45,24],"南非":[24,-29],"瑞典":[15,62],
+  "奥地利":[14.5,47.5],"捷克":[15.5,49.8],
+  "中国香港":[114.1,22.3],"新加坡":[103.8,1.35],"埃及":[30,27],"孟加拉国":[90,24],
+  "巴基斯坦":[69,30],"罗马尼亚":[25,46],"葡萄牙":[-8,39.5],"希腊":[22,39],
+  "瑞士":[8.2,46.8],"丹麦":[10,56],"挪威":[8.5,61],"乌克兰":[31,49],
+  "斯洛文尼亚":[14.8,46.1],"匈牙利":[19.5,47.2],"伊朗":[53,32],"以色列":[35,31.5],
+  "澳大利亚":[134,-25],"哥伦比亚":[-73,4],"智利":[-71,-30],"秘鲁":[-76,-10],
+  "菲律宾":[122,12],"斯里兰卡":[81,7.5],"摩洛哥":[-7,32],"尼日利亚":[8,9.5],
+  "斯洛伐克":[19.5,48.7],"保加利亚":[25,42.7],
+  "哈萨克斯坦":[67,48],"乌兹别克斯坦":[64,41.5],"卡塔尔":[51.2,25.3],"科威特":[47.5,29.3],
+  "阿曼":[57,21],"伊拉克":[44,33],"约旦":[36,31],"克罗地亚":[16,45.3],"立陶宛":[24,55.3],
+  "爱沙尼亚":[26,59],"爱尔兰":[-8,53.3],"卢森堡":[6.1,49.8],"新西兰":[174,-41],
+  "柬埔寨":[105,12.5],"缅甸":[96,21],"尼泊尔":[84,28],"阿尔及利亚":[3,28],
+  "阿根廷":[-64,-35],"厄瓜多尔":[-78.5,-1.5],"危地马拉":[-90.5,15.5],"肯尼亚":[38,0],
+  "坦桑尼亚":[35,-6],"加纳":[-1.2,7.9]
+};
+
+const PERIODS = (window.PULSE && window.PULSE.periods) ? window.PULSE.periods : [];
+const DEF_PERIOD = (function(){ var q=PERIODS.filter(p=>p.gran==="Q"); return q.length?q[q.length-1].id:(PERIODS.length?PERIODS[PERIODS.length-1].id:"2025Q4"); })();
+const state = { gran:"Q", period:DEF_PERIOD, group:"", flow:"ALL", topN:50, anim:true, heat:true };
+const PRODUCTS = (window.PULSE && window.PULSE.groups ? window.PULSE.groups.filter(g=>g!=='ALL') : []);
+const COL = { up:[232,161,58], down:[192,0,0], flat:[47,111,237] };
+
+let overlay, map, mapReady=false;
+let deckInst=null, BASE=[];
+function setLayers(ls){ if(overlay){ overlay.setProps({layers:ls}); } else if(deckInst){ deckInst.setProps({layers:BASE.concat(ls)}); } }
+function initDeckStandalone(containerId){
+  const el=document.getElementById(containerId); if(!el) return;
+  const geo=window.WORLD_GEOJSON;
+  BASE = geo ? [new deck.GeoJsonLayer({id:'world-base', data:geo, stroked:true, filled:true,
+    getFillColor:[17,24,39,255], getLineColor:[40,56,88,255], lineWidthMinPixels:0.6, pickable:false,
+    parameters:{depthTest:false}})] : [];
+  deckInst = new deck.Deck({ parent:el,
+    initialViewState:{longitude:60, latitude:28, zoom:1.55, minZoom:0.8, maxZoom:7},
+    controller:true, layers:BASE });
+}
+
+let curArcs = [], curTrips = [], curNodes = [], curLabels = [], curHeat = [];
+let animTime = 0, rafId = null, lastTs = 0;
+const ANIM_LOOP = 2600, TRAIL = 300;
+
+const $ = s => document.querySelector(s);
+const fmt2 = n => (Math.round(n*100)/100).toLocaleString('en-US',{minimumFractionDigits:1,maximumFractionDigits:2});
+const tipEl = $('#deckTip');
+
+/* ---------- UI（底部筛选条） ---------- */
+function buildMapUI(){
+  const segG = $('#segGran'), ddP = $('#ddPeriod');
+  const GLAB = { Y: (window.LGT?LGT('年度'):'年度'), Q: (window.LGT?LGT('季度'):'季度'), M: (window.LGT?LGT('月度'):'月度') };
+  function fillPeriods(){
+    ddP.innerHTML='';
+    PERIODS.filter(p=>p.gran===state.gran).forEach(p=>{
+      const o=document.createElement('option'); o.value=p.id; o.textContent=p.label; ddP.appendChild(o);
+    });
+    // pick latest of that granularity if current not in it
+    const ids=PERIODS.filter(p=>p.gran===state.gran).map(p=>p.id);
+    if(ids.indexOf(state.period)<0) state.period=ids[ids.length-1];
+    ddP.value=state.period;
+  }
+  segG.querySelectorAll('button').forEach(b=>{ if(b.dataset.v===state.gran) b.classList.add('on'); });
+  fillPeriods();
+  segG.addEventListener('click',e=>{ if(e.target.tagName!=='BUTTON')return;
+    segG.querySelectorAll('button').forEach(b=>b.classList.remove('on'));
+    e.target.classList.add('on'); state.gran=e.target.dataset.v; fillPeriods(); refreshMap(); });
+  ddP.addEventListener('change',e=>{ state.period=e.target.value; refreshMap(); });
+  const dd = $('#ddGroup');
+  PRODUCTS.forEach(p=>{ const o=document.createElement('option'); o.value=p; o.textContent=p.replace(/\s*\(.*\)$/,''); dd.appendChild(o); });
+
+  $('#segFlow').addEventListener('click',e=>{ if(e.target.tagName!=='BUTTON')return;
+    $('#segFlow').querySelectorAll('button').forEach(b=>b.classList.remove('on'));
+    e.target.classList.add('on'); state.flow=e.target.dataset.v; refreshMap(); });
+  $('#segTop').addEventListener('click',e=>{ if(e.target.tagName!=='BUTTON')return;
+    $('#segTop').querySelectorAll('button').forEach(b=>b.classList.remove('on'));
+    e.target.classList.add('on'); state.topN=+e.target.dataset.v; refreshMap(); });
+  dd.addEventListener('change',e=>{ state.group=e.target.value; refreshMap(); });
+  $('#togAnim').addEventListener('click',()=>{
+    state.anim=!state.anim;
+    $('#togAnim').classList.toggle('on',state.anim);
+    if(state.anim){ lastTs=0; startAnim(); } else { stopAnim(); renderMap(); }
+  });
+  $('#togHeat').addEventListener('click',()=>{
+    state.heat=!state.heat;
+    $('#togHeat').classList.toggle('on',state.heat);
+    renderMap();
+  });
+}
+
+/* ---------- 从 PULSE 取切片（纯前端，无网络/DB） ---------- */
+function getSlice(){
+  const grp = state.group || 'ALL';
+  if(state.flow==='ALL'){
+    const e=PULSE.data['EXPORT|'+state.period+'|'+grp]||{f:[],n:{}};
+    const im=PULSE.data['IMPORT|'+state.period+'|'+grp]||{f:[],n:{}};
+    // 进口流向按真实货流方向反转(partner=来源 -> reporter=进口国)，与出口统一为 出口国->进口国
+    const imSwap=(im.f||[]).map(r=>[r[1],r[0],r[2],r[3]]);
+    const f=(e.f||[]).concat(imSwap).sort((a,b)=>b[2]-a[2]);
+    const n={};
+    const mrg=src=>{Object.keys(src||{}).forEach(k=>{const v=src[k]||[0,0]; if(!n[k])n[k]=[0,0]; n[k][0]=Math.max(n[k][0],v[0]||0); n[k][1]=Math.max(n[k][1],v[1]||0);});};
+    mrg(e.n); mrg(im.n);
+    return {f,n};
+  }
+  const key = state.flow + '|' + state.period + '|' + grp;
+  return PULSE.data[key] || {f:[], n:{}};
+}
+
+/* ---------- 数据 → 图层数据 ---------- */
+function colorFor(v,pv){
+  if(pv<=0.01) return COL.flat;
+  const g=(v-pv)/pv;
+  if(g>0.05) return COL.up;
+  if(g<-0.05) return COL.down;
+  return COL.flat;
+}
+function arcInterp(s,t,n){
+  const pts=[];
+  for(let i=0;i<=n;i++){ const f=i/n; pts.push([s[0]+(t[0]-s[0])*f, s[1]+(t[1]-s[1])*f]); }
+  return pts;
+}
+/* slice.f = [[reporter,partner,v,v_prev], ...]（已按 v 降序，最多 50 条）
+   slice.n = {country:[exp,imp]} */
+function processData(slice){
+  const arcs=[], trips=[];
+  let missing=0,total=0,expSum=0,maxV=0;
+  const rows=(slice.f||[]).slice(0, state.topN);
+  rows.forEach(r=>{ if(r[2]>maxV) maxV=r[2]; });
+  rows.forEach((r,i)=>{
+    total++;
+    const src=r[0], dst=r[1], v=r[2], pv=r[3];
+    const s=CENTROIDS[src], t=CENTROIDS[dst];
+    if(!s||!t){ missing++; return; }
+    let _tx=t[0]; if(_tx-s[0]>180)_tx-=360; else if(_tx-s[0]<-180)_tx+=360; const tu=[_tx,t[1]];
+    const col=colorFor(v,pv);
+    const grow = pv>0.01 ? (v-pv)/pv : null;
+    expSum += v;
+    // tier: 0 = Top5（最粗最亮 SMM 红方向）, 1 = 6–20（中等冷蓝）, 2 = 其余（背景细灰蓝）
+    const tier = i<5 ? 0 : (i<20 ? 1 : 2);
+    arcs.push({ from:s, to:tu, src, dst, v, pv, grow, col, tier });
+    const path=arcInterp(s,tu,30);
+    const ts=path.map((_,k)=> k/(path.length-1)*(ANIM_LOOP*0.6));
+    const offset=(i*191 % ANIM_LOOP);
+    trips.push({ path, timestamps:ts.map(x=>x+offset), col, v });
+  });
+  const nodes=[];
+  const N=slice.n||{};
+  Object.keys(N).forEach(c=>{
+    const pos=CENTROIDS[c]; if(!pos) return;
+    const exp=N[c][0], imp=N[c][1], tot=exp+imp; if(tot<2) return;
+    nodes.push({ pos, c, exp, imp, tot });
+  });
+  nodes.sort((a,b)=>b.tot-a.tot);
+  // 核心国标签（仅白名单），用质心直接定位，与节点是否在 slice 中无关
+  const labels=[];
+  Object.keys(LABEL_COUNTRIES).forEach(c=>{
+    const pos=CENTROIDS[c]; if(!pos) return;
+    labels.push({ pos, text:LABEL_COUNTRIES[c] });
+  });
+  // 热区点：用节点质心 + 总贸易量为权重
+  const heat=nodes.map(n=>({ pos:n.pos, w:n.tot }));
+  return { arcs, trips, nodes, labels, heat, missing, total, expSum, maxV };
+}
+
+/* ---------- deck 图层（精致化：小锐节点 + 细弧 + 柔彗星） ---------- */
+let curMaxV = 1;
+/* 三档方向着色：保留 增长金/收缩红/平稳蓝(col)，但 Top5 强制走 SMM 红、6–20 冷蓝、其余背景灰蓝
+   仅当方向为"平稳"时用档位底色，方向显著(增长/收缩)仍用 col 体现增减 */
+function arcColor(d){
+  // 方向显著则保留方向色（金/红），否则按档位给冷色
+  const isFlat = (d.col[0]===COL.flat[0] && d.col[1]===COL.flat[1] && d.col[2]===COL.flat[2]);
+  if(!isFlat) return d.col;
+  if(d.tier===0) return COL.down;          // Top5 平稳 → SMM 红
+  if(d.tier===1) return [90,140,242];      // 6–20 → 冷蓝
+  return [110,130,170];                     // 其余 → 背景灰蓝
+}
+function arcAlpha(d){ return d.tier===0?245:(d.tier===1?200:120); }
+function arcWidth(d){
+  const base = 0.8+3.4*Math.sqrt(d.v/(curMaxV||1));
+  if(d.tier===0) return base*1.25;          // Top5 最粗
+  if(d.tier===2) return base*0.7;           // 其余 最细
+  return base;
+}
+function buildLayers(){
+  const layers=[];
+  // 热区（默认关）：放最底层，开启才显示
+  if(state.heat){
+    layers.push(new HeatmapLayer({
+      id:'heat', data:curHeat,
+      getPosition:d=>d.pos, getWeight:d=>d.w,
+      radiusPixels:46, intensity:1, threshold:0.04, aggregation:'SUM',
+      colorRange:[[47,111,237,0],[47,111,237,90],[90,140,242,150],[232,161,58,190],[226,59,59,220],[192,0,0,240]],
+      opacity:0.55, parameters:{depthTest:false}
+    }));
+  }
+  // 节点：克制发光圈（小半径、低透明）
+  layers.push(new ScatterplotLayer({
+    id:'nodes-glow', data:curNodes, pickable:false,
+    getPosition:d=>d.pos,
+    getRadius:d=>Math.sqrt(d.tot)*8200,
+    radiusUnits:'meters', radiusMinPixels:3.5, radiusMaxPixels:22,
+    getFillColor:d=>(d.exp>=d.imp?[232,161,58,18]:[90,140,242,18]), stroked:false,
+    parameters:{depthTest:false}
+  }));
+  // 弧线：三档分明（Top5 最粗最亮 / 6–20 中等冷蓝 / 其余背景细灰蓝）暗起亮终
+  layers.push(new ArcLayer({
+    id:'arcs', data:curArcs, pickable:true, greatCircle:false,
+    getSourcePosition:d=>d.from, getTargetPosition:d=>d.to,
+    getSourceColor:d=>{const c=arcColor(d);return [c[0],c[1],c[2],Math.round(arcAlpha(d)*0.16)];},
+    getTargetColor:d=>{const c=arcColor(d);return [c[0],c[1],c[2],arcAlpha(d)];},
+    getWidth:arcWidth,
+    widthUnits:'pixels', widthMinPixels:0.7, widthMaxPixels:5, getHeight:0.4,
+    updateTriggers:{getSourceColor:[state.flow,state.period],getTargetColor:[state.flow,state.period],getWidth:[curMaxV]},
+    onHover:onHoverArc,
+    parameters:{depthTest:false}
+  }));
+  // 流动彗星：细、柔、点缀（一键关）
+  if(state.anim){
+    layers.push(new TripsLayer({
+      id:'trips', data:curTrips,
+      getPath:d=>d.path, getTimestamps:d=>d.timestamps,
+      getColor:d=>[Math.min(d.col[0]+40,255),Math.min(d.col[1]+40,255),Math.min(d.col[2]+50,255)],
+      getWidth:d=>0.7+1.5*Math.sqrt(d.v/(curMaxV||1)),
+      widthUnits:'pixels', widthMinPixels:0.9, widthMaxPixels:2.6,
+      opacity:0.72, trailLength:TRAIL, fadeTrail:true,
+      currentTime:animTime, capRounded:true, jointRounded:true,
+      parameters:{depthTest:false}
+    }));
+  }
+  // 节点：小而锐实心点（在弧线之上，可点）
+  layers.push(new ScatterplotLayer({
+    id:'nodes', data:curNodes, pickable:true,
+    getPosition:d=>d.pos,
+    getRadius:d=>Math.sqrt(d.tot)*4000,
+    radiusUnits:'meters', radiusMinPixels:2, radiusMaxPixels:8.5,
+    getFillColor:d=>(d.exp>=d.imp?[255,213,140,235]:[150,190,255,235]),
+    stroked:true, getLineColor:[255,255,255,100], lineWidthMinPixels:0.7,
+    onHover:onHoverNode,
+    parameters:{depthTest:false}
+  }));
+  // 核心国标签：小字、低亮、细描边（最顶层，不抢底图）
+  layers.push(new TextLayer({
+    id:'labels', data:curLabels, pickable:false,
+    getPosition:d=>d.pos, getText:d=>(window.__tnLabel?window.__tnLabel(d.text):d.text),
+    getSize:12.5, sizeUnits:'pixels', sizeMinPixels:11, sizeMaxPixels:15,
+    getColor:[244,248,255,255],
+    outlineWidth:4, outlineColor:[0,0,0,255],
+    fontSettings:{sdf:true, fontSize:64, buffer:14, radius:16, cutoff:0.25},
+    fontFamily:"'PingFang SC','Microsoft YaHei',sans-serif",
+    getTextAnchor:'middle', getAlignmentBaseline:'center',
+    getPixelOffset:[0,-13],
+    characterSet:'auto', billboard:true,
+    parameters:{depthTest:false}
+  }));
+  return layers;
+}
+function renderMap(){ setLayers(buildLayers()); }
+
+/* ---------- 动画 ---------- */
+function startAnim(){
+  if(rafId) return;
+  const tick=(ts)=>{
+    if(!lastTs) lastTs=ts;
+    const dt=ts-lastTs; lastTs=ts;
+    animTime=(animTime+dt)%ANIM_LOOP;
+    if(state.anim) setLayers(buildLayers());
+    rafId = state.anim ? requestAnimationFrame(tick) : null;
+  };
+  rafId=requestAnimationFrame(tick);
+}
+function stopAnim(){ if(rafId){ cancelAnimationFrame(rafId); rafId=null; } }
+
+/* ---------- hover tooltip ---------- */
+function placeTip(x,y){ tipEl.style.left=x+'px'; tipEl.style.top=(y)+'px'; tipEl.style.opacity='1'; }
+function hideTip(){ tipEl.style.opacity='0'; }
+function onHoverArc(info){
+  if(!info.object){ hideTip(); return; }
+  const d=info.object;
+  let ar = d.grow==null ? '<span style="color:#69748a">'+LGT('新增/无去年')+'</span>'
+    : (d.grow>=0 ? '<span class="tipUp">+'+(d.grow*100).toFixed(1)+'%</span>'
+                 : '<span class="tipDn">'+(d.grow*100).toFixed(1)+'%</span>');
+  tipEl.innerHTML =
+    '<div class="tipRoute">'+(window.TN?TN(d.src):d.src)+' <span class="ar">&rarr;</span> '+(window.TN?TN(d.dst):d.dst)+'</div>'+
+    '<div class="tipRow">'+LGT(state.flow==='EXPORT'?'出口量':'进口量')+' <b>'+fmt2(d.v)+'</b>'+LGT(' 万吨 · 同比 ')+ar+'</div>'+
+    '';
+  placeTip(info.x,info.y);
+}
+function onHoverNode(info){
+  if(!info.object){ hideTip(); return; }
+  const d=info.object;
+  tipEl.innerHTML =
+    '<div class="tipRoute">'+(window.TN?TN(d.c):d.c)+'</div>'+
+    '<div class="tipRow">'+LGT('出口')+' <b class="g">'+(window.fmtVol?fmtVol(d.exp):fmt2(d.exp)+' 万吨')+'</b></div>'+
+    '<div class="tipRow">'+LGT('进口')+' <b class="b">'+(window.fmtVol?fmtVol(d.imp):fmt2(d.imp)+' 万吨')+'</b></div>'+
+    '';
+  placeTip(info.x,info.y);
+}
+
+/* ---------- 刷新（筛选触发：纯前端切片重建，瞬时，无网络/DB） ---------- */
+function refreshMap(){
+  const p=processData(getSlice());
+  curArcs=p.arcs; curTrips=p.trips; curNodes=p.nodes; curLabels=p.labels; curHeat=p.heat; curMaxV=p.maxV||1;
+  if(p.missing>0) console.warn('[centroid] '+p.missing+'/'+p.total+' 条流向缺质心被跳过');
+  renderMap();
+  if(state.anim){ lastTs=0; startAnim(); }
+}
+
+window.__relangMap = function(){ try{ refreshMap(); }catch(e){} };
+window.selectGroup = function(g){
+  state.group = g;
+  const dd = $('#ddGroup'); if(dd) dd.value = g;
+  refreshMap();
+  window.scrollTo({top:0, behavior:'smooth'});
+};
+
+/* ---------- MapLibre 暗色底图（瓦片失败也不影响 deck overlay） ---------- */
+function initMap(){
+  if(!window.maplibregl || !maplibregl.Map) throw new Error('maplibre unavailable (offline?)');
+  map=new maplibregl.Map({
+    container:'worldMap',
+    style:{ version:8,
+      sources:{ carto:{ type:'raster',
+        tiles:['https://a.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png',
+               'https://b.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png',
+               'https://c.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png'],
+        tileSize:256, attribution:'© OpenStreetMap © CARTO' } },
+      layers:[ {id:'bg',type:'background',paint:{'background-color':'#0a0e1a'}},
+               {id:'carto',type:'raster',source:'carto',paint:{'raster-opacity':0.78}} ] },
+    center:[60,28], zoom:1.6, minZoom:1, maxZoom:7,
+    attributionControl:{compact:true}
+  });
+  map.addControl(new maplibregl.NavigationControl({showCompass:false}),'top-right');
+  overlay=new MapboxOverlay({ interleaved:false, layers:[] });
+  map.addControl(overlay);
+  // 瓦片加载失败/断网不抛错、不阻断弧线（背景色兜底）
+  map.on('error', e=>{ console.warn('[map] tile/source error (ignored, arcs still render):', e && e.error && e.error.message); });
+}
+
+/* ---------- 建层（地图 load 后或兜底超时后调用一次） ---------- */
+function ensureLayers(){
+  if(mapReady) return;
+  mapReady=true;
+  refreshMap();
+}
+
+/* ---------- 启动（无 DuckDB / 无 parquet，秒开） ---------- */
+function bootMap(){
+  buildMapUI();
+  try{
+    initMap();
+    map.on('load', ensureLayers);
+    // 兜底：1.5s 内 load 未触发也强制建层（断网瓦片卡住时仍出弧线）
+    setTimeout(ensureLayers, 1500);
+  }catch(err){
+    console.warn('maplibre unavailable, falling back to standalone deck.gl basemap:',err&&err.message);
+    try{ initDeckStandalone('worldMap'); ensureLayers(); }catch(e){ console.error(e); }
+  }
+}
+window.addEventListener('pagehide',stopAnim);
+bootMap();
+})();
+</script>
+<script src="./assets/version.js"></script>
+<script src="./assets/version_badge.js"></script>
+<script src="./assets/update_banner.js"></script>
+<script src="./assets/gate.js"></script>
+
+</body>
+</html>

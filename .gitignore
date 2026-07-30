@@ -1,0 +1,16 @@
+# junk
+.DS_Store
+Thumbs.db
+node_modules/
+*.zip
+
+# never publish raw source data (internal)
+*.xlsx
+*.xls
+*.csv
+work/
+uploads/
+
+# broken / orphan assets (kept out of the published site)
+assets/maplibre-gl.js
+assets/update_toast.js

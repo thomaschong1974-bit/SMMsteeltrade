@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Global Rankings 全球榜单 | 钢材贸易情报</title>
+<style>
+@font-face{font-family:'MiSans';font-weight:100 900;font-display:swap;src:local('MiSans VF'),local('MiSans'),local('MiSans-Regular'),local('MiSans-Medium'),local('MiSans-Semibold'),local('MiSans-Bold');}
+
+:root{
+  --red:#C00000;--ink:#16191d;--muted:#79808a;
+  --line:#e9ebee;--hair:#eef0f2;--bg:#ffffff;
+  --up:#c0392b;--dn:#1f9d6b;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'MiSans','MiSans VF','PingFang SC','Microsoft YaHei',system-ui,sans-serif;
+  color:var(--ink);background:var(--bg);line-height:1.5;-webkit-font-smoothing:antialiased;
+  font-size:14px}
+
+/* Top bar */
+.topbar{height:3px;background:var(--red);width:100%}
+.header{display:flex;align-items:center;gap:20px;padding:16px 40px 14px;
+  border-bottom:1px solid var(--line);position:sticky;top:0;background:#fff;z-index:50}
+.header .back{color:var(--red);text-decoration:none;font-size:13px;font-weight:600;
+  display:flex;align-items:center;gap:5px;white-space:nowrap}
+.header .back:hover{text-decoration:underline}
+.header .title-block{flex:1}
+.header h1{font-size:18px;font-weight:800;letter-spacing:-.3px;line-height:1.2}
+.header .sub{font-size:12px;color:var(--muted);margin-top:2px}
+.logo-wrap svg{width:auto;height:28px;display:block}
+
+/* Layout */
+.layout{display:flex;max-width:1400px;margin:0 auto}
+.sidebar{width:220px;flex:0 0 220px;position:sticky;top:54px;height:calc(100vh - 54px);
+  overflow-y:auto;padding:20px 0;border-right:1px solid var(--line)}
+.main{flex:1;min-width:0;padding:28px 40px 60px}
+
+/* Sidebar nav */
+.sb-group{margin-bottom:4px}
+.sb-cat{font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.05em;
+  text-transform:uppercase;padding:8px 18px 4px}
+.sb-item{display:block;padding:7px 18px;font-size:13px;color:var(--ink);
+  text-decoration:none;border-left:2px solid transparent;cursor:pointer;
+  transition:.12s}
+.sb-item:hover{background:var(--hair);color:var(--red)}
+.sb-item.active{border-left-color:var(--red);color:var(--red);
+  font-weight:600;background:#fdf2f2}
+.sb-num{font-size:11px;color:#bcc1c9;margin-right:4px;font-variant-numeric:tabular-nums}
+
+/* Tab bar */
+.tab-bar{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:24px;
+  border-bottom:1px solid var(--line);padding-bottom:14px}
+.tab-btn{padding:5px 13px;border-radius:20px;border:1px solid var(--line);
+  background:#fff;font-size:12.5px;cursor:pointer;color:var(--muted);
+  font-family:inherit;transition:.12s;white-space:nowrap}
+.tab-btn:hover{border-color:var(--red);color:var(--red)}
+.tab-btn.active{background:var(--red);color:#fff;border-color:var(--red);font-weight:600}
+
+/* Section heading */
+.sec-head{margin-bottom:18px}
+.sec-head h2{font-size:17px;font-weight:800;display:flex;align-items:center;gap:8px}
+.sec-head h2::before{content:'';display:block;width:3px;height:18px;
+  background:var(--red);border-radius:2px;flex-shrink:0}
+.sec-head p{font-size:12.5px;color:var(--muted);margin-top:5px;padding-left:11px}
+
+/* Tables */
+.dtable-wrap{overflow-x:auto}
+.dtable{width:100%;border-collapse:collapse;font-size:13px}
+.dtable th{font-size:11.5px;font-weight:700;color:var(--muted);padding:8px 12px;
+  text-align:left;border-bottom:2px solid var(--ink);white-space:nowrap;
+  letter-spacing:.02em}
+.dtable th.r{text-align:right}
+.dtable td{padding:9px 12px;border-bottom:1px dashed var(--line);
+  font-variant-numeric:tabular-nums;vertical-align:middle}
+.dtable td.r{text-align:right}
+.dtable td.mono{font-family:'Courier New',monospace;font-size:12.5px}
+.dtable tr:hover td{background:var(--hair)}
+.dtable .rank{font-size:12px;color:var(--muted);font-weight:700;width:36px}
+.dtable .rank-1{color:var(--red);font-weight:900}
+.dtable .rank-2{color:#444;font-weight:800}
+.dtable .rank-3{color:#666;font-weight:700}
+.badge-up{color:var(--up);font-size:12px;font-weight:600}
+.badge-dn{color:var(--dn);font-size:12px;font-weight:600}
+.badge-flat{color:var(--muted);font-size:12px}
+.country-flag{font-size:15px;margin-right:4px}
+
+/* Section panels */
+.panel{display:none}
+.panel.active{display:block}
+
+/* Filter bar */
+.filter-bar{display:flex;gap:10px;align-items:center;margin-bottom:16px;flex-wrap:wrap}
+.filter-bar label{font-size:12.5px;color:var(--muted);font-weight:600}
+.filter-bar select{border:1px solid var(--line);border-radius:6px;
+  padding:5px 10px;font-size:13px;font-family:inherit;color:var(--ink);
+  background:#fff;cursor:pointer}
+.filter-bar select:focus{outline:1px solid var(--red)}
+
+/* Info note */
+.note{font-size:12px;color:var(--muted);padding:8px 12px;background:var(--hair);
+  border-left:3px solid var(--line);border-radius:0 4px 4px 0;margin-bottom:16px}
+
+/* Responsive */
+@media(max-width:800px){
+  .sidebar{display:none}
+  .main{padding:20px 16px 40px}
+}
+</style>
+</head>
+<body class="has-gnav">
+<!-- ===== 全局统一顶部导航（浅色页用）。整段复制进每页 <body> 之后；给当前模块的 <a> 加 class="is-active"。CSS 用 gnav- 前缀，避免与页面样式冲突。 ===== -->
+<style>
+.gnav{position:fixed;top:0;left:0;right:0;height:58px;z-index:9999;display:flex;align-items:center;gap:6px;
+  padding:0 22px;background:rgba(255,255,255,.92);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);
+  border-bottom:1px solid #e9ebee;font-family:'MiSans','MiSans VF','PingFang SC','Microsoft YaHei',system-ui,sans-serif}
+.gnav-brand{display:flex;align-items:center;gap:11px;text-decoration:none;margin-right:8px;white-space:nowrap}
+.gnav-logo{height:24px;width:auto;display:block}
+.gnav-bt{font-size:12.5px;font-weight:800;letter-spacing:.14em;color:#16191d}
+.gnav-menu{display:flex;align-items:center;gap:3px;margin-left:6px}
+.gnav-menu>a,.gnav-dt{display:flex;flex-direction:column;justify-content:center;line-height:1.15;
+  padding:8px 13px;border-radius:8px;text-decoration:none;cursor:pointer;position:relative}
+.gnav-menu>a b,.gnav-dt b{font-size:14px;font-weight:650;color:#3d4650}
+.gnav-menu>a i,.gnav-dt i{font-size:9.5px;letter-spacing:.08em;color:#aab2bf;text-transform:uppercase;font-style:normal;line-height:1.1}
+.gnav-menu>a:hover,.gnav-dt:hover{background:#f4f5f7}
+.gnav-menu>a.is-active b{color:#16191d}
+.gnav-menu>a.is-active::after{content:"";position:absolute;left:13px;right:13px;bottom:2px;height:2px;background:#C00000;border-radius:2px}
+.gnav-drop{position:relative}
+.gnav-dt{flex-direction:row;align-items:center;gap:6px}
+.gnav-dt .gx{display:flex;flex-direction:column;line-height:1.15}
+.gnav-car{font-size:9px;color:#9aa1aa}
+.gnav-dm{position:absolute;top:calc(100% + 8px);left:0;min-width:178px;background:#fff;border:1px solid #e9ebee;
+  border-radius:11px;padding:6px;box-shadow:0 16px 40px rgba(20,25,35,.14);display:none;flex-direction:column;gap:1px}
+.gnav-drop:hover .gnav-dm{display:flex}
+.gnav-dm a{font-size:13px;color:#3d4650;text-decoration:none;padding:8px 12px;border-radius:7px}
+.gnav-dm a:hover{background:#f4f5f7;color:#16191d}
+.gnav-dm a.is-active{color:#C00000;font-weight:700}
+body.has-gnav{padding-top:58px!important}
+@media(max-width:820px){.gnav{overflow-x:auto}.gnav-menu>a i,.gnav-dt i{display:none}}
+</style>
+<nav class="gnav">
+  <a class="gnav-brand" href="./flagship.html">
+    <img src="./assets/SMM_logo.svg" alt="SMM" class="gnav-logo">
+    <span class="gnav-bt">TRADE INTEL</span>
+  </a>
+  <div class="gnav-menu">
+    <a href="./flagship.html" data-k="pulse"><b>全球脉搏</b><i>Pulse</i></a>
+    <a href="./tradeflow.html" data-k="map"><b>流向地图</b><i>Map</i></a>
+    <a href="./country_report.html" data-k="country"><b>国家画像</b><i>Country</i></a>
+    <a href="./product_report.html" data-k="product"><b>产品市场</b><i>Product</i></a>
+    <a href="./bilateral.html" data-k="bilateral"><b>双边流向</b><i>Bilateral</i></a>
+    <a href="./signals_report.html" data-k="signals"><b>市场信号</b><i>Signals</i></a><a href="./policy.html" data-k="signals"><b>政策壁垒</b><i>Policy</i></a>
+    <a href="./datalab.html" data-k="lab"><b>数据实验室</b><i>Data Lab</i></a>
+    <div class="gnav-drop">
+      <span class="gnav-dt"><span class="gx"><b>高级分析</b><i>Advanced</i></span><span class="gnav-car">&#9662;</span></span>
+      <div class="gnav-dm">
+        <a href="./trade_shift.html" data-k="shift">贸易转移 · Trade Shift</a>
+        <a href="./competition.html" data-k="comp">出口竞争 · Competition</a>
+        <a href="./destination.html" data-k="dest">进口市场 · Destination</a>
+        <a href="./risk.html" data-k="risk">风险依赖 · Risk</a>
+        <a href="./trend.html" data-k="trend">趋势诊断 · Trend</a>
+        <a href="./rankings.html" data-k="rank" class="is-active">全球榜单 · Rankings</a>
+        <a href="./methodology.html" data-k="method">方法论 · Methodology</a>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<div class="layout">
+  <!-- Sidebar -->
+  <nav class="sidebar">
+    <div class="sb-cat">出口类</div>
+    <a class="sb-item active" data-panel="exp-rank" onclick="showPanel(this)"><span class="sb-num">01</span>出口国排名</a>
+    <a class="sb-item" data-panel="exp-growth" onclick="showPanel(this)"><span class="sb-num">05</span>出口增速排名</a>
+    <a class="sb-item" data-panel="share-up" onclick="showPanel(this)"><span class="sb-num">07</span>份额提升排名</a>
+    <a class="sb-item" data-panel="share-dn" onclick="showPanel(this)"><span class="sb-num">08</span>份额下降排名</a>
+
+    <div class="sb-cat">进口类</div>
+    <a class="sb-item" data-panel="imp-rank" onclick="showPanel(this)"><span class="sb-num">02</span>进口国排名</a>
+    <a class="sb-item" data-panel="imp-growth" onclick="showPanel(this)"><span class="sb-num">06</span>进口增速排名</a>
+
+    <div class="sb-cat">净贸易</div>
+    <a class="sb-item" data-panel="net-exp" onclick="showPanel(this)"><span class="sb-num">03</span>净出口国排名</a>
+    <a class="sb-item" data-panel="net-imp" onclick="showPanel(this)"><span class="sb-num">04</span>净进口国排名</a>
+
+    <div class="sb-cat">双边流向</div>
+    <a class="sb-item" data-panel="bilateral-vol" onclick="showPanel(this)"><span class="sb-num">09</span>流向量排名</a>
+    <a class="sb-item" data-panel="bilateral-up" onclick="showPanel(this)"><span class="sb-num">10</span>流向增长排名</a>
+    <a class="sb-item" data-panel="bilateral-dn" onclick="showPanel(this)"><span class="sb-num">11</span>流向下降排名</a>
+
+    <div class="sb-cat">品类</div>
+    <a class="sb-item" data-panel="product-rank" onclick="showPanel(this)"><span class="sb-num">12</span>品类出口排名</a>
+    <a class="sb-item" data-panel="product-country" onclick="showPanel(this)"><span class="sb-num">13</span>品类×出口国</a>
+  </nav>
+
+  <!-- Main content -->
+  <main class="main">
+
+    <!-- TAB BAR (mobile / quick jump) -->
+    <div class="tab-bar" id="tabBar">
+      <button class="tab-btn active" data-panel="exp-rank" onclick="showPanelByTab(this)">①出口国</button>
+      <button class="tab-btn" data-panel="imp-rank" onclick="showPanelByTab(this)">②进口国</button>
+      <button class="tab-btn" data-panel="net-exp" onclick="showPanelByTab(this)">③净出口</button>
+      <button class="tab-btn" data-panel="net-imp" onclick="showPanelByTab(this)">④净进口</button>
+      <button class="tab-btn" data-panel="exp-growth" onclick="showPanelByTab(this)">⑤出口增速</button>
+      <button class="tab-btn" data-panel="imp-growth" onclick="showPanelByTab(this)">⑥进口增速</button>
+      <button class="tab-btn" data-panel="share-up" onclick="showPanelByTab(this)">⑦份额提升</button>
+      <button class="tab-btn" data-panel="share-dn" onclick="showPanelByTab(this)">⑧份额下降</button>
+      <button class="tab-btn" data-panel="bilateral-vol" onclick="showPanelByTab(this)">⑨双边量</button>
+      <button class="tab-btn" data-panel="bilateral-up" onclick="showPanelByTab(this)">⑩双边增长</button>
+      <button class="tab-btn" data-panel="bilateral-dn" onclick="showPanelByTab(this)">⑪双边下降</button>
+      <button class="tab-btn" data-panel="product-rank" onclick="showPanelByTab(this)">⑫品类排名</button>
+      <button class="tab-btn" data-panel="product-country" onclick="showPanelByTab(this)">⑬品类×国别</button>
+    </div>
+
+    <!-- ① 全球出口国排名 -->
+    <div class="panel active" id="p-exp-rank">
+      <div class="sec-head">
+        <h2>全球出口国排名（2025）</h2>
+        <p>按2025年出口量降序，含同比增速与全球份额。</p>
+      </div>
+      <div class="dtable-wrap"><table class="dtable" id="t-exp-rank"></table></div>
+    </div>
+
+    <!-- ② 全球进口国排名 -->
+    <div class="panel" id="p-imp-rank">
+      <div class="sec-head">
+        <h2>全球进口国排名（2025）</h2>
+        <p>按2025年进口量降序，含同比增速与全球份额。</p>
+      </div>
+      <div class="dtable-wrap"><table class="dtable" id="t-imp-rank"></table></div>
+    </div>
+
+    <!-- ③ 净出口国排名 -->
+    <div class="panel" id="p-net-exp">
+      <div class="sec-head">
+        <h2>净出口国排名（2025）</h2>
+        <p>出口 − 进口 &gt; 0 的国家，按净出口量降序。</p>
+      </div>
+      <div class="dtable-wrap"><table class="dtable" id="t-net-exp"></table></div>
+    </div>
+
+    <!-- ④ 净进口国排名 -->
+    <div class="panel" id="p-net-imp">
+      <div class="sec-head">
+        <h2>净进口国排名（2025）</h2>
+        <p>进口 − 出口 &gt; 0 的国家，按净进口量降序（依赖最大）。</p>
+      </div>
+      <div class="dtable-wrap"><table class="dtable" id="t-net-imp"></table></div>
+    </div>
+
+    <!-- ⑤ 出口增速排名 -->
+    <div class="panel" id="p-exp-growth">
+      <div class="sec-head">
+        <h2>出口增速排名（2025 vs 2024）</h2>
+        <p>过滤条件：2025年出口量 ≥ 20万吨，排除小基数干扰。</p>
+      </div>
+      <div class="dtable-wrap"><table class="dtable" id="t-exp-growth"></table></div>
+    </div>
+
+    <!-- ⑥ 进口增速排名 -->
+    <div class="panel" id="p-imp-growth">
+      <div class="sec-head">
+        <h2>进口增速排名（2025 vs 2024）</h2>
+        <p>过滤条件：2025年进口量 ≥ 20万吨，排除小基数干扰。</p>
+      </div>
+      <div class="dtable-wrap"><table class="dtable" id="t-imp-growth"></table></div>
+    </div>
+
+    <!-- ⑦ 出口份额提升排名 -->
+    <div class="panel" id="p-share-up">
+      <div class="sec-head">
+        <h2>出口份额提升排名</h2>
+        <p>2025年全球份额 − 2024年份额（百分点），份额提升最多的国家。过滤：2025年出口 ≥ 5万吨。</p>
+      </div>
+      <div class="dtable-wrap"><table class="dtable" id="t-share-up"></table></div>
+    </div>
+
+    <!-- ⑧ 出口份额下降排名 -->
+    <div class="panel" id="p-share-dn">
+      <div class="sec-head">
+        <h2>出口份额下降排名</h2>
+        <p>份额下降最多的国家（2025 vs 2024，百分点）。过滤：2024年出口 ≥ 5万吨。</p>
+      </div>
+      <div class="dtable-wrap"><table class="dtable" id="t-share-dn"></table></div>
+    </div>
+
+    <!-- ⑨ 双边流向量排名 -->
+    <div class="panel" id="p-bilateral-vol">
+      <div class="sec-head">
+        <h2>双边流向量排名（2025）</h2>
+        <p>全球最大贸易对（出口方→进口方），按2025年量降序。EXPORT口径。</p>
+      </div>
+      <div class="dtable-wrap"><table class="dtable" id="t-bilateral-vol"></table></div>
+    </div>
+
+    <!-- ⑩ 双边流向增长排名 -->
+    <div class="panel" id="p-bilateral-up">
+      <div class="sec-head">
+        <h2>双边流向增长排名（2025 vs 2024 增量）</h2>
+        <p>过滤：2025年或2024年任一年 ≥ 5万吨。增量 = v25 − v24，万吨。</p>
+      </div>
+      <div class="dtable-wrap"><table class="dtable" id="t-bilateral-up"></table></div>
+    </div>
+
+    <!-- ⑪ 双边流向下降排名 -->
+    <div class="panel" id="p-bilateral-dn">
+      <div class="sec-head">
+        <h2>双边流向下降排名（2025 vs 2024 减量）</h2>
+        <p>过滤：2024年量 ≥ 5万吨。减量最大（跌幅最深）的贸易对。</p>
+      </div>
+      <div class="dtable-wrap"><table class="dtable" id="t-bilateral-dn"></table></div>
+    </div>
+
+    <!-- ⑫ 品类出口排名 -->
+    <div class="panel" id="p-product-rank">
+      <div class="sec-head">
+        <h2>品类出口排名（2025）</h2>
+        <p>7大品类全球出口量，按2025年量降序。</p>
+      </div>
+      <div class="dtable-wrap"><table class="dtable" id="t-product-rank"></table></div>
+    </div>
+
+    <!-- ⑬ 品类×出口国 -->
+    <div class="panel" id="p-product-country">
+      <div class="sec-head">
+        <h2>品类 × 出口国（2025）</h2>
+        <p>选择品类，查看该品类下各出口国排名。</p>
+      </div>
+      <div class="filter-bar">
+        <label>品类：</label>
+        <select id="groupSelect" onchange="renderProductCountry()">
+          <option value="钢材卷板">钢材卷板</option>
+          <option value="钢材废碎料">钢材废碎料</option>
+          <option value="钢材型材">钢材型材</option>
+          <option value="钢材管材">钢材管材</option>
+          <option value="钢材其他">钢材其他</option>
+          <option value="钢材锭及其他半制成品">钢材锭及其他半制成品</option>
+          <option value="钢材窄带">钢材窄带</option>
+        </select>
+      </div>
+      <div class="dtable-wrap"><table class="dtable" id="t-product-country"></table></div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+// ============================================================
+// INLINE DATA
+// ============================================================
+
+// country_year data (years=[2020,2021,2022,2023,2024,2025], idx25=5, idx24=4)
+// global export 2025 = 3120.8万吨 (for share calc)
+const GLOBAL_EXP_2025 = 3120.8;
+const GLOBAL_IMP_2025 = 2987.3;
+
+const CY = [{"iso": "CHN", "name": "中国", "exp_y": [4123.6, 4726.2, 5405.6, 6056.1, 9170.6, 11019.5, 10671.1, 7364.0, 6736.2, 6235.4, 5173.3, 6429.3, 6546.8, 9119.9, 11482.5, 13098.3], "imp_y": [1694.2, 1608.5, 1392.8, 1454.4, 1463.3, 1296.1, 1336.5, 1367.6, 1411.0, 1528.4, 3850.8, 2786.1, 1687.9, 1087.2, 854.8, 683.2], "net_y": [2429.4, 3117.7, 4012.8, 4601.7, 7707.3, 9723.4, 9334.6, 5996.4, 5325.2, 4707.0, 1322.5, 3643.2, 4858.9, 8032.7, 10627.7, 12415.1], "exp_share25": 30.7, "imp_share25": 1.9, "exp_yoy": 14.1, "imp_yoy": -20.1}, {"iso": "DEU", "name": "德国", "exp_y": [2516.0, 2638.5, 2566.5, 2425.4, 2434.4, 2475.4, 2489.5, 2648.2, 2571.4, 2412.9, 2148.4, 2385.2, 2248.0, 2240.4, 2254.0, 2195.0], "imp_y": [2281.3, 2624.5, 2357.0, 2304.3, 2458.1, 2505.6, 2581.4, 2745.0, 2691.6, 2354.4, 1971.6, 2402.0, 2188.2, 1915.9, 1826.4, 1994.6], "net_y": [234.7, 14.0, 209.5, 121.1, -23.7, -30.2, -91.9, -96.8, -120.2, 58.5, 176.8, -16.8, 59.8, 324.5, 427.6, 200.4], "exp_share25": 5.2, "imp_share25": 5.5, "exp_yoy": -2.6, "imp_yoy": 9.2}, {"iso": "KOR", "name": "韩国", "exp_y": [2411.6, 2832.9, 2962.3, 2836.7, 3126.9, 3057.0, 3003.0, 3067.9, 2943.2, 2937.7, 2805.7, 2620.2, 2487.6, 2657.6, 2757.3, 2755.3], "imp_y": [2454.2, 2258.1, 2012.2, 1876.1, 2209.6, 2132.5, 2288.6, 1891.0, 1468.2, 1605.4, 1172.7, 1380.2, 1343.1, 1482.3, 1389.0, 1230.9], "net_y": [-42.6, 574.8, 950.1, 960.6, 917.3, 924.5, 714.4, 1176.9, 1475.0, 1332.3, 1633.0, 1240.0, 1144.5, 1175.3, 1368.3, 1524.4], "exp_share25": 6.5, "imp_share25": 3.4, "exp_yoy": -0.1, "imp_yoy": -11.4}, {"iso": "TUR", "name": "土耳其", "exp_y": [1591.7, 1664.7, 1821.9, 1662.9, 1551.8, 1443.6, 1467.3, 1578.8, 1922.8, 1927.6, 1787.4, 2108.7, 1672.1, 1205.8, 1497.9, 1681.1], "imp_y": [1069.9, 1026.2, 1144.8, 1443.8, 1350.8, 1568.7, 1556.6, 1356.4, 1209.1, 1110.1, 1293.6, 1604.3, 1573.0, 1786.1, 1810.5, 1950.9], "net_y": [521.8, 638.5, 677.1, 219.1, 201.0, -125.1, -89.3, 222.4, 713.7, 817.5, 493.8, 504.4, 99.1, -580.3, -312.6, -269.8], "exp_share25": 3.9, "imp_share25": 5.4, "exp_yoy": 12.2, "imp_yoy": 7.8}, {"iso": "JPN", "name": "日本", "exp_y": [4246.4, 4037.9, 4119.0, 4225.6, 4112.1, 4066.5, 4031.2, 3723.0, 3563.8, 3291.6, 3090.5, 3355.1, 3154.9, 3200.4, 3103.0, 2967.7], "imp_y": [420.4, 527.9, 546.2, 512.6, 642.2, 563.6, 573.2, 595.1, 577.2, 616.4, 497.4, 520.3, 508.5, 561.0, 598.0, 554.7], "net_y": [3826.0, 3510.0, 3572.8, 3713.0, 3469.9, 3502.9, 3458.0, 3127.9, 2986.6, 2675.2, 2593.1, 2834.8, 2646.4, 2639.4, 2505.0, 2413.0], "exp_share25": 7.0, "imp_share25": 1.5, "exp_yoy": -4.4, "imp_yoy": -7.2}, {"iso": "ITA", "name": "意大利", "exp_y": [1476.3, 1651.2, 1757.3, 1624.5, 1654.2, 1569.5, 1724.2, 1731.4, 1716.1, 1688.2, 1432.9, 1591.5, 1471.1, 1495.1, 1402.4, 1401.2], "imp_y": [1632.1, 1729.5, 1374.4, 1547.5, 1639.6, 1973.4, 1936.6, 1990.3, 2032.9, 2033.8, 1585.0, 2045.4, 1974.8, 1831.4, 1801.5, 2009.3], "net_y": [-155.8, -78.3, 382.9, 77.0, 14.6, -403.9, -212.4, -258.9, -316.8, -345.6, -152.1, -453.9, -503.7, -336.3, -399.1, -608.1], "exp_share25": 3.3, "imp_share25": 5.6, "exp_yoy": -0.1, "imp_yoy": 11.5}, {"iso": "USA", "name": "美国", "exp_y": [1161.7, 1291.2, 1322.6, 1225.7, 1168.3, 966.4, 895.3, 1015.1, 854.0, 715.0, 648.7, 808.6, 845.7, 898.5, 856.4, 690.4], "imp_y": [2176.5, 2611.0, 3061.4, 2938.1, 4038.3, 3539.2, 2991.1, 3457.9, 3111.1, 2638.9, 1952.8, 2792.9, 2827.2, 2577.8, 2638.1, 2319.9], "net_y": [-1014.8, -1319.8, -1738.8, -1712.4, -2870.0, -2572.8, -2095.8, -2442.8, -2257.1, -1923.9, -1304.1, -1984.3, -1981.5, -1679.3, -1781.7, -1629.5], "exp_share25": 1.6, "imp_share25": 6.4, "exp_yoy": -19.4, "imp_yoy": -12.1}, {"iso": "BEL", "name": "比利时", "exp_y": [1503.3, 1611.0, 1462.1, 1396.1, 1439.0, 1522.7, 1690.0, 1791.6, 1797.4, 1686.8, 1382.9, 1591.6, 1556.4, 1514.5, 1528.0, 1565.0], "imp_y": [1115.7, 1321.1, 1046.2, 1010.3, 1057.8, 1198.9, 1325.5, 1393.3, 1490.9, 1283.1, 1101.1, 1367.8, 1265.9, 1187.2, 1186.5, 1270.2], "net_y": [387.6, 289.9, 415.9, 385.8, 381.2, 323.8, 364.5, 398.3, 306.5, 403.7, 281.8, 223.8, 290.5, 327.3, 341.5, 294.8], "exp_share25": 3.7, "imp_share25": 3.5, "exp_yoy": 2.4, "imp_yoy": 7.1}, {"iso": "VNM", "name": "越南", "exp_y": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 651.2, 1023.5, 1262.6, 761.9, 1123.8, 1269.0, 1070.8], "imp_y": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1427.4, 1271.6, 1115.4, 1152.3, 1326.3, 1692.4, 1446.0], "net_y": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, -776.2, -248.1, 147.2, -390.4, -202.5, -423.4, -375.2], "exp_share25": 2.5, "imp_share25": 4.0, "exp_yoy": -15.6, "imp_yoy": -14.6}, {"iso": "IDN", "name": "印度尼西亚", "exp_y": [122.1, 129.5, 88.3, 64.7, 132.7, 198.6, 157.8, 238.9, 383.2, 417.4, 561.9, 990.1, 918.3, 939.9, 1137.4, 1162.1], "imp_y": [746.3, 847.1, 1192.7, 1225.2, 1086.7, 1126.6, 1244.9, 1135.2, 1157.0, 1333.6, 962.3, 1012.8, 1111.2, 1231.1, 1279.6, 1288.3], "net_y": [-624.2, -717.6, -1104.4, -1160.5, -954.0, -928.0, -1087.1, -896.3, -773.8, -916.2, -400.4, -22.7, -192.9, -291.2, -142.2, -126.2], "exp_share25": 2.7, "imp_share25": 3.6, "exp_yoy": 2.2, "imp_yoy": 0.7}, {"iso": "FRA", "name": "法国", "exp_y": [1385.3, 1422.4, 1422.3, 1382.9, 1456.5, 1364.7, 1336.4, 1448.9, 1407.5, 1325.8, 1033.0, 1308.7, 1136.2, 981.0, 969.1, 995.9], "imp_y": [1403.5, 1462.7, 1319.7, 1323.7, 1350.1, 1405.0, 1461.9, 1492.8, 1480.7, 1427.2, 1165.8, 1301.4, 1175.5, 1147.6, 1088.8, 1076.8], "net_y": [-18.2, -40.3, 102.6, 59.2, 106.4, -40.3, -125.5, -43.9, -73.2, -101.4, -132.8, 7.3, -39.3, -166.6, -119.7, -80.9], "exp_share25": 2.3, "imp_share25": 3.0, "exp_yoy": 2.8, "imp_yoy": -1.1}, {"iso": "IND", "name": "印度", "exp_y": [692.5, 825.8, 800.8, 994.7, 1016.5, 731.8, 1005.5, 1609.3, 1083.4, 1313.8, 1778.9, 2011.6, 1187.3, 963.5, 940.0, 965.5], "imp_y": [936.7, 899.3, 914.7, 721.8, 915.4, 1310.8, 966.2, 863.0, 871.4, 869.2, 516.6, 571.0, 671.7, 957.6, 1121.5, 1001.4], "net_y": [-244.2, -73.5, -113.9, 272.9, 101.1, -579.0, 39.3, 746.3, 212.0, 444.6, 1262.3, 1440.6, 515.6, 5.9, -181.5, -35.9], "exp_share25": 2.3, "imp_share25": 2.8, "exp_yoy": 2.7, "imp_yoy": -10.7}, {"iso": "ESP", "name": "西班牙", "exp_y": [975.8, 995.0, 969.7, 979.0, 986.0, 953.8, 932.6, 961.5, 955.7, 939.1, 794.7, 941.9, 812.7, 764.8, 770.6, 795.4], "imp_y": [904.9, 900.2, 774.8, 756.8, 821.9, 895.5, 934.7, 988.1, 1065.6, 1024.2, 885.8, 997.4, 976.5, 1006.7, 1032.9, 1019.9], "net_y": [70.9, 94.8, 194.9, 222.2, 164.1, 58.3, -2.1, -26.6, -109.9, -85.1, -91.1, -55.5, -163.8, -241.9, -262.3, -224.5], "exp_share25": 1.9, "imp_share25": 2.8, "exp_yoy": 3.2, "imp_yoy": -1.3}, {"iso": "BRA", "name": "巴西", "exp_y": [890.1, 1075.8, 959.6, 802.1, 970.9, 1362.6, 1335.3, 1525.7, 1382.0, 1273.4, 1047.0, 1092.3, 1188.5, 1167.6, 954.8, 1094.1], "imp_y": [568.9, 355.9, 358.2, 347.7, 376.5, 301.5, 172.4, 220.0, 225.5, 220.5, 189.2, 466.6, 310.7, 475.1, 559.8, 599.4], "net_y": [321.2, 719.9, 601.4, 454.4, 594.4, 1061.1, 1162.9, 1305.7, 1156.5, 1052.9, 857.8, 625.7, 877.8, 692.5, 395.0, 494.7], "exp_share25": 2.6, "imp_share25": 1.7, "exp_yoy": 14.6, "imp_yoy": 7.1}, {"iso": "THA", "name": "泰国", "exp_y": [172.1, 146.1, 141.4, 238.1, 124.6, 133.1, 128.3, 170.6, 174.2, 139.7, 118.7, 194.4, 176.1, 154.0, 148.1, 158.0], "imp_y": [1213.4, 1234.3, 1516.6, 1580.2, 1508.0, 1447.6, 1739.8, 1410.9, 1489.2, 1607.5, 1318.1, 1546.5, 1318.6, 1602.8, 1325.2, 1523.8], "net_y": [-1041.3, -1088.2, -1375.2, -1342.1, -1383.4, -1314.5, -1611.5, -1240.3, -1315.0, -1467.8, -1199.4, -1352.1, -1142.5, -1448.8, -1177.1, -1365.8], "exp_share25": 0.4, "imp_share25": 4.2, "exp_yoy": 6.7, "imp_yoy": 15.0}, {"iso": "POL", "name": "波兰", "exp_y": [433.3, 504.7, 550.6, 494.8, 482.7, 496.2, 533.0, 611.6, 595.0, 577.9, 523.4, 563.0, 520.0, 498.2, 470.7, 477.1], "imp_y": [673.6, 769.4, 788.7, 787.7, 889.7, 893.4, 982.9, 1041.5, 1172.1, 1096.7, 1080.0, 1312.9, 1156.0, 1114.3, 1099.8, 1203.3], "net_y": [-240.3, -264.7, -238.1, -292.9, -407.0, -397.2, -449.9, -429.9, -577.1, -518.8, -556.6, -749.9, -636.0, -616.1, -629.1, -726.2], "exp_share25": 1.1, "imp_share25": 3.3, "exp_yoy": 1.4, "imp_yoy": 9.4}, {"iso": "NLD", "name": "荷兰", "exp_y": [959.5, 1103.9, 1051.0, 918.1, 1033.7, 1088.3, 1082.5, 1115.9, 1086.0, 979.1, 866.8, 967.8, 877.1, 795.5, 843.7, 875.4], "imp_y": [738.0, 914.8, 831.8, 717.4, 789.3, 782.8, 1003.6, 973.7, 1008.9, 917.3, 829.7, 992.1, 922.0, 787.9, 776.6, 791.5], "net_y": [221.5, 189.1, 219.2, 200.7, 244.4, 305.5, 78.9, 142.2, 77.1, 61.8, 37.1, -24.3, -44.9, 7.6, 67.1, 83.9], "exp_share25": 2.1, "imp_share25": 2.2, "exp_yoy": 3.8, "imp_yoy": 1.9}, {"iso": "TWN", "name": "中国台湾", "exp_y": [992.0, 1041.1, 1042.6, 1153.3, 1195.5, 1106.7, 1211.6, 1199.3, 1216.7, 1112.4, 1046.0, 1076.7, 999.0, 942.2, 910.3, 844.5], "imp_y": [845.4, 749.5, 746.9, 771.1, 877.5, 744.7, 779.4, 736.5, 764.7, 725.2, 734.7, 944.6, 704.4, 745.0, 885.3, 819.1], "net_y": [146.6, 291.6, 295.7, 382.2, 318.0, 362.0, 432.2, 462.8, 452.0, 387.2, 311.3, 132.1, 294.6, 197.2, 25.0, 25.4], "exp_share25": 2.0, "imp_share25": 2.3, "exp_yoy": -7.2, "imp_yoy": -7.5}, {"iso": "MYS", "name": "马来西亚", "exp_y": [210.6, 254.6, 212.0, 140.6, 188.5, 161.6, 122.7, 152.4, 148.0, 495.8, 835.6, 817.3, 747.2, 787.2, 916.2, 701.3], "imp_y": [511.2, 497.4, 582.7, 659.4, 745.8, 764.6, 892.4, 757.1, 782.4, 721.6, 569.2, 619.5, 570.6, 672.0, 745.3, 767.9], "net_y": [-300.6, -242.8, -370.7, -518.8, -557.3, -603.0, -769.7, -604.7, -634.4, -225.8, 266.4, 197.8, 176.6, 115.2, 170.9, -66.6], "exp_share25": 1.6, "imp_share25": 2.1, "exp_yoy": -23.5, "imp_yoy": 3.0}, {"iso": "IRN", "name": "伊朗", "exp_y": [0.0, 0.0, 153.0, 180.6, 287.2, 379.4, 562.8, 737.6, 959.8, 1052.9, 927.5, 1096.7, 1168.3, 1174.6, 1066.5, 1320.8], "imp_y": [0.0, 0.0, 785.4, 382.7, 413.0, 442.3, 462.4, 309.7, 181.5, 78.4, 109.8, 108.1, 110.6, 169.3, 180.8, 147.0], "net_y": [0.0, 0.0, -632.4, -202.1, -125.8, -62.9, 100.4, 427.9, 778.3, 974.5, 817.7, 988.6, 1057.7, 1005.3, 885.7, 1173.8], "exp_share25": 3.1, "imp_share25": 0.4, "exp_yoy": 23.8, "imp_yoy": -18.7}, {"iso": "MEX", "name": "墨西哥", "exp_y": [550.1, 534.8, 490.0, 537.5, 513.0, 366.2, 413.4, 491.1, 563.9, 493.0, 496.9, 555.9, 244.5, 166.9, 186.0, 137.4], "imp_y": [662.8, 671.5, 907.2, 801.5, 905.6, 1204.7, 963.7, 1078.1, 1106.2, 1152.4, 1111.6, 1550.4, 768.2, 853.1, 984.6, 1023.4], "net_y": [-112.7, -136.7, -417.2, -264.0, -392.6, -838.5, -550.3, -587.0, -542.3, -659.4, -614.7, -994.5, -523.7, -686.2, -798.6, -886.0], "exp_share25": 0.3, "imp_share25": 2.8, "exp_yoy": -26.1, "imp_yoy": 3.9}, {"iso": "CAN", "name": "加拿大", "exp_y": [701.8, 635.7, 1391.4, 578.2, 624.7, 612.6, 595.6, 648.3, 640.5, 556.5, 505.9, 667.5, 658.5, 658.7, 635.2, 432.0], "imp_y": [911.0, 1028.5, 1042.3, 914.4, 1036.8, 797.3, 783.7, 884.5, 916.6, 1293.5, 694.7, 1011.1, 883.3, 817.0, 806.7, 666.7], "net_y": [-209.2, -392.8, 349.1, -336.2, -412.1, -184.7, -188.1, -236.2, -276.1, -737.0, -188.8, -343.6, -224.8, -158.3, -171.5, -234.7], "exp_share25": 1.0, "imp_share25": 1.8, "exp_yoy": -32.0, "imp_yoy": -17.4}, {"iso": "CZE", "name": "捷克", "exp_y": [414.9, 459.1, 461.4, 460.4, 413.0, 421.1, 457.4, 417.3, 440.8, 391.1, 401.0, 449.4, 380.2, 345.1, 289.0, 315.5], "imp_y": [552.5, 594.8, 613.6, 584.6, 563.8, 599.4, 644.0, 680.6, 722.0, 678.6, 623.7, 716.8, 623.6, 625.7, 664.7, 730.7], "net_y": [-137.6, -135.7, -152.2, -124.2, -150.8, -178.3, -186.6, -263.3, -281.2, -287.5, -222.7, -267.4, -243.4, -280.6, -375.7, -415.2], "exp_share25": 0.7, "imp_share25": 2.0, "exp_yoy": 9.2, "imp_yoy": 9.9}, {"iso": "AUT", "name": "奥地利", "exp_y": [644.3, 677.4, 662.6, 684.7, 717.7, 691.7, 727.1, 774.3, 733.2, 691.0, 627.0, 689.8, 675.4, 695.7, 663.2, 688.9], "imp_y": [333.3, 369.5, 340.7, 315.1, 348.7, 397.9, 414.0, 443.6, 459.4, 377.3, 345.8, 422.7, 405.8, 317.9, 313.6, 335.1], "net_y": [311.0, 307.9, 321.9, 369.6, 369.0, 293.8, 313.1, 330.7, 273.8, 313.7, 281.2, 267.1, 269.6, 377.8, 349.6, 353.8], "exp_share25": 1.6, "imp_share25": 0.9, "exp_yoy": 3.9, "imp_yoy": 6.9}, {"iso": "GBR", "name": "英国", "exp_y": [592.5, 589.7, 629.4, 827.0, 847.7, 720.8, 446.9, 449.4, 450.0, 410.5, 431.5, 360.3, 336.5, 311.9, 276.3, 260.8], "imp_y": [614.9, 730.2, 697.9, 617.9, 719.1, 695.0, 689.1, 682.4, 711.3, 658.0, 476.9, 586.6, 535.8, 509.7, 660.2, 739.2], "net_y": [-22.4, -140.5, -68.5, 209.1, 128.6, 25.8, -242.2, -233.0, -261.3, -247.5, -45.4, -226.3, -199.3, -197.8, -383.9, -478.4], "exp_share25": 0.6, "imp_share25": 2.1, "exp_yoy": -5.6, "imp_yoy": 12.0}, {"iso": "EGY", "name": "埃及", "exp_y": [131.0, 139.4, 124.4, 137.5, 78.9, 44.5, 94.0, 162.1, 156.8, 120.3, 122.9, 176.6, 150.1, 391.9, 366.0, 311.9], "imp_y": [1027.4, 532.8, 328.0, 235.7, 240.3, 272.3, 622.1, 207.9, 142.1, 59.3, 398.3, 172.6, 345.6, 44.8, 249.5, 576.1], "net_y": [-896.4, -393.4, -203.6, -98.2, -161.4, -227.8, -528.1, -45.8, 14.7, 61.0, -275.4, 4.0, -195.5, 347.1, 116.5, -264.2], "exp_share25": 0.7, "imp_share25": 1.6, "exp_yoy": -14.8, "imp_yoy": 130.9}, {"iso": "PHL", "name": "菲律宾", "exp_y": [13.3, 9.1, 3.8, 4.2, 2.9, 2.0, 3.0, 3.8, 3.2, 3.6, 1.9, 3.2, 6.7, 7.8, 7.3, 19.5], "imp_y": [158.4, 154.9, 161.1, 189.8, 225.6, 309.9, 790.5, 817.3, 935.3, 730.3, 658.8, 730.4, 756.6, 691.5, 752.5, 859.8], "net_y": [-145.1, -145.8, -157.3, -185.6, -222.7, -307.9, -787.5, -813.5, -932.1, -726.7, -656.9, -727.2, -749.9, -683.7, -745.2, -840.3], "exp_share25": 0.0, "imp_share25": 2.4, "exp_yoy": 167.1, "imp_yoy": 14.3}, {"iso": "SAU", "name": "沙特阿拉伯", "exp_y": [118.4, 166.3, 128.8, 151.2, 102.7, 119.5, 119.2, 116.9, 252.4, 139.4, 109.5, 150.9, 118.8, 182.0, 97.1, 70.0], "imp_y": [678.1, 745.4, 1050.5, 862.1, 821.8, 824.8, 731.3, 473.6, 395.1, 464.2, 523.3, 392.2, 481.0, 511.7, 663.0, 757.5], "net_y": [-559.7, -579.1, -921.7, -710.9, -719.1, -705.3, -612.1, -356.7, -142.7, -324.8, -413.8, -241.3, -362.2, -329.7, -565.9, -687.5], "exp_share25": 0.2, "imp_share25": 2.1, "exp_yoy": -27.9, "imp_yoy": 14.3}, {"iso": "ROU", "name": "罗马尼亚", "exp_y": [285.2, 306.3, 259.7, 220.8, 226.6, 250.5, 242.3, 270.9, 278.2, 283.4, 258.1, 328.8, 278.5, 206.3, 180.4, 148.7], "imp_y": [266.5, 326.5, 279.7, 266.1, 307.8, 330.3, 332.0, 371.2, 394.0, 401.2, 397.9, 444.8, 457.1, 437.1, 548.8, 566.9], "net_y": [18.7, -20.2, -20.0, -45.3, -81.2, -79.8, -89.7, -100.3, -115.8, -117.8, -139.8, -116.0, -178.6, -230.8, -368.4, -418.2], "exp_share25": 0.3, "imp_share25": 1.6, "exp_yoy": -17.6, "imp_yoy": 3.3}, {"iso": "SVK", "name": "斯洛伐克", "exp_y": [439.8, 419.8, 458.7, 459.6, 464.9, 458.4, 486.8, 496.3, 484.9, 407.1, 335.5, 483.6, 417.9, 423.3, 393.2, 376.1], "imp_y": [211.3, 224.0, 214.1, 248.7, 258.3, 266.1, 289.3, 300.8, 309.6, 302.8, 272.1, 338.8, 323.0, 280.4, 262.0, 263.9], "net_y": [228.5, 195.8, 244.6, 210.9, 206.6, 192.3, 197.5, 195.5, 175.3, 104.3, 63.4, 144.8, 94.9, 142.9, 131.2, 112.2], "exp_share25": 0.9, "imp_share25": 0.7, "exp_yoy": -4.3, "imp_yoy": 0.7}, {"iso": "UKR", "name": "乌克兰", "exp_y": [2479.1, 2583.4, 2405.7, 2461.7, 2139.6, 1762.6, 1811.7, 1511.4, 1498.3, 1545.3, 1508.7, 1555.9, 465.5, 320.9, 453.9, 446.1], "imp_y": [176.8, 196.0, 185.9, 174.4, 118.7, 79.3, 112.4, 138.3, 156.0, 151.2, 129.5, 124.1, 65.3, 122.1, 133.3, 168.7], "net_y": [2302.3, 2387.4, 2219.8, 2287.3, 2020.9, 1683.3, 1699.3, 1373.1, 1342.3, 1394.1, 1379.2, 1431.8, 400.2, 198.8, 320.6, 277.4], "exp_share25": 1.0, "imp_share25": 0.5, "exp_yoy": -1.7, "imp_yoy": 26.6}, {"iso": "SWE", "name": "瑞典", "exp_y": [361.8, 378.1, 348.0, 327.1, 321.6, 315.1, 358.7, 380.6, 363.9, 443.6, 333.7, 351.4, 329.1, 312.5, 302.7, 296.6], "imp_y": [387.1, 456.7, 379.6, 320.4, 302.4, 306.9, 345.9, 411.1, 461.2, 374.1, 315.3, 385.0, 353.8, 319.3, 301.9, 303.9], "net_y": [-25.3, -78.6, -31.6, 6.7, 19.2, 8.2, 12.8, -30.5, -97.3, 69.5, 18.4, -33.6, -24.7, -6.8, 0.8, -7.3], "exp_share25": 0.7, "imp_share25": 0.8, "exp_yoy": -2.0, "imp_yoy": 0.7}, {"iso": "PRT", "name": "葡萄牙", "exp_y": [152.1, 183.1, 193.5, 203.9, 232.1, 225.4, 235.4, 242.9, 225.5, 228.7, 220.9, 235.1, 196.5, 229.0, 223.3, 216.0], "imp_y": [256.8, 232.1, 207.4, 229.5, 243.5, 267.0, 270.0, 294.4, 302.0, 309.9, 273.8, 342.8, 312.2, 314.7, 349.1, 367.8], "net_y": [-104.7, -49.0, -13.9, -25.6, -11.4, -41.6, -34.6, -51.5, -76.5, -81.2, -52.9, -107.7, -115.7, -85.7, -125.8, -151.8], "exp_share25": 0.5, "imp_share25": 1.0, "exp_yoy": -3.3, "imp_yoy": 5.4}, {"iso": "SGP", "name": "新加坡", "exp_y": [0.0, 227.1, 232.1, 229.0, 210.1, 171.5, 186.5, 143.0, 155.5, 169.5, 158.4, 111.9, 140.0, 135.6, 106.8, 106.2], "imp_y": [0.0, 569.4, 546.8, 630.6, 547.2, 542.3, 434.7, 368.5, 409.5, 400.9, 308.2, 335.0, 360.9, 416.7, 399.3, 462.4], "net_y": [0.0, -342.3, -314.7, -401.6, -337.1, -370.8, -248.2, -225.5, -254.0, -231.4, -149.8, -223.1, -220.9, -281.1, -292.5, -356.2], "exp_share25": 0.2, "imp_share25": 1.3, "exp_yoy": -0.6, "imp_yoy": 15.8}, {"iso": "RUS", "name": "俄罗斯", "exp_y": [3668.9, 3536.2, 2886.7, 2707.7, 2787.1, 2955.1, 3095.3, 3092.2, 3310.8, 2926.7, 2835.2, 3211.8, 2408.3, 2148.8, 2084.7, 452.6], "imp_y": [605.2, 728.6, 719.2, 746.3, 631.5, 444.1, 433.9, 636.0, 624.8, 690.6, 494.5, 479.9, 114.9, 114.3, 142.7, 27.2], "net_y": [3063.7, 2807.6, 2167.5, 1961.4, 2155.6, 2511.0, 2661.4, 2456.2, 2686.0, 2236.1, 2340.7, 2731.9, 2293.4, 2034.5, 1942.0, 425.4], "exp_share25": 1.1, "imp_share25": 0.1, "exp_yoy": -78.3, "imp_yoy": -80.9}, {"iso": "PAK", "name": "巴基斯坦", "exp_y": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 5.1, 14.0, 11.8, 6.8, 10.0, 7.7, 12.5], "imp_y": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 108.5, 237.0, 262.8, 211.3, 236.2, 278.1, 405.1], "net_y": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, -103.4, -223.0, -251.0, -204.5, -226.2, -270.4, -392.6], "exp_share25": 0.0, "imp_share25": 1.1, "exp_yoy": 62.3, "imp_yoy": 45.7}, {"iso": "BGR", "name": "保加利亚", "exp_y": [90.1, 120.8, 97.0, 93.9, 99.7, 93.0, 105.3, 133.2, 137.5, 110.1, 110.8, 124.1, 103.4, 107.8, 105.9, 106.1], "imp_y": [98.9, 147.5, 131.6, 148.6, 184.6, 170.9, 193.9, 176.1, 194.3, 214.6, 209.1, 203.4, 210.3, 201.2, 209.7, 235.9], "net_y": [-8.8, -26.7, -34.6, -54.7, -84.9, -77.9, -88.6, -42.9, -56.8, -104.5, -98.3, -79.3, -106.9, -93.4, -103.8, -129.8], "exp_share25": 0.2, "imp_share25": 0.7, "exp_yoy": 0.2, "imp_yoy": 12.5}, {"iso": "ZAF", "name": "南非", "exp_y": [324.7, 274.4, 257.5, 197.6, 224.9, 213.6, 212.9, 248.7, 282.5, 269.9, 155.2, 142.3, 144.0, 162.8, 170.2, 149.3], "imp_y": [82.3, 122.1, 107.0, 173.7, 137.2, 167.0, 137.0, 113.7, 97.8, 107.3, 109.6, 163.3, 138.2, 151.4, 181.9, 186.4], "net_y": [242.4, 152.3, 150.5, 23.9, 87.7, 46.6, 75.9, 135.0, 184.7, 162.6, 45.6, -21.0, 5.8, 11.4, -11.7, -37.1], "exp_share25": 0.4, "imp_share25": 0.5, "exp_yoy": -12.3, "imp_yoy": 2.5}, {"iso": "HUN", "name": "匈牙利", "exp_y": [133.6, 155.1, 175.3, 178.1, 162.1, 142.4, 143.1, 189.5, 206.2, 187.2, 169.8, 140.2, 134.8, 87.0, 78.9, 73.4], "imp_y": [161.1, 194.0, 218.2, 292.6, 263.8, 225.8, 268.5, 278.8, 302.4, 292.0, 256.2, 310.6, 297.0, 259.1, 255.6, 258.0], "net_y": [-27.5, -38.9, -42.9, -114.5, -101.7, -83.4, -125.4, -89.3, -96.2, -104.8, -86.4, -170.4, -162.2, -172.1, -176.7, -184.6], "exp_share25": 0.2, "imp_share25": 0.7, "exp_yoy": -7.0, "imp_yoy": 0.9}, {"iso": "PER", "name": "秘鲁", "exp_y": [13.7, 12.6, 17.2, 15.9, 16.9, 17.6, 21.5, 26.1, 24.3, 23.1, 17.9, 24.3, 26.4, 27.0, 18.6, 18.2], "imp_y": [188.6, 188.9, 196.9, 202.9, 199.3, 221.8, 225.0, 191.4, 221.3, 216.4, 211.7, 296.0, 237.6, 197.7, 233.3, 285.7], "net_y": [-174.9, -176.3, -179.7, -187.0, -182.4, -204.2, -203.5, -165.3, -197.0, -193.3, -193.8, -271.7, -211.2, -170.7, -214.7, -267.5], "exp_share25": 0.0, "imp_share25": 0.8, "exp_yoy": -2.2, "imp_yoy": 22.5}];
+
+// Bilateral flows (EXPORT口径: reporter=出口国, partner=进口方)
+const FLOWS = [{"r": "CHN", "rn": "中国", "p": "VNM", "pn": "越南", "v25": 1009.0, "v24": 1261.7, "yoy": -20.0}, {"r": "CHN", "rn": "中国", "p": "KOR", "pn": "韩国", "v25": 759.7, "v24": 815.6, "yoy": -6.8}, {"r": "CHN", "rn": "中国", "p": "PHL", "pn": "菲律宾", "v25": 714.4, "v24": 545.0, "yoy": 31.1}, {"r": "CHN", "rn": "中国", "p": "IDN", "pn": "印度尼西亚", "v25": 703.1, "v24": 596.0, "yoy": 18.0}, {"r": "CHN", "rn": "中国", "p": "THA", "pn": "泰国", "v25": 675.1, "v24": 519.8, "yoy": 29.9}, {"r": "BRA", "rn": "巴西", "p": "USA", "pn": "美国", "v25": 643.6, "v24": 582.2, "yoy": 10.5}, {"r": "CHN", "rn": "中国", "p": "SAU", "pn": "沙特阿拉伯", "v25": 631.9, "v24": 511.2, "yoy": 23.6}, {"r": "CHN", "rn": "中国", "p": "ARE", "pn": "阿联酋", "v25": 548.9, "v24": 554.0, "yoy": -0.9}, {"r": "BEL", "rn": "比利时", "p": "DEU", "pn": "德国", "v25": 492.2, "v24": 465.6, "yoy": 5.7}, {"r": "CHN", "rn": "中国", "p": "TUR", "pn": "土耳其", "v25": 482.3, "v24": 474.7, "yoy": 1.6}, {"r": "JPN", "rn": "日本", "p": "THA", "pn": "泰国", "v25": 412.0, "v24": 415.9, "yoy": -0.9}, {"r": "CAN", "rn": "加拿大", "p": "USA", "pn": "美国", "v25": 409.6, "v24": 595.3, "yoy": -31.2}, {"r": "USA", "rn": "美国", "p": "MEX", "pn": "墨西哥", "v25": 381.5, "v24": 434.5, "yoy": -12.2}, {"r": "JPN", "rn": "日本", "p": "KOR", "pn": "韩国", "v25": 378.5, "v24": 468.4, "yoy": -19.2}, {"r": "CHN", "rn": "中国", "p": "MYS", "pn": "马来西亚", "v25": 365.6, "v24": 284.3, "yoy": 28.6}, {"r": "CHN", "rn": "中国", "p": "BRA", "pn": "巴西", "v25": 352.8, "v24": 381.0, "yoy": -7.4}, {"r": "BEL", "rn": "比利时", "p": "FRA", "pn": "法国", "v25": 349.5, "v24": 313.7, "yoy": 11.4}, {"r": "KOR", "rn": "韩国", "p": "JPN", "pn": "日本", "v25": 322.7, "v24": 350.6, "yoy": -8.0}, {"r": "CHN", "rn": "中国", "p": "PAK", "pn": "巴基斯坦", "v25": 310.2, "v24": 238.8, "yoy": 29.9}, {"r": "DEU", "rn": "德国", "p": "POL", "pn": "波兰", "v25": 303.3, "v24": 306.3, "yoy": -1.0}, {"r": "ITA", "rn": "意大利", "p": "DEU", "pn": "德国", "v25": 283.1, "v24": 269.8, "yoy": 4.9}, {"r": "KOR", "rn": "韩国", "p": "IND", "pn": "印度", "v25": 277.1, "v24": 300.2, "yoy": -7.7}, {"r": "NLD", "rn": "荷兰", "p": "DEU", "pn": "德国", "v25": 263.4, "v24": 231.4, "yoy": 13.8}, {"r": "IRN", "rn": "伊朗", "p": "IRQ", "pn": "伊拉克", "v25": 260.2, "v24": 259.2, "yoy": 0.4}, {"r": "USA", "rn": "美国", "p": "CAN", "pn": "加拿大", "v25": 260.1, "v24": 360.5, "yoy": -27.9}, {"r": "KOR", "rn": "韩国", "p": "USA", "pn": "美国", "v25": 245.0, "v24": 265.1, "yoy": -7.6}, {"r": "DEU", "rn": "德国", "p": "FRA", "pn": "法国", "v25": 243.9, "v24": 251.9, "yoy": -3.2}, {"r": "CHN", "rn": "中国", "p": "PER", "pn": "秘鲁", "v25": 242.5, "v24": 181.2, "yoy": 33.9}, {"r": "FRA", "rn": "法国", "p": "DEU", "pn": "德国", "v25": 234.2, "v24": 205.9, "yoy": 13.8}, {"r": "CHN", "rn": "中国", "p": "ITA", "pn": "意大利", "v25": 226.1, "v24": 173.1, "yoy": 30.6}, {"r": "JPN", "rn": "日本", "p": "CHN", "pn": "中国", "v25": 225.0, "v24": 258.3, "yoy": -12.9}, {"r": "BEL", "rn": "比利时", "p": "NLD", "pn": "荷兰", "v25": 224.3, "v24": 238.4, "yoy": -5.9}, {"r": "JPN", "rn": "日本", "p": "VNM", "pn": "越南", "v25": 217.7, "v24": 224.4, "yoy": -3.0}, {"r": "CHN", "rn": "中国", "p": "NGA", "pn": "尼日利亚", "v25": 214.8, "v24": 129.0, "yoy": 66.5}, {"r": "CHN", "rn": "中国", "p": "IND", "pn": "印度", "v25": 213.9, "v24": 301.3, "yoy": -29.0}, {"r": "AUT", "rn": "奥地利", "p": "DEU", "pn": "德国", "v25": 208.2, "v24": 195.8, "yoy": 6.3}, {"r": "CHN", "rn": "中国", "p": "SGP", "pn": "新加坡", "v25": 207.1, "v24": 119.3, "yoy": 73.5}, {"r": "CHN", "rn": "中国", "p": "HKG", "pn": "中国香港", "v25": 204.9, "v24": 144.7, "yoy": 41.5}, {"r": "CHN", "rn": "中国", "p": "EGY", "pn": "埃及", "v25": 200.0, "v24": 166.3, "yoy": 20.3}, {"r": "DEU", "rn": "德国", "p": "NLD", "pn": "荷兰", "v25": 198.4, "v24": 189.2, "yoy": 4.9}];
+
+// Product × Country data (from country_product_year.json, EXPORT only, key countries)
+const PROD_DATA = [{"c": "CHN", "cn": "中国", "g": "热轧 (Hot Rolling)", "v25": 2443.7, "v24": 2988.4}, {"c": "JPN", "cn": "日本", "g": "热轧 (Hot Rolling)", "v25": 1334.3, "v24": 1426.1}, {"c": "KOR", "cn": "韩国", "g": "热轧 (Hot Rolling)", "v25": 710.9, "v24": 658.4}, {"c": "BEL", "cn": "比利时", "g": "热轧 (Hot Rolling)", "v25": 398.8, "v24": 408.7}, {"c": "TUR", "cn": "土耳其", "g": "热轧 (Hot Rolling)", "v25": 319.7, "v24": 268.2}, {"c": "DEU", "cn": "德国", "g": "热轧 (Hot Rolling)", "v25": 319.3, "v24": 371.1}, {"c": "TWN", "cn": "中国台湾", "g": "热轧 (Hot Rolling)", "v25": 291.4, "v24": 336.7}, {"c": "NLD", "cn": "荷兰", "g": "热轧 (Hot Rolling)", "v25": 287.9, "v24": 261.5}, {"c": "CHN", "cn": "中国", "g": "涂镀 (Coating & Plating)", "v25": 3110.6, "v24": 2686.2}, {"c": "KOR", "cn": "韩国", "g": "涂镀 (Coating & Plating)", "v25": 696.5, "v24": 724.1}, {"c": "DEU", "cn": "德国", "g": "涂镀 (Coating & Plating)", "v25": 547.4, "v24": 529.6}, {"c": "BEL", "cn": "比利时", "g": "涂镀 (Coating & Plating)", "v25": 501.2, "v24": 518.1}, {"c": "VNM", "cn": "越南", "g": "涂镀 (Coating & Plating)", "v25": 293.1, "v24": 411.5}, {"c": "JPN", "cn": "日本", "g": "涂镀 (Coating & Plating)", "v25": 283.3, "v24": 292.5}, {"c": "FRA", "cn": "法国", "g": "涂镀 (Coating & Plating)", "v25": 247.4, "v24": 220.4}, {"c": "NLD", "cn": "荷兰", "g": "涂镀 (Coating & Plating)", "v25": 240.5, "v24": 236.8}, {"c": "CHN", "cn": "中国", "g": "钢坯 (Steel Billet)", "v25": 1483.2, "v24": 634.4}, {"c": "BRA", "cn": "巴西", "g": "钢坯 (Steel Billet)", "v25": 868.2, "v24": 725.5}, {"c": "IRN", "cn": "伊朗", "g": "钢坯 (Steel Billet)", "v25": 810.5, "v24": 659.8}, {"c": "RUS", "cn": "俄罗斯", "g": "钢坯 (Steel Billet)", "v25": 297.4, "v24": 1430.6}, {"c": "JPN", "cn": "日本", "g": "钢坯 (Steel Billet)", "v25": 291.5, "v24": 314.1}, {"c": "VNM", "cn": "越南", "g": "钢坯 (Steel Billet)", "v25": 282.9, "v24": 236.5}, {"c": "IDN", "cn": "印度尼西亚", "g": "钢坯 (Steel Billet)", "v25": 239.0, "v24": 394.2}, {"c": "MYS", "cn": "马来西亚", "g": "钢坯 (Steel Billet)", "v25": 183.6, "v24": 382.6}, {"c": "CHN", "cn": "中国", "g": "螺纹钢 (Rebar)", "v25": 933.0, "v24": 693.2}, {"c": "TUR", "cn": "土耳其", "g": "螺纹钢 (Rebar)", "v25": 462.4, "v24": 390.8}, {"c": "ITA", "cn": "意大利", "g": "螺纹钢 (Rebar)", "v25": 259.4, "v24": 257.9}, {"c": "IRN", "cn": "伊朗", "g": "螺纹钢 (Rebar)", "v25": 223.3, "v24": 230.0}, {"c": "MYS", "cn": "马来西亚", "g": "螺纹钢 (Rebar)", "v25": 172.2, "v24": 261.5}, {"c": "DEU", "cn": "德国", "g": "螺纹钢 (Rebar)", "v25": 156.0, "v24": 181.3}, {"c": "EGY", "cn": "埃及", "g": "螺纹钢 (Rebar)", "v25": 125.9, "v24": 123.5}, {"c": "FRA", "cn": "法国", "g": "螺纹钢 (Rebar)", "v25": 97.9, "v24": 89.2}, {"c": "CHN", "cn": "中国", "g": "线盘 (Wire Rod)", "v25": 958.2, "v24": 631.0}, {"c": "DEU", "cn": "德国", "g": "线盘 (Wire Rod)", "v25": 238.8, "v24": 224.9}, {"c": "ITA", "cn": "意大利", "g": "线盘 (Wire Rod)", "v25": 137.0, "v24": 137.1}, {"c": "MYS", "cn": "马来西亚", "g": "线盘 (Wire Rod)", "v25": 129.0, "v24": 158.0}, {"c": "JPN", "cn": "日本", "g": "线盘 (Wire Rod)", "v25": 115.9, "v24": 109.3}, {"c": "IDN", "cn": "印度尼西亚", "g": "线盘 (Wire Rod)", "v25": 97.4, "v24": 80.6}, {"c": "TUR", "cn": "土耳其", "g": "线盘 (Wire Rod)", "v25": 91.9, "v24": 93.8}, {"c": "VNM", "cn": "越南", "g": "线盘 (Wire Rod)", "v25": 72.4, "v24": 103.3}, {"c": "CHN", "cn": "中国", "g": "钢丝 (Steel Wire)", "v25": 883.4, "v24": 809.6}, {"c": "IND", "cn": "印度", "g": "钢丝 (Steel Wire)", "v25": 184.4, "v24": 147.7}, {"c": "KOR", "cn": "韩国", "g": "钢丝 (Steel Wire)", "v25": 158.9, "v24": 166.0}, {"c": "ITA", "cn": "意大利", "g": "钢丝 (Steel Wire)", "v25": 139.6, "v24": 138.9}, {"c": "TUR", "cn": "土耳其", "g": "钢丝 (Steel Wire)", "v25": 133.6, "v24": 123.9}, {"c": "DEU", "cn": "德国", "g": "钢丝 (Steel Wire)", "v25": 103.2, "v24": 109.4}, {"c": "JPN", "cn": "日本", "g": "钢丝 (Steel Wire)", "v25": 78.4, "v24": 81.3}, {"c": "ESP", "cn": "西班牙", "g": "钢丝 (Steel Wire)", "v25": 53.4, "v24": 52.1}, {"c": "CHN", "cn": "中国", "g": "冷轧 (Cold Rolling)", "v25": 515.2, "v24": 550.4}, {"c": "KOR", "cn": "韩国", "g": "冷轧 (Cold Rolling)", "v25": 405.6, "v24": 406.8}, {"c": "JPN", "cn": "日本", "g": "冷轧 (Cold Rolling)", "v25": 293.2, "v24": 307.0}, {"c": "BEL", "cn": "比利时", "g": "冷轧 (Cold Rolling)", "v25": 181.8, "v24": 162.1}, {"c": "DEU", "cn": "德国", "g": "冷轧 (Cold Rolling)", "v25": 153.4, "v24": 155.3}, {"c": "NLD", "cn": "荷兰", "g": "冷轧 (Cold Rolling)", "v25": 104.5, "v24": 101.3}, {"c": "TWN", "cn": "中国台湾", "g": "冷轧 (Cold Rolling)", "v25": 89.1, "v24": 131.3}, {"c": "USA", "cn": "美国", "g": "冷轧 (Cold Rolling)", "v25": 75.4, "v24": 95.1}, {"c": "IDN", "cn": "印度尼西亚", "g": "不锈钢 (Stainless Steel)", "v25": 469.5, "v24": 469.7}, {"c": "CHN", "cn": "中国", "g": "不锈钢 (Stainless Steel)", "v25": 420.8, "v24": 432.7}, {"c": "BEL", "cn": "比利时", "g": "不锈钢 (Stainless Steel)", "v25": 177.1, "v24": 166.5}, {"c": "ITA", "cn": "意大利", "g": "不锈钢 (Stainless Steel)", "v25": 113.9, "v24": 121.6}, {"c": "KOR", "cn": "韩国", "g": "不锈钢 (Stainless Steel)", "v25": 108.7, "v24": 110.1}, {"c": "TWN", "cn": "中国台湾", "g": "不锈钢 (Stainless Steel)", "v25": 90.5, "v24": 104.2}, {"c": "FIN", "cn": "芬兰", "g": "不锈钢 (Stainless Steel)", "v25": 85.5, "v24": 98.5}, {"c": "IND", "cn": "印度", "g": "不锈钢 (Stainless Steel)", "v25": 85.1, "v24": 84.9}, {"c": "CHN", "cn": "中国", "g": "型钢 (Section Steel)", "v25": 679.6, "v24": 473.8}, {"c": "ESP", "cn": "西班牙", "g": "型钢 (Section Steel)", "v25": 227.6, "v24": 233.0}, {"c": "TUR", "cn": "土耳其", "g": "型钢 (Section Steel)", "v25": 191.1, "v24": 184.0}, {"c": "DEU", "cn": "德国", "g": "型钢 (Section Steel)", "v25": 152.3, "v24": 164.8}, {"c": "LUX", "cn": "卢森堡", "g": "型钢 (Section Steel)", "v25": 117.8, "v24": 123.4}, {"c": "POL", "cn": "波兰", "g": "型钢 (Section Steel)", "v25": 91.9, "v24": 88.4}, {"c": "KOR", "cn": "韩国", "g": "型钢 (Section Steel)", "v25": 83.1, "v24": 88.3}, {"c": "ITA", "cn": "意大利", "g": "型钢 (Section Steel)", "v25": 70.5, "v24": 64.4}, {"c": "CHN", "cn": "中国", "g": "中厚板 (Medium-Thickness Plate)", "v25": 555.0, "v24": 588.4}, {"c": "KOR", "cn": "韩国", "g": "中厚板 (Medium-Thickness Plate)", "v25": 249.2, "v24": 281.6}, {"c": "JPN", "cn": "日本", "g": "中厚板 (Medium-Thickness Plate)", "v25": 219.2, "v24": 221.6}, {"c": "ITA", "cn": "意大利", "g": "中厚板 (Medium-Thickness Plate)", "v25": 107.6, "v24": 110.2}, {"c": "BEL", "cn": "比利时", "g": "中厚板 (Medium-Thickness Plate)", "v25": 80.5, "v24": 68.1}, {"c": "DEU", "cn": "德国", "g": "中厚板 (Medium-Thickness Plate)", "v25": 79.4, "v24": 78.8}, {"c": "TUR", "cn": "土耳其", "g": "中厚板 (Medium-Thickness Plate)", "v25": 58.1, "v24": 31.5}, {"c": "IDN", "cn": "印度尼西亚", "g": "中厚板 (Medium-Thickness Plate)", "v25": 52.2, "v24": 53.8}, {"c": "CHN", "cn": "中国", "g": "钢管 (Steel Pipe)", "v25": 452.9, "v24": 385.1}, {"c": "ITA", "cn": "意大利", "g": "钢管 (Steel Pipe)", "v25": 156.4, "v24": 153.5}, {"c": "TUR", "cn": "土耳其", "g": "钢管 (Steel Pipe)", "v25": 82.1, "v24": 92.4}, {"c": "DEU", "cn": "德国", "g": "钢管 (Steel Pipe)", "v25": 55.2, "v24": 55.6}, {"c": "ROU", "cn": "罗马尼亚", "g": "钢管 (Steel Pipe)", "v25": 36.1, "v24": 35.0}, {"c": "VNM", "cn": "越南", "g": "钢管 (Steel Pipe)", "v25": 30.9, "v24": 25.6}, {"c": "ESP", "cn": "西班牙", "g": "钢管 (Steel Pipe)", "v25": 27.6, "v24": 23.7}, {"c": "CAN", "cn": "加拿大", "g": "钢管 (Steel Pipe)", "v25": 26.6, "v24": 37.2}, {"c": "CHN", "cn": "中国", "g": "硅钢 (Silicon Steel)", "v25": 151.5, "v24": 144.8}, {"c": "KOR", "cn": "韩国", "g": "硅钢 (Silicon Steel)", "v25": 72.4, "v24": 60.7}, {"c": "JPN", "cn": "日本", "g": "硅钢 (Silicon Steel)", "v25": 69.3, "v24": 59.4}, {"c": "TWN", "cn": "中国台湾", "g": "硅钢 (Silicon Steel)", "v25": 45.2, "v24": 38.7}, {"c": "DEU", "cn": "德国", "g": "硅钢 (Silicon Steel)", "v25": 34.4, "v24": 34.7}, {"c": "AUT", "cn": "奥地利", "g": "硅钢 (Silicon Steel)", "v25": 17.1, "v24": 14.2}, {"c": "FRA", "cn": "法国", "g": "硅钢 (Silicon Steel)", "v25": 15.2, "v24": 15.3}, {"c": "VNM", "cn": "越南", "g": "硅钢 (Silicon Steel)", "v25": 11.5, "v24": 10.9}, {"c": "CHN", "cn": "中国", "g": "其他 (Others)", "v25": 115.6, "v24": 90.9}, {"c": "FRA", "cn": "法国", "g": "其他 (Others)", "v25": 54.6, "v24": 48.7}, {"c": "DEU", "cn": "德国", "g": "其他 (Others)", "v25": 41.7, "v24": 39.8}, {"c": "KOR", "cn": "韩国", "g": "其他 (Others)", "v25": 39.3, "v24": 29.9}, {"c": "USA", "cn": "美国", "g": "其他 (Others)", "v25": 24.2, "v24": 20.9}, {"c": "JPN", "cn": "日本", "g": "其他 (Others)", "v25": 20.3, "v24": 22.3}, {"c": "BEL", "cn": "比利时", "g": "其他 (Others)", "v25": 20.1, "v24": 18.3}, {"c": "GBR", "cn": "英国", "g": "其他 (Others)", "v25": 16.3, "v24": 21.4}, {"c": "CHN", "cn": "中国", "g": "钢轨 (Steel Rail)", "v25": 82.4, "v24": 79.6}, {"c": "AUT", "cn": "奥地利", "g": "钢轨 (Steel Rail)", "v25": 51.4, "v24": 50.8}, {"c": "JPN", "cn": "日本", "g": "钢轨 (Steel Rail)", "v25": 33.3, "v24": 36.7}, {"c": "POL", "cn": "波兰", "g": "钢轨 (Steel Rail)", "v25": 28.3, "v24": 29.2}, {"c": "CZE", "cn": "捷克", "g": "钢轨 (Steel Rail)", "v25": 21.1, "v24": 21.4}, {"c": "ITA", "cn": "意大利", "g": "钢轨 (Steel Rail)", "v25": 19.0, "v24": 14.7}, {"c": "ESP", "cn": "西班牙", "g": "钢轨 (Steel Rail)", "v25": 16.8, "v24": 13.2}, {"c": "FRA", "cn": "法国", "g": "钢轨 (Steel Rail)", "v25": 15.0, "v24": 18.0}, {"c": "CHN", "cn": "中国", "g": "钢管附件 (Steel Pipe Fittings)", "v25": 154.8, "v24": 141.4}, {"c": "IND", "cn": "印度", "g": "钢管附件 (Steel Pipe Fittings)", "v25": 28.0, "v24": 24.9}, {"c": "ITA", "cn": "意大利", "g": "钢管附件 (Steel Pipe Fittings)", "v25": 19.1, "v24": 20.1}, {"c": "KOR", "cn": "韩国", "g": "钢管附件 (Steel Pipe Fittings)", "v25": 12.2, "v24": 11.1}, {"c": "DEU", "cn": "德国", "g": "钢管附件 (Steel Pipe Fittings)", "v25": 10.8, "v24": 11.0}, {"c": "USA", "cn": "美国", "g": "钢管附件 (Steel Pipe Fittings)", "v25": 7.8, "v24": 9.4}, {"c": "POL", "cn": "波兰", "g": "钢管附件 (Steel Pipe Fittings)", "v25": 7.7, "v24": 7.6}, {"c": "ESP", "cn": "西班牙", "g": "钢管附件 (Steel Pipe Fittings)", "v25": 7.1, "v24": 7.0}, {"c": "CHN", "cn": "中国", "g": "异型材 (Special-Shaped Profiles)", "v25": 123.6, "v24": 115.3}, {"c": "LUX", "cn": "卢森堡", "g": "异型材 (Special-Shaped Profiles)", "v25": 42.3, "v24": 41.0}, {"c": "CZE", "cn": "捷克", "g": "异型材 (Special-Shaped Profiles)", "v25": 14.6, "v24": 10.3}, {"c": "AUS", "cn": "澳大利亚", "g": "异型材 (Special-Shaped Profiles)", "v25": 9.9, "v24": 0.1}, {"c": "NLD", "cn": "荷兰", "g": "异型材 (Special-Shaped Profiles)", "v25": 9.6, "v24": 7.1}, {"c": "POL", "cn": "波兰", "g": "异型材 (Special-Shaped Profiles)", "v25": 7.2, "v24": 6.2}, {"c": "JPN", "cn": "日本", "g": "异型材 (Special-Shaped Profiles)", "v25": 6.2, "v24": 6.2}, {"c": "BHR", "cn": "巴林", "g": "异型材 (Special-Shaped Profiles)", "v25": 5.4, "v24": 3.7}, {"c": "DEU", "cn": "德国", "g": "带钢 (Strip Steel)", "v25": 45.1, "v24": 47.2}, {"c": "CHN", "cn": "中国", "g": "带钢 (Strip Steel)", "v25": 34.8, "v24": 37.3}, {"c": "AUT", "cn": "奥地利", "g": "带钢 (Strip Steel)", "v25": 19.7, "v24": 17.0}, {"c": "USA", "cn": "美国", "g": "带钢 (Strip Steel)", "v25": 18.6, "v24": 19.7}, {"c": "ITA", "cn": "意大利", "g": "带钢 (Strip Steel)", "v25": 17.1, "v24": 15.7}, {"c": "HUN", "cn": "匈牙利", "g": "带钢 (Strip Steel)", "v25": 10.5, "v24": 11.7}, {"c": "SVK", "cn": "斯洛伐克", "g": "带钢 (Strip Steel)", "v25": 9.8, "v24": 12.8}, {"c": "BEL", "cn": "比利时", "g": "带钢 (Strip Steel)", "v25": 6.8, "v24": 8.2}];
+
+// Global product totals (from meta.json)
+const PROD_GLOBAL = [{"g": "热轧 (Hot Rolling)", "v25": 8587.5, "v24": 9325.1, "share": 20.2}, {"g": "涂镀 (Coating & Plating)", "v25": 7770.2, "v24": 7601.7, "share": 18.2}, {"g": "钢坯 (Steel Billet)", "v25": 5661.9, "v24": 5988.2, "share": 13.3}, {"g": "螺纹钢 (Rebar)", "v25": 3721.1, "v24": 3754.1, "share": 8.7}, {"g": "线盘 (Wire Rod)", "v25": 2736.6, "v24": 2605.7, "share": 6.4}, {"g": "钢丝 (Steel Wire)", "v25": 2453.5, "v24": 2510.0, "share": 5.8}, {"g": "冷轧 (Cold Rolling)", "v25": 2439.5, "v24": 2597.2, "share": 5.7}, {"g": "不锈钢 (Stainless Steel)", "v25": 2151.5, "v24": 2178.7, "share": 5.0}, {"g": "型钢 (Section Steel)", "v25": 2097.4, "v24": 1993.7, "share": 4.9}, {"g": "中厚板 (Medium-Thickness Plate)", "v25": 1774.1, "v24": 1867.7, "share": 4.2}, {"g": "钢管 (Steel Pipe)", "v25": 1255.8, "v24": 1210.4, "share": 2.9}, {"g": "硅钢 (Silicon Steel)", "v25": 489.7, "v24": 473.3, "share": 1.1}, {"g": "其他 (Others)", "v25": 372.1, "v24": 336.0, "share": 0.9}, {"g": "钢轨 (Steel Rail)", "v25": 321.4, "v24": 337.3, "share": 0.8}, {"g": "钢管附件 (Steel Pipe Fittings)", "v25": 316.4, "v24": 302.4, "share": 0.7}, {"g": "异型材 (Special-Shaped Profiles)", "v25": 245.2, "v24": 244.3, "share": 0.6}, {"g": "带钢 (Strip Steel)", "v25": 215.3, "v24": 228.2, "share": 0.5}];
+
+// ============================================================
+// HELPERS
+// ============================================================
+function fmt(v, d=1){ return (v===null||v===undefined||isNaN(v))? '—' : v.toFixed(d); }
+function fmtPct(v){ if(v===null||v===undefined||isNaN(v)) return '—';
+  let cls = v>0?'badge-up':v<0?'badge-dn':'badge-flat';
+  let sign = v>0?'+':''; return `<span class="${cls}">${sign}${v.toFixed(1)}%</span>`; }
+function fmtChg(v){ if(v===null||v===undefined||isNaN(v)) return '—';
+  let cls = v>0?'badge-up':v<0?'badge-dn':'badge-flat';
+  let sign = v>0?'+':''; return `<span class="${cls}">${sign}${v.toFixed(1)}</span>`; }
+function rankCell(i){
+  let cls = i===0?'rank rank-1':i===1?'rank rank-2':i===2?'rank rank-3':'rank';
+  return `<td class="${cls}">${i+1}</td>`;
+}
+
+// Compute 2024 export share for each country
+// global exp 2024 = sum of exp_y[4] (idx24=4)
+const gExp24 = CY.reduce((s,c)=>s+c.exp_y[4],0);
+const gImp24 = CY.reduce((s,c)=>s+c.imp_y[4],0);
+
+function getExpShare24(c){ return c.exp_y[4]/gExp24*100; }
+function getImpShare24(c){ return c.imp_y[4]/gImp24*100; }
+
+// ============================================================
+// RENDER FUNCTIONS
+// ============================================================
+
+function renderTable(tableId, rows, cols){
+  const tbl = document.getElementById(tableId);
+  let head = '<thead><tr>' + cols.map(c=>`<th class="${c.cls||''}">${c.label}</th>`).join('') + '</tr></thead>';
+  let body = '<tbody>' + rows.map((r,i)=>{
+    return '<tr>' + cols.map(c=>{
+      if(c.key==='rank') return rankCell(i);
+      let val = typeof c.fn==='function' ? c.fn(r,i) : r[c.key];
+      return `<td class="${c.cls||''}">${val===null||val===undefined?'—':val}</td>`;
+    }).join('') + '</tr>';
+  }).join('') + '</tbody>';
+  tbl.innerHTML = head + body;
+}
+
+// ① Export rank
+function renderExpRank(){
+  let sorted = CY.filter(c=>c.exp_y[5]>0).sort((a,b)=>b.exp_y[5]-a.exp_y[5]).slice(0,20);
+  renderTable('t-exp-rank', sorted, [
+    {key:'rank',label:'#',cls:'r'},
+    {key:'name',label:'出口国'},
+    {label:'2025（万吨）',cls:'r',fn:r=>fmt(r.exp_y[5])},
+    {label:'2024（万吨）',cls:'r',fn:r=>fmt(r.exp_y[4])},
+    {label:'同比',cls:'r',fn:r=>fmtPct(r.exp_yoy)},
+    {label:'2025份额',cls:'r',fn:r=>`${fmt(r.exp_share25)}%`}
+  ]);
+}
+
+// ② Import rank
+function renderImpRank(){
+  let sorted = CY.filter(c=>c.imp_y[5]>0).sort((a,b)=>b.imp_y[5]-a.imp_y[5]).slice(0,20);
+  renderTable('t-imp-rank', sorted, [
+    {key:'rank',label:'#',cls:'r'},
+    {key:'name',label:'进口国'},
+    {label:'2025（万吨）',cls:'r',fn:r=>fmt(r.imp_y[5])},
+    {label:'2024（万吨）',cls:'r',fn:r=>fmt(r.imp_y[4])},
+    {label:'同比',cls:'r',fn:r=>fmtPct(r.imp_yoy)},
+    {label:'2025份额',cls:'r',fn:r=>`${fmt(r.imp_share25)}%`}
+  ]);
+}
+
+// ③ Net export rank
+function renderNetExp(){
+  let sorted = CY.filter(c=>c.net_y[5]>0).sort((a,b)=>b.net_y[5]-a.net_y[5]).slice(0,20);
+  renderTable('t-net-exp', sorted, [
+    {key:'rank',label:'#',cls:'r'},
+    {key:'name',label:'国家'},
+    {label:'净出口2025（万吨）',cls:'r',fn:r=>fmt(r.net_y[5])},
+    {label:'净出口2024（万吨）',cls:'r',fn:r=>fmt(r.net_y[4])},
+    {label:'变化',cls:'r',fn:r=>fmtChg(r.net_y[5]-r.net_y[4])},
+    {label:'出口2025',cls:'r',fn:r=>fmt(r.exp_y[5])},
+    {label:'进口2025',cls:'r',fn:r=>fmt(r.imp_y[5])}
+  ]);
+}
+
+// ④ Net import rank
+function renderNetImp(){
+  let sorted = CY.filter(c=>c.net_y[5]<0).sort((a,b)=>a.net_y[5]-b.net_y[5]).slice(0,20);
+  renderTable('t-net-imp', sorted, [
+    {key:'rank',label:'#',cls:'r'},
+    {key:'name',label:'国家'},
+    {label:'净进口2025（万吨）',cls:'r',fn:r=>fmt(Math.abs(r.net_y[5]))},
+    {label:'净进口2024（万吨）',cls:'r',fn:r=>fmt(Math.abs(r.net_y[4]))},
+    {label:'变化',cls:'r',fn:r=>fmtChg(Math.abs(r.net_y[5])-Math.abs(r.net_y[4]))},
+    {label:'进口2025',cls:'r',fn:r=>fmt(r.imp_y[5])},
+    {label:'出口2025',cls:'r',fn:r=>fmt(r.exp_y[5])}
+  ]);
+}
+
+// ⑤ Export growth rank (filter exp25 >= 20)
+function renderExpGrowth(){
+  let sorted = CY.filter(c=>c.exp_y[5]>=20 && c.exp_yoy!==null)
+    .sort((a,b)=>b.exp_yoy-a.exp_yoy).slice(0,20);
+  renderTable('t-exp-growth', sorted, [
+    {key:'rank',label:'#',cls:'r'},
+    {key:'name',label:'出口国'},
+    {label:'同比增速',cls:'r',fn:r=>fmtPct(r.exp_yoy)},
+    {label:'2025（万吨）',cls:'r',fn:r=>fmt(r.exp_y[5])},
+    {label:'2024（万吨）',cls:'r',fn:r=>fmt(r.exp_y[4])},
+    {label:'增量（万吨）',cls:'r',fn:r=>fmtChg(r.exp_y[5]-r.exp_y[4])}
+  ]);
+}
+
+// ⑥ Import growth rank (filter imp25 >= 20)
+function renderImpGrowth(){
+  let sorted = CY.filter(c=>c.imp_y[5]>=20 && c.imp_yoy!==null)
+    .sort((a,b)=>b.imp_yoy-a.imp_yoy).slice(0,20);
+  renderTable('t-imp-growth', sorted, [
+    {key:'rank',label:'#',cls:'r'},
+    {key:'name',label:'进口国'},
+    {label:'同比增速',cls:'r',fn:r=>fmtPct(r.imp_yoy)},
+    {label:'2025（万吨）',cls:'r',fn:r=>fmt(r.imp_y[5])},
+    {label:'2024（万吨）',cls:'r',fn:r=>fmt(r.imp_y[4])},
+    {label:'增量（万吨）',cls:'r',fn:r=>fmtChg(r.imp_y[5]-r.imp_y[4])}
+  ]);
+}
+
+// ⑦ Share gain rank
+function renderShareUp(){
+  let data = CY.filter(c=>c.exp_y[5]>=5).map(c=>{
+    let s24 = getExpShare24(c);
+    let s25 = c.exp_share25;
+    return {...c, s24, s25, delta: s25-s24};
+  }).sort((a,b)=>b.delta-a.delta).slice(0,20);
+  renderTable('t-share-up', data, [
+    {key:'rank',label:'#',cls:'r'},
+    {key:'name',label:'出口国'},
+    {label:'2025份额',cls:'r',fn:r=>`${fmt(r.s25)}%`},
+    {label:'2024份额',cls:'r',fn:r=>`${fmt(r.s24)}%`},
+    {label:'份额变化(pp)',cls:'r',fn:r=>fmtChg(r.delta)},
+    {label:'2025量（万吨）',cls:'r',fn:r=>fmt(r.exp_y[5])}
+  ]);
+}
+
+// ⑧ Share decline rank
+function renderShareDn(){
+  let data = CY.filter(c=>c.exp_y[4]>=5).map(c=>{
+    let s24 = getExpShare24(c);
+    let s25 = c.exp_share25;
+    return {...c, s24, s25, delta: s25-s24};
+  }).sort((a,b)=>a.delta-b.delta).slice(0,20);
+  renderTable('t-share-dn', data, [
+    {key:'rank',label:'#',cls:'r'},
+    {key:'name',label:'出口国'},
+    {label:'2025份额',cls:'r',fn:r=>`${fmt(r.s25)}%`},
+    {label:'2024份额',cls:'r',fn:r=>`${fmt(r.s24)}%`},
+    {label:'份额变化(pp)',cls:'r',fn:r=>fmtChg(r.delta)},
+    {label:'2024量（万吨）',cls:'r',fn:r=>fmt(r.exp_y[4])}
+  ]);
+}
+
+// ⑨ Bilateral volume rank
+function renderBilateralVol(){
+  let sorted = [...FLOWS].sort((a,b)=>b.v25-a.v25).slice(0,20);
+  renderTable('t-bilateral-vol', sorted, [
+    {key:'rank',label:'#',cls:'r'},
+    {label:'出口方',fn:r=>r.rn},
+    {label:'→进口方',fn:r=>r.pn},
+    {label:'2025（万吨）',cls:'r',fn:r=>fmt(r.v25)},
+    {label:'2024（万吨）',cls:'r',fn:r=>fmt(r.v24)},
+    {label:'同比',cls:'r',fn:r=>fmtPct(r.yoy)}
+  ]);
+}
+
+// ⑩ Bilateral growth rank
+function renderBilateralUp(){
+  let filtered = FLOWS.filter(f=>f.v25>=5||f.v24>=5).map(f=>({...f,delta:f.v25-f.v24}))
+    .sort((a,b)=>b.delta-a.delta).slice(0,20);
+  renderTable('t-bilateral-up', filtered, [
+    {key:'rank',label:'#',cls:'r'},
+    {label:'出口方',fn:r=>r.rn},
+    {label:'→进口方',fn:r=>r.pn},
+    {label:'增量（万吨）',cls:'r',fn:r=>fmtChg(r.delta)},
+    {label:'2025（万吨）',cls:'r',fn:r=>fmt(r.v25)},
+    {label:'2024（万吨）',cls:'r',fn:r=>fmt(r.v24)},
+    {label:'同比',cls:'r',fn:r=>fmtPct(r.yoy)}
+  ]);
+}
+
+// ⑪ Bilateral decline rank
+function renderBilateralDn(){
+  let filtered = FLOWS.filter(f=>f.v24>=5).map(f=>({...f,delta:f.v25-f.v24}))
+    .sort((a,b)=>a.delta-b.delta).slice(0,20);
+  renderTable('t-bilateral-dn', filtered, [
+    {key:'rank',label:'#',cls:'r'},
+    {label:'出口方',fn:r=>r.rn},
+    {label:'→进口方',fn:r=>r.pn},
+    {label:'减量（万吨）',cls:'r',fn:r=>fmtChg(r.delta)},
+    {label:'2025（万吨）',cls:'r',fn:r=>fmt(r.v25)},
+    {label:'2024（万吨）',cls:'r',fn:r=>fmt(r.v24)},
+    {label:'同比',cls:'r',fn:r=>fmtPct(r.yoy)}
+  ]);
+}
+
+// ⑫ Product rank
+function renderProductRank(){
+  let sorted = [...PROD_GLOBAL].sort((a,b)=>b.v25-a.v25);
+  const tbl = document.getElementById('t-product-rank');
+  let head = `<thead><tr>
+    <th class="r">#</th><th>品类</th>
+    <th class="r">2025（万吨）</th><th class="r">全球份额</th>
+    <th class="r">2024（万吨）</th><th class="r">同比</th>
+  </tr></thead>`;
+  let body = '<tbody>' + sorted.map((r,i)=>{
+    let yoy = r.v24>0?(r.v25/r.v24-1)*100:null;
+    return `<tr>
+      ${rankCell(i)}
+      <td>${r.g}</td>
+      <td class="r">${fmt(r.v25)}</td>
+      <td class="r">${fmt(r.share)}%</td>
+      <td class="r">${fmt(r.v24)}</td>
+      <td class="r">${fmtPct(yoy)}</td>
+    </tr>`;
+  }).join('') + '</tbody>';
+  tbl.innerHTML = head + body;
+}
+
+// ⑬ Product × Country
+function renderProductCountry(){
+  let g = document.getElementById('groupSelect').value;
+  let rows = PROD_DATA.filter(d=>d.g===g && d.v25>0).sort((a,b)=>b.v25-a.v25).slice(0,15);
+  let total = rows.reduce((s,r)=>s+r.v25,0);
+  renderTable('t-product-country', rows, [
+    {key:'rank',label:'#',cls:'r'},
+    {key:'cn',label:'出口国'},
+    {label:'2025（万吨）',cls:'r',fn:r=>fmt(r.v25)},
+    {label:'2024（万吨）',cls:'r',fn:r=>fmt(r.v24)},
+    {label:'同比',cls:'r',fn:r=>fmtPct(r.v24>0?(r.v25/r.v24-1)*100:null)},
+    {label:'占样本份额',cls:'r',fn:r=>`${fmt(r.v25/total*100)}%`}
+  ]);
+}
+
+// ============================================================
+// PANEL SWITCHING
+// ============================================================
+function showPanel(el){
+  const panel = el.dataset.panel;
+  document.querySelectorAll('.sb-item').forEach(e=>e.classList.remove('active'));
+  el.classList.add('active');
+  document.querySelectorAll('.tab-btn').forEach(e=>{
+    e.classList.toggle('active', e.dataset.panel===panel);
+  });
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById('p-'+panel).classList.add('active');
+}
+
+function showPanelByTab(el){
+  const panel = el.dataset.panel;
+  document.querySelectorAll('.tab-btn').forEach(e=>e.classList.remove('active'));
+  el.classList.add('active');
+  document.querySelectorAll('.sb-item').forEach(e=>{
+    e.classList.toggle('active', e.dataset.panel===panel);
+  });
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById('p-'+panel).classList.add('active');
+}
+
+// ============================================================
+// INIT
+// ============================================================
+renderExpRank();
+renderImpRank();
+renderNetExp();
+renderNetImp();
+renderExpGrowth();
+renderImpGrowth();
+renderShareUp();
+renderShareDn();
+renderBilateralVol();
+renderBilateralUp();
+renderBilateralDn();
+renderProductRank();
+renderProductCountry();
+window.__relang=function(){ try{ renderExpRank();renderImpRank();renderNetExp();renderNetImp();renderExpGrowth();renderImpGrowth();renderShareUp();renderShareDn();renderBilateralVol();renderBilateralUp();renderBilateralDn();renderProductRank();renderProductCountry(); }catch(e){} };
+</script>
+<script src="./assets/i18n_dict.js"></script>
+<script src="./assets/i18n.js"></script>
+<script src="./assets/version.js"></script>
+<script src="./assets/version_badge.js"></script>
+<script src="./assets/update_banner.js"></script>
+<script src="./assets/gate.js"></script>
+
+</body>
+</html>

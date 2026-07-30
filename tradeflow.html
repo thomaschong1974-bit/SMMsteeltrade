@@ -1,0 +1,749 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SMM 全球钢材贸易流向监测器 | TradeFlow Monitor</title>
+
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <script>if(!window.echarts){document.write('<script src="./assets/echarts.min.js"><\/script>');}</script>
+    <script src="./assets/world_geo.js"></script>
+    <script src="./assets/pulse_data.js"></script>
+    <script src="./assets/tradeflow_data.js"></script>
+
+    <style>
+@font-face{font-family:'MiSans';font-weight:100 900;font-display:swap;src:local('MiSans VF'),local('MiSans'),local('MiSans-Regular'),local('MiSans-Medium'),local('MiSans-Semibold'),local('MiSans-Bold');}
+
+        :root{
+            --bg:#0b0f19; --panel:#0f131a; --header:#151a25; --line:#2a3342; --line-soft:#1f2736;
+            --brand:#E60012;            /* SMM 红 */
+            --export:#e8a13a;           /* 出口 金 */
+            --import:#2f6fed;           /* 进口 蓝 */
+            --neutral:#6b86b8;          /* 全览 中性灰蓝 */
+            --txt:#fff; --txt-soft:#8a9bb5; --txt-dim:#5c6b7f;
+        }
+        *{box-sizing:border-box;}
+        body { margin:0; padding:0; background-color:var(--bg); font-family:'MiSans','MiSans VF','PingFang SC','Microsoft YaHei',system-ui,sans-serif; color:var(--txt); overflow:hidden; }
+
+        #header {
+            height:60px; background:var(--header); border-bottom:1px solid var(--line);
+            display:flex; align-items:center; justify-content:space-between; padding:0 18px;
+            z-index:100; position:relative;
+        }
+        .brand-wrap{display:flex; align-items:center; gap:14px;}
+        .home-link{ color:var(--txt-soft); text-decoration:none; font-size:12px; padding:5px 10px;
+            border:1px solid var(--line); border-radius:4px; transition:.2s; white-space:nowrap;}
+        .home-link:hover{ border-color:var(--brand); color:#fff; }
+        h1 { font-size:18px; color:#fff; margin:0; letter-spacing:.5px; display:flex; align-items:center; gap:10px; font-weight:normal;}
+        h1 .bar{ width:5px; height:20px; background:var(--brand); border-radius:1px; display:inline-block;}
+        h1 b { color:var(--brand); font-weight:700;}
+        #mode-indicator { font-size:10px; padding:2px 8px; border-radius:3px; background:#222a38; color:#aaa; margin-left:4px;}
+
+        .controls { display:flex; gap:8px; align-items:center; font-size:12px; flex-wrap:nowrap; }
+        select, .custom-btn { background:var(--bg); border:1px solid var(--line); color:#fff; padding:5px 9px; border-radius:4px; cursor:pointer; outline:none; transition:.2s; font-size:12px;}
+        select:hover, .custom-btn:hover { border-color:var(--brand); }
+
+        .toggle-group { display:flex; background:var(--bg); border:1px solid var(--line); border-radius:4px; overflow:hidden; }
+        .toggle-btn { padding:6px 12px; cursor:pointer; border-right:1px solid var(--line); font-size:12px; user-select:none; }
+        .toggle-btn:last-child { border-right:none; }
+        .toggle-btn[data-mode="all"].active { background:#33405a; color:#fff; font-weight:bold;}
+        .toggle-btn[data-mode="export"].active { background:var(--export); color:#1a1100; font-weight:bold;}
+        .toggle-btn[data-mode="import"].active { background:var(--import); color:#fff; font-weight:bold;}
+
+        .range-wrap { display:flex; align-items:center; gap:6px; background:var(--panel); padding:4px 9px; border-radius:4px; border:1px solid var(--line);}
+        input[type=range]{ width:70px; accent-color:var(--brand); }
+
+        .dropdown { position:relative; display:inline-block; }
+        .dropdown-content {
+            display:none; position:absolute; background-color:var(--header); min-width:230px;
+            box-shadow:0 8px 16px rgba(0,0,0,.8); z-index:1000; border:1px solid var(--line);
+            max-height:420px; overflow-y:auto; right:0; padding:10px; border-radius:4px;
+        }
+        .dropdown-content.show { display:block; }
+        .checkbox-item { display:block; padding:5px 0; color:#ccc; cursor:pointer; font-size:12px;}
+        .checkbox-item:hover { color:#fff; }
+        .checkbox-item input{ accent-color:var(--brand); }
+
+        #container { display:flex; height:calc(100vh - 60px); }
+        #map-container { flex:3; position:relative; border-right:1px solid var(--line); }
+        #map-chart { width:100%; height:100%; }
+        .map-hint{position:absolute; bottom:16px; left:18px; font-size:11px; color:#566; pointer-events:none;}
+
+        #side-panel { flex:1; display:flex; flex-direction:column; background:var(--bg); min-width:430px; max-width:560px; border-left:1px solid var(--line); overflow-y:auto; }
+        .panel-section { padding:15px 20px; border-bottom:1px solid var(--line); flex-shrink:0; }
+        .panel-title { font-size:14px; font-weight:bold; color:var(--txt-soft); margin-bottom:10px; display:flex; justify-content:space-between; align-items:center; }
+        .highlight-num { color:#fff; font-size:22px; font-weight:bold; font-family:'Arial',sans-serif; }
+        .unit{font-size:12px; color:var(--txt-dim); font-weight:normal;}
+
+        .detail-table { width:100%; border-collapse:collapse; font-size:12px; margin-top:5px; }
+        .detail-table th { text-align:left; color:var(--txt-dim); padding:6px 4px; border-bottom:1px solid var(--line); }
+        .detail-table td { padding:6px 4px; border-bottom:1px solid var(--line-soft); color:#ddd; }
+
+        .badge{ font-size:10px; padding:2px 7px; border:1px solid var(--brand); color:var(--brand); border-radius:3px;}
+        #product-pie-chart { width:100%; height:250px; }
+        #trend-chart { width:100%; height:250px; }
+
+        .trend-controls { display:flex; gap:5px; margin-bottom:10px; align-items:center; flex-wrap:wrap;}
+        .trend-mode-btn { font-size:10px; padding:4px 9px; background:var(--line-soft); border:1px solid #333; color:#888; cursor:pointer; border-radius:3px; }
+        .trend-mode-btn.active { background:#33405a; color:#fff; border-color:var(--brand); }
+
+        ::-webkit-scrollbar { width:6px; height:6px;}
+        ::-webkit-scrollbar-track { background:var(--bg); }
+        ::-webkit-scrollbar-thumb { background:var(--line); border-radius:3px; }
+    </style>
+</head>
+<body>
+
+<div id="header">
+    <div class="brand-wrap">
+        <a class="home-link" href="./flagship.html">← 返回首页</a>
+        <h1>
+            <span class="bar"></span>
+            <span>SMM <b>TradeFlow</b> 全球钢材贸易流向监测器</span>
+            <span id="mode-indicator">综合视图</span>
+        </h1>
+    </div>
+    <div class="controls">
+        <button onclick="downloadCSV()" class="custom-btn" style="color:var(--brand); border-color:var(--brand);">导出CSV</button>
+
+        <div class="toggle-group">
+            <div class="toggle-btn active" data-mode="all" onclick="setFlowMode('all')">全览</div>
+            <div class="toggle-btn" data-mode="export" onclick="setFlowMode('export')">看出口</div>
+            <div class="toggle-btn" data-mode="import" onclick="setFlowMode('import')">看进口</div>
+        </div>
+
+        <div class="range-wrap">
+            <span style="color:#778" id="rangeUnitLabel">万吨 &gt;</span>
+            <input type="range" id="filterRange" min="0" max="50" step="1" value="1">
+            <span id="rangeVal" style="width:40px; text-align:right;">1</span>
+        </div>
+
+        <select id="yearSelect"><option value="all">全部时段</option></select>
+        <select id="focusCountry" title="聚焦国家"><option value="">🔎 聚焦国家</option></select>
+
+        <div class="dropdown">
+            <button onclick="toggleDropdown('productDropdown')" class="custom-btn">
+                产品 <span id="product-count" style="font-size:10px; color:#aaa;"></span> ▾
+            </button>
+            <div id="productDropdown" class="dropdown-content">
+                <div class="checkbox-item" onclick="toggleAllProducts()">
+                    <input type="checkbox" id="selectAllProducts" checked> <strong>全选 / 反选</strong>
+                </div>
+                <hr style="border:0; border-top:1px solid #333; margin:5px 0;">
+                <div id="productListContainer"></div>
+            </div>
+        </div>
+
+        <button onclick="resetMap()" class="custom-btn" style="background:#33405a; border:none;">重置</button>
+    </div>
+</div>
+
+<div id="container">
+    <div id="map-container">
+        <div id="map-chart"></div>
+        <div class="map-hint">提示：点击发光节点聚焦该国；点击空白处取消。无坐标的国家会自动跳过。</div>
+    </div>
+
+    <div id="side-panel">
+        <div id="macro-stats">
+            <div class="panel-section">
+                <div class="panel-title">当前视图概况</div>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                    <div>
+                        <div style="color:var(--txt-dim); font-size:11px;">流向数量</div>
+                        <div class="highlight-num" id="total-flows">0</div>
+                    </div>
+                    <div>
+                        <div style="color:var(--txt-dim); font-size:11px;" id="totalVolCap">总货量 (万吨)</div>
+                        <div class="highlight-num" id="total-vol">0</div>
+                    </div>
+                </div>
+            </div>
+            <div class="panel-section">
+                <div class="panel-title" id="bar-chart-title">Top 10 活跃国家</div>
+                <div id="bar-chart" style="width:100%; height:300px;"></div>
+            </div>
+        </div>
+
+        <div id="country-detail" style="display:none;">
+            <div class="panel-section" style="background:var(--panel);">
+                <div class="panel-title">
+                    <span id="selected-country-name" style="font-size:16px; color:var(--brand);">-</span>
+                    <span class="badge">FOCUS</span>
+                </div>
+                <div style="color:var(--txt-dim); font-size:11px; margin-top:5px;">相关贸易总量 (所选年份)</div>
+                <div class="highlight-num" id="detail-vol" style="color:var(--brand);">0 <span class="unit">万吨</span></div>
+            </div>
+
+            <div class="panel-section">
+                <div class="panel-title">产品结构 (HS Group)</div>
+                <div id="product-pie-chart"></div>
+            </div>
+
+            <div class="panel-section">
+                <div class="panel-title" id="table-title">贸易伙伴 (Partners)</div>
+                <div style="max-height:210px; overflow-y:auto;">
+                    <table class="detail-table">
+                        <thead><tr><th>国家/地区</th><th style="text-align:right;" id="qtyColHead">数量 (万吨)</th><th style="text-align:right;">占比</th></tr></thead>
+                        <tbody id="detail-table-body"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="panel-section" style="border-top:4px solid var(--header); background:var(--panel);">
+            <div class="panel-title" style="margin-bottom:8px;">
+                <span>贸易走势对比 (Trend · 年度)</span>
+            </div>
+
+            <div class="trend-controls">
+                <div class="trend-mode-btn active" onclick="setTrendMode('total')" id="btn-mode-total">看总量</div>
+                <div class="trend-mode-btn" onclick="setTrendMode('product')" id="btn-mode-product">按产品对比</div>
+                <div class="trend-mode-btn" onclick="setTrendMode('country')" id="btn-mode-country">按国家对比</div>
+
+                <div class="dropdown" id="trend-dropdown-wrapper" style="margin-left:auto; display:none;">
+                    <button onclick="toggleDropdown('trendDropdown')" class="custom-btn" style="font-size:10px; padding:3px 8px;">
+                        选择对比项 <span id="trend-select-count"></span> ▾
+                    </button>
+                    <div id="trendDropdown" class="dropdown-content" style="right:0; width:230px;">
+                        <div class="checkbox-item" onclick="toggleAllTrendItems()">
+                            <input type="checkbox" id="selectAllTrend"> <strong>全选 / 反选</strong>
+                        </div>
+                        <hr style="border:0; border-top:1px solid #333; margin:5px 0;">
+                        <div id="trendListContainer"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="trend-chart"></div>
+            <div style="text-align:center; font-size:10px; color:#556;">提示：拖动下方滑块调整年度范围（2020–2026）</div>
+        </div>
+    </div>
+</div>
+
+<script>
+/* ============================================================
+   SMM 全球钢材贸易流向监测器 (离线 / 内置 TF 数据 / 万吨)
+   单位约定: TF.rows 的 v 为 0.1 吨; 万吨 = v / 100000
+   ============================================================ */
+    const TF = window.TF;
+    const COUNTRIES = TF.countries;
+    const GROUPS = TF.groups;
+    const YEARS = TF.periods.map(p=>p.id);
+    const PLABEL = {}; TF.periods.forEach(p=>PLABEL[p.id]=p.label);
+    const V2W = 1/100000;                 // v -> 万吨
+
+    // 注册世界地图
+    echarts.registerMap('world', window.WORLD_GEOJSON);
+    // 坐标库: 中文国名 -> [lon,lat]
+    const geoCoordMap = window.PULSE.centroids;
+
+    // 颜色
+    const C_EXPORT='#e8a13a', C_IMPORT='#2f6fed', C_NEUTRAL='#6b86b8', C_BRAND='#E60012';
+
+    // 状态
+    let currentFlowMode='all';
+    let currentTrendMode='total';
+    let selectedCountry=null;                       // 存中文国名
+    let selectedProducts=new Set(GROUPS.map((_,i)=>i)); // grpIdx 集合
+    let trendSelectedItems=new Set();               // 存 grpIdx 或 国名
+    let yearMin=YEARS[0], yearMax=YEARS[YEARS.length-1];
+
+    // 国家总量(用于趋势下拉排序)
+    const countryVolumeMap=new Map();
+    TF.rows.forEach(r=>{
+        const v=r[5];
+        const rep=COUNTRIES[r[2]], par=COUNTRIES[r[3]];
+        countryVolumeMap.set(rep,(countryVolumeMap.get(rep)||0)+v);
+        countryVolumeMap.set(par,(countryVolumeMap.get(par)||0)+v);
+    });
+
+    // 图表实例
+    const myChart=echarts.init(document.getElementById('map-chart'));
+    const barChart=echarts.init(document.getElementById('bar-chart'));
+    const pieChart=echarts.init(document.getElementById('product-pie-chart'));
+    const trendChart=echarts.init(document.getElementById('trend-chart'));
+
+    const fmt=v=>Math.round(v).toLocaleString();        // 万吨整数
+    const fmt1=v=>(Math.round(v*10)/10).toLocaleString(undefined,{minimumFractionDigits:1,maximumFractionDigits:1});
+
+    /* ---------- 初始化 UI ---------- */
+    function initUI(){
+        // 年份下拉
+        const ySel=document.getElementById('yearSelect');
+        YEARS.slice().reverse().forEach(y=>{ /*period*/
+            const o=document.createElement('option'); o.value=y; o.textContent=(PLABEL[y]||y); ySel.appendChild(o);
+        });
+        // 聚焦国家下拉（按贸易量排序，仅含有坐标的国家）
+        const _vol={};
+        TF.rows.forEach(r=>{ const f=flowFromRow(r); if(f.origin)_vol[f.origin]=(_vol[f.origin]||0)+f.v; if(f.dest)_vol[f.dest]=(_vol[f.dest]||0)+f.v; });
+        const fc=document.getElementById('focusCountry');
+        COUNTRIES.filter(c=>geoCoordMap[c]).sort((x,y)=>(_vol[y]||0)-(_vol[x]||0)).forEach(c=>{ const o=document.createElement('option'); o.value=c; o.innerText=c; fc.appendChild(o); });
+        fc.addEventListener('change',()=>{ selectedCountry=fc.value||null; updateDashboard(); });
+        // 产品列表
+        const pc=document.getElementById('productListContainer');
+        GROUPS.forEach((g,i)=>{
+            const d=document.createElement('div'); d.className='checkbox-item';
+            d.innerHTML=`<label><input type="checkbox" value="${i}" checked onchange="updateGlobalProductSelection()"> ${g}</label>`;
+            pc.appendChild(d);
+        });
+        document.getElementById('product-count').innerText=`(${selectedProducts.size})`;
+
+        document.getElementById('filterRange').addEventListener('input',e=>{
+            updateDashboard();
+        });
+        ySel.addEventListener('change',()=>{ selectedCountry=null; updateDashboard(); });
+    }
+
+    /* ---------- 模式切换 ---------- */
+    function setFlowMode(mode){
+        currentFlowMode=mode;
+        document.querySelectorAll('.toggle-btn').forEach(b=>b.classList.remove('active'));
+        document.querySelector(`.toggle-btn[data-mode="${mode}"]`).classList.add('active');
+        const ind=document.getElementById('mode-indicator'), bt=document.getElementById('bar-chart-title');
+        if(mode==='all'){ ind.innerText='综合视图'; ind.style.color='#aaa'; bt.innerText='Top 10 活跃国家'; }
+        else if(mode==='export'){ ind.innerText='仅出口模式'; ind.style.color=C_EXPORT; bt.innerText='Top 10 出口大国'; }
+        else { ind.innerText='仅进口模式'; ind.style.color=C_IMPORT; bt.innerText='Top 10 进口大国'; }
+        selectedCountry=null;
+        updateDashboard();
+    }
+
+    function updateGlobalProductSelection(){
+        selectedProducts.clear();
+        document.querySelectorAll('#productListContainer input:checked').forEach(i=>selectedProducts.add(+i.value));
+        document.getElementById('product-count').innerText=`(${selectedProducts.size})`;
+        document.getElementById('selectAllProducts').checked=(selectedProducts.size===GROUPS.length);
+        updateDashboard();
+    }
+    function toggleAllProducts(){
+        const c=document.getElementById('selectAllProducts').checked;
+        document.querySelectorAll('#productListContainer input').forEach(i=>i.checked=c);
+        updateGlobalProductSelection();
+    }
+
+    /* ---------- 趋势模式 ---------- */
+    function setTrendMode(mode){
+        currentTrendMode=mode;
+        document.querySelectorAll('.trend-mode-btn').forEach(b=>b.classList.remove('active'));
+        document.getElementById(`btn-mode-${mode}`).classList.add('active');
+        trendSelectedItems.clear();
+        updateTrendControls();
+        updateDashboard();
+    }
+    function updateTrendControls(){
+        const wrap=document.getElementById('trend-dropdown-wrapper');
+        const cont=document.getElementById('trendListContainer');
+        const cs=document.getElementById('trend-select-count');
+        cont.innerHTML='';
+        if(currentTrendMode==='total'){ wrap.style.display='none'; return; }
+        wrap.style.display='inline-block';
+
+        let items=[]; // {val,label}
+        if(currentTrendMode==='product'){
+            items=GROUPS.map((g,i)=>({val:i,label:g}));
+        } else {
+            items=Array.from(countryVolumeMap.keys())
+                .sort((a,b)=>(countryVolumeMap.get(b)||0)-(countryVolumeMap.get(a)||0))
+                .map(n=>({val:n,label:n}));
+        }
+        if(trendSelectedItems.size===0 && items.length>0){
+            items.slice(0,5).forEach(i=>trendSelectedItems.add(i.val));
+        }
+        items.forEach(it=>{
+            const d=document.createElement('div'); d.className='checkbox-item';
+            const checked=trendSelectedItems.has(it.val)?'checked':'';
+            d.innerHTML=`<label><input type="checkbox" data-v="${it.val}" ${checked} onchange="updateTrendSelection()"> ${it.label}</label>`;
+            cont.appendChild(d);
+        });
+        cs.innerText=`(${trendSelectedItems.size})`;
+    }
+    function updateTrendSelection(){
+        trendSelectedItems.clear();
+        document.querySelectorAll('#trendListContainer input:checked').forEach(i=>{
+            const v=i.getAttribute('data-v');
+            trendSelectedItems.add(currentTrendMode==='product'?+v:v);
+        });
+        document.getElementById('trend-select-count').innerText=`(${trendSelectedItems.size})`;
+        updateDashboard();
+    }
+    function toggleAllTrendItems(){
+        const c=document.getElementById('selectAllTrend').checked;
+        document.querySelectorAll('#trendListContainer input').forEach(i=>i.checked=c);
+        updateTrendSelection();
+    }
+
+    /* ---------- 行过滤工具 ----------
+       根据 mode 返回应纳入的 rows;
+       EXPORT 行(flow=0): origin=reporter, dest=partner
+       IMPORT 行(flow=1): origin=partner,  dest=reporter            */
+    function flowFromRow(r){
+        const flow=r[0];
+        if(flow===0) return {origin:COUNTRIES[r[2]], dest:COUNTRIES[r[3]], grp:r[4], v:r[5], flow};
+        return {origin:COUNTRIES[r[3]], dest:COUNTRIES[r[2]], grp:r[4], v:r[5], flow};
+    }
+
+    /* ---------- 主刷新 ---------- */
+    const EN2CN={ "China":"中国","Indonesia":"印度尼西亚","India":"印度","United States":"美国","United States of America":"美国","Germany":"德国","Italy":"意大利","Belgium":"比利时","South Korea":"韩国","Korea":"韩国","Republic of Korea":"韩国","Vietnam":"越南","Viet Nam":"越南","Mexico":"墨西哥","Turkey":"土耳其","Türkiye":"土耳其","Japan":"日本","Netherlands":"荷兰","Finland":"芬兰","Spain":"西班牙","France":"法国","Malaysia":"马来西亚","Thailand":"泰国","Russia":"俄罗斯","Russian Federation":"俄罗斯","Taiwan":"中国台湾","United Arab Emirates":"阿联酋","United Kingdom":"英国","Poland":"波兰","Sweden":"瑞典","Canada":"加拿大","Brazil":"巴西","Saudi Arabia":"沙特阿拉伯","Egypt":"埃及","Czech Republic":"捷克","Czechia":"捷克","Austria":"奥地利","Denmark":"丹麦","Romania":"罗马尼亚","Australia":"澳大利亚","South Africa":"南非","Singapore":"新加坡","Philippines":"菲律宾" };
+    const _CSET=new Set(TF.countries);
+    function hasCountry(cn){ return _CSET.has(cn) && geoCoordMap[cn]; }
+    function updateDashboard(){
+        const yearFilter=document.getElementById('yearSelect').value;
+        const minW=parseFloat(document.getElementById('filterRange').value); // 万吨阈值
+        try{ setUnitLabels(); }catch(e){}
+
+        const flowMap={};        // key -> {from,to,value(万吨)}
+        const countryRank={};    // 国名 -> 万吨
+        const productDist={};    // grpIdx -> 万吨
+        let totalVol=0;
+
+        // 先按方向聚合到 origin->dest (合并各 grp)
+        const agg={};
+        TF.rows.forEach(r=>{
+            const flow=r[0];
+            if(currentFlowMode==='export' && flow!==0) return;
+            if(currentFlowMode==='import' && flow!==1) return;
+            if(yearFilter!=='all' && YEARS[r[1]]!==yearFilter) return;
+            if(!selectedProducts.has(r[4])) return;
+            const f=flowFromRow(r);
+            if(!f.origin||!f.dest) return;
+            const key=f.origin+'->'+f.dest;
+            if(!agg[key]) agg[key]={from:f.origin,to:f.dest,v:0,byGrp:{}};
+            agg[key].v+=f.v;
+            agg[key].byGrp[f.grp]=(agg[key].byGrp[f.grp]||0)+f.v;
+        });
+
+        Object.values(agg).forEach(a=>{
+            const wv=a.v*V2W;
+            if(wv<minW) return;                 // 万吨阈值过滤(按流向合并量)
+
+            // 选中国家过滤
+            if(selectedCountry){
+                if(currentFlowMode==='export' && a.from!==selectedCountry) return;
+                if(currentFlowMode==='import' && a.to!==selectedCountry) return;
+                if(currentFlowMode==='all' && a.from!==selectedCountry && a.to!==selectedCountry) return;
+            }
+
+            flowMap[a.from+'->'+a.to]={from:a.from,to:a.to,value:wv};
+
+            // 排名 key
+            let rankKey;
+            if(currentFlowMode==='import') rankKey=a.to;
+            else rankKey=a.from;
+            countryRank[rankKey]=(countryRank[rankKey]||0)+wv;
+
+            // 产品结构(选中国家相关)
+            if(selectedCountry){
+                let relevant=false;
+                if(currentFlowMode==='export' && a.from===selectedCountry) relevant=true;
+                else if(currentFlowMode==='import' && a.to===selectedCountry) relevant=true;
+                else if(currentFlowMode==='all' && (a.from===selectedCountry||a.to===selectedCountry)) relevant=true;
+                if(relevant){
+                    Object.entries(a.byGrp).forEach(([g,gv])=>{
+                        productDist[g]=(productDist[g]||0)+gv*V2W;
+                    });
+                }
+            }
+            totalVol+=wv;
+        });
+
+        renderMap(flowMap,countryRank);
+        renderBar(countryRank);
+
+        document.getElementById('total-flows').innerText=Object.keys(flowMap).length;
+        document.getElementById('total-vol').innerText=(window.fmtVol?fmtVol(totalVol,{noUnit:true}):fmt1(totalVol));
+
+        if(selectedCountry){
+            document.getElementById('macro-stats').style.display='none';
+            document.getElementById('country-detail').style.display='block';
+            pieChart.resize();
+            let focusVol = (currentFlowMode==='all') ? totalVol : (countryRank[selectedCountry]||0);
+            document.getElementById('selected-country-name').innerText=selectedCountry;
+            document.getElementById('detail-vol').innerHTML=(window.fmtVol?fmtVol(focusVol,{noUnit:true}):fmt1(focusVol))+' <span class="unit">'+(window.volUnit?volUnit():'万吨')+'</span>';
+            updateDetailTable(flowMap);
+            renderPie(productDist);
+        } else {
+            document.getElementById('country-detail').style.display='none';
+            document.getElementById('macro-stats').style.display='block';
+            barChart.resize();
+        }
+
+        updateTrendChart();
+    }
+
+    /* ---------- 地图 ---------- */
+    function renderMap(flowMap,ranks){
+        const lines=[], scatters=[], added=new Set();
+        let lineColor=C_NEUTRAL;
+        if(currentFlowMode==='export') lineColor=C_EXPORT;
+        if(currentFlowMode==='import') lineColor=C_IMPORT;
+
+        Object.values(flowMap).forEach(f=>{
+            const fC=geoCoordMap[f.from], tC=geoCoordMap[f.to];
+            if(!fC||!tC) return;                       // 无坐标跳过
+            lines.push({coords:[fC,tC], value:f.value, fromName:f.from, toName:f.to});
+            if(currentFlowMode==='import'){
+                if(!added.has(f.to)){ scatters.push({name:f.to, value:[...tC, ranks[f.to]||0]}); added.add(f.to); }
+            } else {
+                if(!added.has(f.from)){ scatters.push({name:f.from, value:[...fC, ranks[f.from]||0]}); added.add(f.from); }
+            }
+        });
+
+        myChart.setOption({
+            backgroundColor:'#0b0f19',
+            tooltip:{ trigger:'item', backgroundColor:'rgba(15,19,26,.95)', borderColor:'#333', textStyle:{color:'#fff'},
+                formatter:p=> p.data && p.data.fromName
+                    ? `${p.data.fromName} → ${p.data.toName}<br/><b style="color:#fff">${fmt1(p.data.value)}</b> ${UU()}`
+                    : `${p.name}<br/>${window.SP_LANG&&SP_LANG()==='en'?'Total':'总量'} <b>${fmt1((p.value&&p.value[2])||0)}</b> ${UU()}` },
+            geo:{ map:'world', roam:true, zoom:1.2, label:{emphasis:{show:false}},
+                itemStyle:{ areaColor:'#1c2333', borderColor:'#0a0d14', borderWidth:.4 },
+                emphasis:{ itemStyle:{areaColor:'#2a3650'}, label:{show:false} } },
+            series:[
+                { type:'lines', zlevel:1, effect:{show:true, period:6, trailLength:.7, color:'#fff', symbolSize:3},
+                    lineStyle:{color:lineColor, width:0, curveness:.2}, data:lines },
+                { type:'lines', zlevel:2, symbol:['none','arrow'], symbolSize:5,
+                    lineStyle:{color:lineColor, width:.6, opacity:.55, curveness:.2}, data:lines },
+                { type:'effectScatter', coordinateSystem:'geo', zlevel:3,
+                    rippleEffect:{brushType:'stroke', scale:2.6},
+                    label:{show:true, position:'right', formatter:'{b}', fontSize:9, color:'#ccd'},
+                    symbolSize:v=>Math.max(5, Math.min(Math.sqrt(v[2])*2.2, 26)),
+                    itemStyle:{ color:p=> p.name===selectedCountry ? C_BRAND : lineColor,
+                        shadowBlur:8, shadowColor:lineColor },
+                    data:scatters }
+            ]
+        }, true);
+
+        myChart.off('click');
+        myChart.on('click',p=>{
+            if(p.seriesType==='effectScatter'){ selectedCountry=p.name; var fc=document.getElementById('focusCountry'); if(fc)fc.value=p.name; updateDashboard(); return; }
+            if(p.componentType==='geo' && p.name){ const cn=EN2CN[p.name]||p.name; if(hasCountry(cn)){ selectedCountry=cn; var fc2=document.getElementById('focusCountry'); if(fc2)fc2.value=cn; updateDashboard(); return; } }
+        });
+        // 注：移除 zr 空白点击自动重置——发光节点涟漪在独立图层会令 e.target 为空，误触发重置。重置改用顶部按钮/下拉。
+    }
+
+    /* ---------- Top10 柱图 ---------- */
+    function renderBar(data){
+        const sorted=Object.entries(data).sort((a,b)=>b[1]-a[1]).slice(0,10).reverse();
+        let c1='#2c3a55', c2=C_NEUTRAL;
+        if(currentFlowMode==='export'){ c1='#5a4015'; c2=C_EXPORT; }
+        if(currentFlowMode==='import'){ c1='#1a3a78'; c2=C_IMPORT; }
+        barChart.setOption({
+            tooltip:{ trigger:'axis', axisPointer:{type:'shadow'},
+                backgroundColor:'rgba(15,19,26,.95)', borderColor:'#333', textStyle:{color:'#fff'},
+                formatter:p=>`${p[0].name}: <b>${fmt1(p[0].value)}</b> ${UU()}` },
+            grid:{ top:8, bottom:18, left:96, right:48 }, xAxis:{show:false},
+            yAxis:{ type:'category', data:sorted.map(i=>i[0]),
+                axisLabel:{color:'#9fb0c8', fontSize:10}, axisLine:{show:false}, axisTick:{show:false} },
+            series:[{ type:'bar', data:sorted.map(i=>i[1]),
+                itemStyle:{ borderRadius:[0,4,4,0],
+                    color:new echarts.graphic.LinearGradient(0,0,1,0,[{offset:0,color:c1},{offset:1,color:c2}]) },
+                label:{ show:true, position:'right', color:'#cdd', fontSize:9, formatter:p=>fmt1(p.value) } }]
+        }, true);
+    }
+
+    /* ---------- 产品结构饼图 ---------- */
+    function renderPie(data){
+        const palette=['#E60012','#e8a13a','#2f6fed','#6b86b8','#e36f9e','#3fb6a8','#9b6fe0'];
+        const pData=Object.entries(data).map(([g,v])=>({name:(window.TP?TP(GROUPS[g]):GROUPS[g]), value:v})).sort((a,b)=>b.value-a.value);
+        pieChart.setOption({
+            backgroundColor:'transparent',
+            color:palette,
+            tooltip:{ trigger:'item', appendToBody:true, borderWidth:1, borderColor:'#333',
+                backgroundColor:'rgba(20,22,28,.96)', textStyle:{color:'#fff'},
+                formatter:p=>`<div style="font-weight:bold;margin-bottom:5px;">${p.name}</div><div>${window.LGT?LGT('数量'):'数量'}: <b style="color:${C_BRAND}">${fmtVol(p.value)}</b></div><div>${window.LGT?LGT('占比'):'占比'}: ${p.percent}%</div>` },
+            legend:{ show:true, type:'scroll', bottom:0, textStyle:{color:'#9fb0c8', fontSize:10} },
+            series:[{ type:'pie', radius:['55%','85%'], center:['50%','45%'],
+                itemStyle:{borderRadius:3, borderColor:'#0b0f19', borderWidth:2},
+                label:{show:false}, labelLine:{show:false}, data:pData }]
+        }, true);
+    }
+
+    /* ---------- 伙伴表 ---------- */
+    function updateDetailTable(flowMap){
+        const tbody=document.getElementById('detail-table-body');
+        const title=document.getElementById('table-title');
+        tbody.innerHTML='';
+        let list=[];
+        Object.values(flowMap).forEach(f=>{
+            if(currentFlowMode==='export' && f.from===selectedCountry) list.push({name:f.to, dir:'', val:f.value});
+            else if(currentFlowMode==='import' && f.to===selectedCountry) list.push({name:f.from, dir:'', val:f.value});
+            else if(currentFlowMode==='all'){
+                if(f.from===selectedCountry) list.push({name:f.to, dir:'to', val:f.value});
+                if(f.to===selectedCountry) list.push({name:f.from, dir:'from', val:f.value});
+            }
+        });
+        list.sort((a,b)=>b.val-a.val);
+        const total=list.reduce((a,b)=>a+b.val,0);
+        list.forEach(it=>{
+            const pct=total>0?((it.val/total)*100).toFixed(1)+'%':'0%';
+            const _nm=(window.TN?TN(it.name):it.name); const _pf=it.dir==='to'?(window.LGT?'('+LGT('去')+') ':'(去) '):(it.dir==='from'?(window.LGT?'('+LGT('来自')+') ':'(来自) '):''); tbody.innerHTML+=`<tr><td>${_pf}${_nm}</td><td style="text-align:right">${window.fmtVol?fmtVol(it.val):fmt1(it.val)}</td><td style="text-align:right;color:#889">${pct}</td></tr>`;
+        });
+        if(currentFlowMode==='export') title.innerText=(window.LGT?LGT('出口至 (Destination)'):'出口至 (Destination)');
+        else if(currentFlowMode==='import') title.innerText=(window.LGT?LGT('进口自 (Origin)'):'进口自 (Origin)');
+        else title.innerText=(window.LGT?LGT('贸易往来 (Partners)'):'贸易往来 (Partners)');
+    }
+
+    /* ---------- 年度趋势 ---------- */
+    function updateTrendChart(){
+        const seriesMap={};   // key -> {year: 万吨}
+        TF.rows.forEach(r=>{
+            const flow=r[0];
+            if(currentFlowMode==='export' && flow!==0) return;
+            if(currentFlowMode==='import' && flow!==1) return;
+            if(!selectedProducts.has(r[4])) return;
+            const f=flowFromRow(r);
+            if(!f.origin||!f.dest) return;
+
+            if(selectedCountry){
+                if(currentFlowMode==='export' && f.origin!==selectedCountry) return;
+                if(currentFlowMode==='import' && f.dest!==selectedCountry) return;
+                if(currentFlowMode==='all' && f.origin!==selectedCountry && f.dest!==selectedCountry) return;
+            }
+
+            let key, label;
+            if(currentTrendMode==='product'){
+                key=f.grp; label=GROUPS[f.grp];
+                if(!trendSelectedItems.has(key)) return;
+            } else if(currentTrendMode==='country'){
+                if(selectedCountry) key=(selectedCountry===f.origin)?f.dest:f.origin;
+                else key=(currentFlowMode==='import')?f.dest:f.origin;
+                label=key;
+                if(!trendSelectedItems.has(key)) return;
+            } else {
+                key='__total__'; label='总量';
+            }
+            if(!seriesMap[key]) seriesMap[key]={label, data:{}};
+            seriesMap[key].data[YEARS[r[1]]]=(seriesMap[key].data[YEARS[r[1]]]||0)+f.v*V2W;
+        });
+
+        const seriesList=[];
+        const palette=['#E60012','#e8a13a','#2f6fed','#6b86b8','#e36f9e','#3fb6a8','#9b6fe0','#d4b04a'];
+        let ci=0;
+        Object.values(seriesMap).forEach(s=>{
+            seriesList.push({
+                name:s.label, type:'line', smooth:true, symbol:'circle', symbolSize:6,
+                lineStyle:{width:2}, itemStyle:{color:palette[ci%palette.length]},
+                data:YEARS.map(y=>Math.round((s.data[y]||0)*10)/10)
+            });
+            ci++;
+        });
+
+        trendChart.setOption({
+            backgroundColor:'transparent',
+            tooltip:{ trigger:'axis', confine:true, backgroundColor:'rgba(15,19,26,.95)', borderColor:'#333', textStyle:{color:'#fff'},
+                formatter:function(params){
+                    let res=params[0].axisValue+(window.SP_LANG&&SP_LANG()==='en'?'':'年')+'<br/>';
+                    params.forEach(it=>{
+                        const m=`<span style="display:inline-block;margin-right:5px;border-radius:10px;width:9px;height:9px;background:${it.color}"></span>`;
+                        res+=`${m} ${it.seriesName}: <b>${fmt1(it.value)}</b> ${UU()}<br/>`;
+                    });
+                    return res;
+                } },
+            legend:{ show:true, type:'scroll', top:0, textStyle:{color:'#9fb0c8'} },
+            grid:{ top:30, bottom:58, left:46, right:18 },
+            xAxis:{ type:'category', data:YEARS, axisLine:{lineStyle:{color:'#2a3342'}}, axisLabel:{color:'#889', fontSize:10} },
+            yAxis:{ type:'value', name:(window.volUnit?volUnit():'万吨'), nameTextStyle:{color:'#667',fontSize:10}, splitLine:{lineStyle:{color:'#151a25'}}, axisLabel:{color:'#667', fontSize:10} },
+            dataZoom:[{ type:'slider', show:true, height:18, bottom:6, startValue:YEARS[Math.max(0,YEARS.length-12)], endValue:yearMax,
+                borderColor:'#2a3342', fillerColor:'rgba(230,0,18,.12)', textStyle:{color:'#889'},
+                handleStyle:{color:C_BRAND}, dataBackground:{lineStyle:{color:'#33405a'},areaStyle:{color:'#1f2736'}} }],
+            series:seriesList.length>0?seriesList:[{type:'line', data:[]}]
+        }, true);
+    }
+
+    /* ---------- 导出 CSV (当前筛选) ---------- */
+    function downloadCSV(){
+        const yearFilter=document.getElementById('yearSelect').value;
+        const minW=parseFloat(document.getElementById('filterRange').value);
+
+        // 复用聚合逻辑得到流向(含阈值/选中国家)
+        const agg={};
+        TF.rows.forEach(r=>{
+            const flow=r[0];
+            if(currentFlowMode==='export' && flow!==0) return;
+            if(currentFlowMode==='import' && flow!==1) return;
+            if(yearFilter!=='all' && YEARS[r[1]]!==yearFilter) return;
+            if(!selectedProducts.has(r[4])) return;
+            const f=flowFromRow(r);
+            if(!f.origin||!f.dest) return;
+            const k=YEARS[r[1]]+'|'+f.origin+'|'+f.dest+'|'+f.grp;
+            agg[k]=(agg[k]||0)+f.v;
+        });
+
+        let rows=[];
+        // 流向合并量(用于阈值与选中国家判断)
+        const flowSum={};
+        Object.entries(agg).forEach(([k,v])=>{
+            const [y,o,d]=k.split('|');
+            flowSum[y+'|'+o+'|'+d]=(flowSum[y+'|'+o+'|'+d]||0)+v;
+        });
+        Object.entries(agg).forEach(([k,v])=>{
+            const [y,o,d,g]=k.split('|');
+            const fkey=y+'|'+o+'|'+d;
+            if(flowSum[fkey]*V2W<minW) return;
+            if(selectedCountry){
+                if(currentFlowMode==='export' && o!==selectedCountry) return;
+                if(currentFlowMode==='import' && d!==selectedCountry) return;
+                if(currentFlowMode==='all' && o!==selectedCountry && d!==selectedCountry) return;
+            }
+            rows.push([y, currentFlowMode.toUpperCase(), o, d, GROUPS[+g], (v*V2W).toFixed(3)]);
+        });
+
+        if(rows.length===0){ alert('当前筛选结果为空'); return; }
+        let csv='﻿年份,模式,出口国/来源,进口国/目的地,产品,数量(万吨)\n';
+        rows.forEach(r=>{ csv+=[r[0],YEARS[r[1]],`"${r[2]}"`,`"${r[3]}"`,`"${r[4]}"`,r[5]].join(',')+'\n'; });
+        const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
+        const link=document.createElement('a');
+        link.href=URL.createObjectURL(blob);
+        link.download=`SMM_TradeFlow_${new Date().toISOString().slice(0,10)}.csv`;
+        link.style.visibility='hidden';
+        document.body.appendChild(link); link.click(); document.body.removeChild(link);
+    }
+
+    /* ---------- 通用 ---------- */
+    function resetMap(){ selectedCountry=null; var fc=document.getElementById('focusCountry'); if(fc)fc.value=''; updateDashboard(); }
+    function toggleDropdown(id){
+        document.querySelectorAll('.dropdown-content').forEach(d=>{ if(d.id!==id) d.classList.remove('show'); });
+        document.getElementById(id).classList.toggle('show');
+    }
+    window.onclick=function(e){
+        if(!e.target.matches('.custom-btn') && !e.target.closest('.dropdown-content') && !e.target.closest('.dropdown')){
+            document.querySelectorAll('.dropdown-content').forEach(d=>d.classList.remove('show'));
+        }
+    };
+
+    const ro=new ResizeObserver(()=>{ myChart.resize(); barChart.resize(); pieChart.resize(); trendChart.resize(); });
+    ro.observe(document.getElementById('container'));
+    ro.observe(document.getElementById('side-panel'));
+
+    /* ---------- 启动 ---------- */
+    initUI();
+    updateTrendControls();
+    // 默认聚焦中国（若有坐标与数据）
+    if(hasCountry('中国')){ selectedCountry='中国'; var _fc=document.getElementById('focusCountry'); if(_fc)_fc.value='中国'; }
+    updateDashboard();
+</script>
+<script>window.__MT_OK=true;</script>
+<script>
+/* i18n: re-render dynamic panels on language switch */
+
+    function UU(){ return window.volUnit?volUnit():'万吨'; }
+    function setUnitLabels(){
+        var en = window.SP_LANG && SP_LANG()==='en';
+        var U = UU();
+        var rl=document.getElementById('rangeUnitLabel'); if(rl) rl.innerHTML=U+' &gt;';
+        var tv=document.getElementById('totalVolCap'); if(tv) tv.textContent=(en?'Total volume':'总货量')+' ('+U+')';
+        var qh=document.getElementById('qtyColHead'); if(qh) qh.textContent=(en?'Volume':'数量')+' ('+U+')';
+        var rv=document.getElementById('rangeVal'), fr=document.getElementById('filterRange');
+        if(rv&&fr){ var mv=parseFloat(fr.value); rv.textContent = en ? (mv/100).toFixed(2) : String(mv); }
+    }
+
+    window.__relang=function(){ try{ setUnitLabels(); }catch(e){} try{ if(typeof updateDashboard==="function") updateDashboard(); }catch(e){} };
+</script>
+<script src="./assets/i18n_dict.js"></script>
+<script src="./assets/i18n.js"></script>
+<script src="./assets/version.js"></script>
+<script src="./assets/version_badge.js"></script>
+<script src="./assets/update_banner.js"></script>
+<script src="./assets/gate.js"></script>
+
+</body>
+</html>
