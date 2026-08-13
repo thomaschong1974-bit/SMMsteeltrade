@@ -51,7 +51,7 @@ a{color:inherit;text-decoration:none}
 .nav-item:hover{background:rgba(255,255,255,.05)}
 .nav-item.active .zh{color:#fff}
 .nav-item.active::after{content:"";position:absolute;left:13px;right:13px;bottom:2px;height:2px;background:var(--red);border-radius:2px}
-.nav-drop{position:relative}
+.nav-drop{position:relative}.nav-drop::after{content:"";position:absolute;left:0;right:0;top:100%;height:14px}
 .nav-drop>.nav-item{display:flex;align-items:center;gap:5px}
 .nav-drop .caret{font-size:9px;color:#8a96ab;transition:transform .2s}
 .nav-drop:hover .caret{transform:rotate(180deg)}
@@ -354,7 +354,7 @@ body.en .hero-title h1{font-size:37px}
   if(sessionStorage.getItem('steelPulseAuth')==='1'){ g.style.display='none'; return; }
   document.documentElement.style.overflow='hidden';
   function check(){
-    if(document.getElementById('pwInput').value==='smm12345'){
+    if(document.getElementById('pwInput').value==='Smmsteelteam123'){
       sessionStorage.setItem('steelPulseAuth','1');
       g.style.display='none';
       document.documentElement.style.overflow='';
@@ -390,7 +390,7 @@ body.en .hero-title h1{font-size:37px}
         <a href="./competition.html"><span class="dot"></span>出口竞争 · Competition</a>
         <a href="./destination.html"><span class="dot"></span>进口市场 · Destination</a>
         <a href="./risk.html"><span class="dot"></span>风险依赖 · Risk</a>
-        <a href="./trend.html"><span class="dot"></span>趋势诊断 · Trend</a>
+        
         <a href="./rankings.html"><span class="dot"></span>全球榜单 · Rankings</a>
         <a href="./methodology.html"><span class="dot"></span>方法论 · Methodology</a>
       </div>

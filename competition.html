@@ -181,7 +181,7 @@ select:focus { outline: 2px solid #C00000; }
 .gnav-menu>a:hover,.gnav-dt:hover{background:#f4f5f7}
 .gnav-menu>a.is-active b{color:#16191d}
 .gnav-menu>a.is-active::after{content:"";position:absolute;left:13px;right:13px;bottom:2px;height:2px;background:#C00000;border-radius:2px}
-.gnav-drop{position:relative}
+.gnav-drop{position:relative}.gnav-drop::after{content:"";position:absolute;left:0;right:0;top:100%;height:14px}
 .gnav-dt{flex-direction:row;align-items:center;gap:6px}
 .gnav-dt .gx{display:flex;flex-direction:column;line-height:1.15}
 .gnav-car{font-size:9px;color:#9aa1aa}
@@ -214,7 +214,7 @@ body.has-gnav{padding-top:58px!important}
         <a href="./competition.html" class="is-active" data-k="comp">出口竞争 · Competition</a>
         <a href="./destination.html" data-k="dest">进口市场 · Destination</a>
         <a href="./risk.html" data-k="risk">风险依赖 · Risk</a>
-        <a href="./trend.html" data-k="trend">趋势诊断 · Trend</a>
+        
         <a href="./rankings.html" data-k="rank">全球榜单 · Rankings</a>
         <a href="./methodology.html" data-k="method">方法论 · Methodology</a>
       </div>
@@ -388,69 +388,96 @@ selA.value = '中国';
 selB.value = '印度尼西亚';
 
 // === BUBBLE CHART ===
-(function() {
+let bubbleChartInst = null;
+function drawBubble() {
+  const en = (window.SP_LANG && SP_LANG()==='en');
+  const NM = n => window.TN ? TN(n) : n;
+  const hot = c => (c==='中国' || c==='印度尼西亚');
   const ctx = document.getElementById('bubbleChart').getContext('2d');
+  if (bubbleChartInst) { bubbleChartInst.destroy(); bubbleChartInst = null; }
+  // X = export volume in Mt (log), bubble area ∝ global share (radius capped)
   const datasets = BUBBLE_DATA.map(d => ({
-    label: d.c,
-    data: [{x: d.q, y: d.yoy, r: Math.max(6, d.sh * 3.2)}],
-    backgroundColor: (d.c==='中国'||d.c==='印度尼西亚') ? 'rgba(192,0,0,0.75)' : 'rgba(100,149,237,0.55)',
-    borderColor: (d.c==='中国'||d.c==='印度尼西亚') ? '#C00000' : '#6495ED',
+    label: NM(d.c),
+    data: [{ x: Math.max(0.1, d.q/100), y: d.yoy, r: Math.max(5, Math.min(40, Math.sqrt(d.sh)*7)), q: d.q, sh: d.sh }],
+    backgroundColor: hot(d.c) ? 'rgba(192,0,0,0.72)' : 'rgba(100,149,237,0.5)',
+    borderColor: hot(d.c) ? '#C00000' : '#6495ED',
     borderWidth: 1.5,
   }));
-
-  new Chart(ctx, {
+  bubbleChartInst = new Chart(ctx, {
     type: 'bubble',
     data: { datasets },
     options: {
-      responsive: true,
-      maintainAspectRatio: false,
+      responsive: true, maintainAspectRatio: false,
+      layout: { padding: { top: 18, right: 26, left: 6 } },
       plugins: {
         legend: { display: false },
         tooltip: {
           callbacks: {
-            label: function(ctx) {
-              const d = ctx.dataset.data[0];
-              const sh = (d.r / 3.2).toFixed(1);
+            label: function(c) {
+              const d = c.dataset.data[0];
               const yoyStr = d.y >= 0 ? '+'+d.y.toFixed(1) : d.y.toFixed(1);
-              return ctx.dataset.label + ': ' + d.x + '万吨  同比' + yoyStr + '%  份额' + sh + '%';
+              const vol = window.fmtVol ? fmtVol(d.q) : (d.q + ' 万吨');
+              return en
+                ? c.dataset.label + ': ' + vol + '  ·  YoY ' + yoyStr + '%  ·  share ' + d.sh.toFixed(1) + '%'
+                : c.dataset.label + '：' + vol + '  ·  同比' + yoyStr + '%  ·  份额' + d.sh.toFixed(1) + '%';
             }
           }
         }
       },
       scales: {
         x: {
-          title: { display: true, text: '2025年出口量（万吨）', font: {size: 11}, color: '#79808a' },
+          type: 'logarithmic',
+          title: { display: true, text: en ? '2025 export volume (Mt · log scale)' : '2025年出口量（Mt · 对数轴）', font: {size: 11}, color: '#79808a' },
           grid: { color: '#f3f4f6' },
-          ticks: { font: {size: 11} }
+          ticks: { font: {size: 10}, color: '#79808a',
+            callback: function(v){ return [1,2,5,10,20,50,100,150].indexOf(v) >= 0 ? v : ''; } }
         },
         y: {
-          title: { display: true, text: '同比增速（%）', font: {size: 11}, color: '#79808a' },
+          title: { display: true, text: en ? 'YoY growth (%)' : '同比增速（%）', font: {size: 11}, color: '#79808a' },
           grid: { color: '#f3f4f6' },
-          ticks: { font: {size: 11} }
+          ticks: { font: {size: 11}, color: '#79808a', callback: v => v + '%' }
         }
       },
-      animation: { duration: 600 }
+      animation: { duration: 500 }
     },
     plugins: [{
       id: 'countryLabels',
       afterDatasetsDraw(chart) {
-        const ctx2 = chart.ctx;
-        ctx2.save();
-        ctx2.font = '11px Inter,sans-serif';
-        ctx2.fillStyle = '#16191d';
-        ctx2.textAlign = 'center';
-        chart.data.datasets.forEach((ds, i) => {
-          const meta = chart.getDatasetMeta(i);
-          if (meta.data[0]) {
-            const {x, y} = meta.data[0].getProps(['x','y'], true);
-            ctx2.fillText(ds.label, x, y - meta.data[0].options.radius - 4);
-          }
+        const c2 = chart.ctx;
+        c2.save();
+        c2.font = '600 10px Inter,MiSans,PingFang SC,sans-serif';
+        c2.textAlign = 'center';
+        c2.textBaseline = 'alphabetic';
+        // collect label positions (largest bubbles first so big markers keep their spot)
+        const items = chart.data.datasets.map((ds,i)=>{
+          const el = chart.getDatasetMeta(i).data[0]; if(!el) return null;
+          const p = el.getProps(['x','y'],true);
+          return { label: ds.label, x: p.x, y: p.y, r: el.options.radius };
+        }).filter(Boolean).sort((a,b)=>b.r-a.r);
+        const placed = [];
+        const LH = 12;
+        items.forEach(it=>{
+          const w = c2.measureText(it.label).width;
+          let ty = it.y - it.r - 4;                 // default: above the bubble
+          const half = w/2 + 2;
+          // greedy de-collision: nudge up until this label's box clears placed ones
+          const overlaps = ty2 => placed.some(q =>
+            Math.abs(it.x - q.x) < (half + q.half) && Math.abs(ty2 - q.ty) < LH);
+          let guard = 0;
+          while (overlaps(ty) && guard < 14) { ty -= LH; guard++; }
+          if (guard >= 14) { ty = it.y + it.r + 11; } // last resort: below the bubble
+          placed.push({ x: it.x, ty, half });
+          c2.lineWidth = 3; c2.strokeStyle = 'rgba(255,255,255,0.92)';
+          c2.strokeText(it.label, it.x, ty);
+          c2.fillStyle = '#16191d';
+          c2.fillText(it.label, it.x, ty);
         });
-        ctx2.restore();
+        c2.restore();
       }
     }]
   });
-})();
+}
+drawBubble();
 
 // === COMPARE PANEL ===
 let tsChartInstance = null;
@@ -488,22 +515,24 @@ function renderCol(colEl, c, isA) {
     destRows += '<tr><td>' + p + '</td><td class="num" style="text-align:right">' + v.toFixed(1) + '</td></tr>';
   });
   const valClass = isA ? 'stat-card-value red' : 'stat-card-value';
+  const en=(window.SP_LANG&&SP_LANG()==='en');
+  const U=window.volUnit?volUnit():'万吨', VN=w=>window.fmtVolNum?fmtVolNum(w):(+w).toFixed(1);
   colEl.innerHTML =
     '<div class="stat-card">' +
-    '<div class="stat-card-title">2025 出口量</div>' +
-    '<div class="' + valClass + ' num">' + st.q.toFixed(1) + ' <span style="font-size:16px;font-weight:500">万吨</span></div>' +
+    '<div class="stat-card-title">' + (en?'2025 exports':'2025 出口量') + '</div>' +
+    '<div class="' + valClass + ' num">' + VN(st.q) + ' <span style="font-size:16px;font-weight:500">' + U + '</span></div>' +
     '<div class="stat-card-sub">' + yoyBadge(st.yoy) + ' &nbsp;&middot;&nbsp; ' + (window.LGT?LGT('全球份额'):'全球份额') + ' <b>' + st.sh.toFixed(1) + '%</b></div>' +
     '</div>' +
     '<div class="chart-box">' +
-    '<div class="chart-box-title">产品结构（HS大类占比 %）</div>' +
-    (hsBars || '<div style="color:#79808a;font-size:12px">暂无数据</div>') +
+    '<div class="chart-box-title">' + (en?'Product mix (HS group share %)':'产品结构（HS大类占比 %）') + '</div>' +
+    (hsBars || '<div style="color:#79808a;font-size:12px">' + (en?'No data':'暂无数据') + '</div>') +
     '</div>' +
     '<div class="chart-box">' +
-    '<div class="chart-box-title">主要目的地 Top 8（万吨）</div>' +
+    '<div class="chart-box-title">' + (en?'Top 8 destinations ('+U+')':'主要目的地 Top 8（'+U+'）') + '</div>' +
     '<table style="width:100%;border-collapse:collapse;font-size:12px">' +
     '<thead><tr style="border-bottom:1px solid #e5e7eb">' +
-    '<th style="text-align:left;padding:4px 6px;color:#79808a;font-size:11px">目的地</th>' +
-    '<th style="text-align:right;padding:4px 6px;color:#79808a;font-size:11px">万吨</th>' +
+    '<th style="text-align:left;padding:4px 6px;color:#79808a;font-size:11px">' + (en?'Destination':'目的地') + '</th>' +
+    '<th style="text-align:right;padding:4px 6px;color:#79808a;font-size:11px">' + U + '</th>' +
     '</tr></thead><tbody>' + destRows + '</tbody></table>' +
     '</div>';
 }
@@ -514,8 +543,10 @@ function renderCommon(c1, c2) {
   let cd = COMMON_DATA[key1] || COMMON_DATA[key2];
   let flipped = (!COMMON_DATA[key1] && !!COMMON_DATA[key2]);
   const el = document.getElementById('commonSection');
+  const en=(window.SP_LANG&&SP_LANG()==='en'); const TNx=n=>window.TN?TN(n):n;
+  const c1N=TNx(c1), c2N=TNx(c2);
   if (!cd) {
-    el.innerHTML = '<div class="common-section"><div class="common-header"><div class="common-stat"><div class="common-stat-val">—</div><div class="common-stat-lbl">共同目的地（数据未预计算）</div></div></div></div>';
+    el.innerHTML = '<div class="common-section"><div class="common-header"><div class="common-stat"><div class="common-stat-val">—</div><div class="common-stat-lbl">'+(en?'Common destinations (not precomputed)':'共同目的地（数据未预计算）')+'</div></div></div></div>';
     return;
   }
   const overlap1 = flipped ? cd.ov2 : cd.ov1;
@@ -530,15 +561,15 @@ function renderCommon(c1, c2) {
     let yoyB = flipped ? yoyA_raw : yoyB_raw;
     let faster = '';
     if (yoyA !== null && yoyB !== null) {
-      if (yoyB > yoyA) faster = '<span class="faster-badge faster-c2">B快</span>';
-      else if (yoyA > yoyB) faster = '<span class="faster-badge faster-c1">A快</span>';
+      if (yoyB > yoyA) faster = '<span class="faster-badge faster-c2">'+(en?'B faster':'B快')+'</span>';
+      else if (yoyA > yoyB) faster = '<span class="faster-badge faster-c1">'+(en?'A faster':'A快')+'</span>';
     }
     const yoyAstr = yoyA !== null ? (yoyA>=0?'+':'')+yoyA+'%' : 'N/A';
     const yoyBstr = yoyB !== null ? (yoyB>=0?'+':'')+yoyB+'%' : 'N/A';
     const yoyAColor = (yoyA !== null && yoyA >= 0) ? '#16a34a' : '#C00000';
     const yoyBColor = (yoyB !== null && yoyB >= 0) ? '#16a34a' : '#C00000';
     rows += '<tr>' +
-      '<td>' + p + '</td>' +
+      '<td>' + TNx(p) + '</td>' +
       '<td>' + qA.toFixed(1) + '</td>' +
       '<td style="color:' + yoyAColor + '">' + yoyAstr + '</td>' +
       '<td>' + qB.toFixed(1) + '</td>' +
@@ -549,20 +580,20 @@ function renderCommon(c1, c2) {
   el.innerHTML =
     '<div class="common-section">' +
     '<div class="common-header">' +
-    '<div class="common-stat"><div class="common-stat-val">' + cd.n + '</div><div class="common-stat-lbl">共同目的地</div></div>' +
-    '<div class="common-stat"><div class="common-stat-val">' + overlap1 + '%</div><div class="common-stat-lbl">' + c1 + ' 重合度</div></div>' +
-    '<div class="common-stat"><div class="common-stat-val">' + overlap2 + '%</div><div class="common-stat-lbl">' + c2 + ' 重合度</div></div>' +
-    '<div class="common-stat"><div class="common-stat-val">' + intensity + '%</div><div class="common-stat-lbl">综合竞争烈度</div></div>' +
+    '<div class="common-stat"><div class="common-stat-val">' + cd.n + '</div><div class="common-stat-lbl">' + (en?'Common destinations':'共同目的地') + '</div></div>' +
+    '<div class="common-stat"><div class="common-stat-val">' + overlap1 + '%</div><div class="common-stat-lbl">' + c1N + (en?' overlap':' 重合度') + '</div></div>' +
+    '<div class="common-stat"><div class="common-stat-val">' + overlap2 + '%</div><div class="common-stat-lbl">' + c2N + (en?' overlap':' 重合度') + '</div></div>' +
+    '<div class="common-stat"><div class="common-stat-val">' + intensity + '%</div><div class="common-stat-lbl">' + (en?'Competition intensity':'综合竞争烈度') + '</div></div>' +
     '</div>' +
     '<div style="padding:0 0 12px 0;overflow-x:auto">' +
     '<table class="common-table">' +
     '<thead><tr>' +
-    '<th style="text-align:left">共同目的地</th>' +
-    '<th>' + c1 + '量</th>' +
-    '<th>' + c1 + '同比</th>' +
-    '<th>' + c2 + '量</th>' +
-    '<th>' + c2 + '同比</th>' +
-    '<th>增速</th>' +
+    '<th style="text-align:left">' + (en?'Common destination':'共同目的地') + '</th>' +
+    '<th>' + c1N + (en?' vol':'量') + '</th>' +
+    '<th>' + c1N + (en?' YoY':'同比') + '</th>' +
+    '<th>' + c2N + (en?' vol':'量') + '</th>' +
+    '<th>' + c2N + (en?' YoY':'同比') + '</th>' +
+    '<th>' + (en?'Growth':'增速') + '</th>' +
     '</tr></thead>' +
     '<tbody>' + rows + '</tbody>' +
     '</table></div></div>';

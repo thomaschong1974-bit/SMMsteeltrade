@@ -230,7 +230,7 @@ footer b{color:var(--ink)}
 .gnav-menu>a:hover,.gnav-dt:hover{background:#f4f5f7}
 .gnav-menu>a.is-active b{color:#16191d}
 .gnav-menu>a.is-active::after{content:"";position:absolute;left:13px;right:13px;bottom:2px;height:2px;background:#C00000;border-radius:2px}
-.gnav-drop{position:relative}
+.gnav-drop{position:relative}.gnav-drop::after{content:"";position:absolute;left:0;right:0;top:100%;height:14px}
 .gnav-dt{flex-direction:row;align-items:center;gap:6px}
 .gnav-dt .gx{display:flex;flex-direction:column;line-height:1.15}
 .gnav-car{font-size:9px;color:#9aa1aa}
@@ -263,7 +263,7 @@ body.has-gnav{padding-top:58px!important}
         <a href="./competition.html" data-k="comp">出口竞争 · Competition</a>
         <a href="./destination.html" data-k="dest">进口市场 · Destination</a>
         <a href="./risk.html" data-k="risk">风险依赖 · Risk</a>
-        <a href="./trend.html" data-k="trend">趋势诊断 · Trend</a>
+        
         <a href="./rankings.html" data-k="rank">全球榜单 · Rankings</a>
         <a href="./methodology.html" data-k="method">方法论 · Methodology</a>
       </div>

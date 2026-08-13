@@ -125,7 +125,7 @@ body{font-family:'MiSans','MiSans VF','PingFang SC','Microsoft YaHei',system-ui,
 .gnav-menu>a:hover,.gnav-dt:hover{background:#f4f5f7}
 .gnav-menu>a.is-active b{color:#16191d}
 .gnav-menu>a.is-active::after{content:"";position:absolute;left:13px;right:13px;bottom:2px;height:2px;background:#C00000;border-radius:2px}
-.gnav-drop{position:relative}
+.gnav-drop{position:relative}.gnav-drop::after{content:"";position:absolute;left:0;right:0;top:100%;height:14px}
 .gnav-dt{flex-direction:row;align-items:center;gap:6px}
 .gnav-dt .gx{display:flex;flex-direction:column;line-height:1.15}
 .gnav-car{font-size:9px;color:#9aa1aa}
@@ -158,7 +158,7 @@ body.has-gnav{padding-top:58px!important}
         <a href="./competition.html" data-k="comp">出口竞争 · Competition</a>
         <a href="./destination.html" data-k="dest">进口市场 · Destination</a>
         <a href="./risk.html" data-k="risk">风险依赖 · Risk</a>
-        <a href="./trend.html" data-k="trend">趋势诊断 · Trend</a>
+        
         <a href="./rankings.html" data-k="rank" class="is-active">全球榜单 · Rankings</a>
         <a href="./methodology.html" data-k="method">方法论 · Methodology</a>
       </div>
@@ -330,13 +330,23 @@ body.has-gnav{padding-top:58px!important}
       <div class="filter-bar">
         <label>品类：</label>
         <select id="groupSelect" onchange="renderProductCountry()">
-          <option value="钢材卷板">钢材卷板</option>
-          <option value="钢材废碎料">钢材废碎料</option>
-          <option value="钢材型材">钢材型材</option>
-          <option value="钢材管材">钢材管材</option>
-          <option value="钢材其他">钢材其他</option>
-          <option value="钢材锭及其他半制成品">钢材锭及其他半制成品</option>
-          <option value="钢材窄带">钢材窄带</option>
+          <option value="热轧 (Hot Rolling)">热轧 (Hot Rolling)</option>
+          <option value="冷轧 (Cold Rolling)">冷轧 (Cold Rolling)</option>
+          <option value="涂镀 (Coating & Plating)">涂镀 (Coating & Plating)</option>
+          <option value="钢坯 (Steel Billet)">钢坯 (Steel Billet)</option>
+          <option value="螺纹钢 (Rebar)">螺纹钢 (Rebar)</option>
+          <option value="线盘 (Wire Rod)">线盘 (Wire Rod)</option>
+          <option value="钢丝 (Steel Wire)">钢丝 (Steel Wire)</option>
+          <option value="型钢 (Section Steel)">型钢 (Section Steel)</option>
+          <option value="中厚板 (Medium-Thickness Plate)">中厚板 (Medium-Thickness Plate)</option>
+          <option value="钢管 (Steel Pipe)">钢管 (Steel Pipe)</option>
+          <option value="硅钢 (Silicon Steel)">硅钢 (Silicon Steel)</option>
+          <option value="不锈钢 (Stainless Steel)">不锈钢 (Stainless Steel)</option>
+          <option value="钢轨 (Steel Rail)">钢轨 (Steel Rail)</option>
+          <option value="钢管附件 (Steel Pipe Fittings)">钢管附件 (Steel Pipe Fittings)</option>
+          <option value="异型材 (Special-Shaped Profiles)">异型材 (Special-Shaped Profiles)</option>
+          <option value="带钢 (Strip Steel)">带钢 (Strip Steel)</option>
+          <option value="其他 (Others)">其他 (Others)</option>
         </select>
       </div>
       <div class="dtable-wrap"><table class="dtable" id="t-product-country"></table></div>

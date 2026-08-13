@@ -3,7 +3,7 @@
    Same sessionStorage key + same code, so passing any one page unlocks all.
    NOTE: change the code in BOTH this file and flagship.html.  */
 (function(){
-  var ACCESS_CODE = 'smm12345';
+  var ACCESS_CODE = 'Smmsteelteam123';
   if (document.getElementById('pwGate')) return;              // flagship handles itself
   if (sessionStorage.getItem('steelPulseAuth') === '1') return;
 

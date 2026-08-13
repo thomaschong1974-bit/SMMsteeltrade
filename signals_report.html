@@ -176,6 +176,7 @@ footer b{color:var(--ink)}
 .sub-line:last-child{border-bottom:none}.sub-line .sl-src{color:#2b3036;font-weight:600}
 .sub-line .sl-chg{font-variant-numeric:tabular-nums;font-weight:800}
 .sub-line.up .sl-chg{color:var(--up)}.sub-line.down .sl-chg{color:var(--down)}
+.ex-sel{font-size:13px;padding:6px 10px;border:1px solid #e2e6ec;border-radius:8px;background:#fff;color:var(--ink);font-family:inherit}
 </style><style>
 #sigNarr{max-width:1120px;margin:0 44px 10px;padding-top:8px}
 .narr{border-top:1px solid #16191d}
@@ -214,7 +215,7 @@ footer b{color:var(--ink)}
 .gnav-menu>a:hover,.gnav-dt:hover{background:#f4f5f7}
 .gnav-menu>a.is-active b{color:#16191d}
 .gnav-menu>a.is-active::after{content:"";position:absolute;left:13px;right:13px;bottom:2px;height:2px;background:#C00000;border-radius:2px}
-.gnav-drop{position:relative}
+.gnav-drop{position:relative}.gnav-drop::after{content:"";position:absolute;left:0;right:0;top:100%;height:14px}
 .gnav-dt{flex-direction:row;align-items:center;gap:6px}
 .gnav-dt .gx{display:flex;flex-direction:column;line-height:1.15}
 .gnav-car{font-size:9px;color:#9aa1aa}
@@ -247,7 +248,7 @@ body.has-gnav{padding-top:58px!important}
         <a href="./competition.html" data-k="comp">出口竞争 · Competition</a>
         <a href="./destination.html" data-k="dest">进口市场 · Destination</a>
         <a href="./risk.html" data-k="risk">风险依赖 · Risk</a>
-        <a href="./trend.html" data-k="trend">趋势诊断 · Trend</a>
+        
         <a href="./rankings.html" data-k="rank">全球榜单 · Rankings</a>
         <a href="./methodology.html" data-k="method">方法论 · Methodology</a>
       </div>
@@ -271,7 +272,9 @@ body.has-gnav{padding-top:58px!important}
         <div class="sb-sub"><a class="sb-item" href="#p3"><span class="ip">P3</span>增减与份额创新高</a></div></div>
       <div class="sb-group"><a class="sb-sec" href="#s4"><span class="sn">04</span><span class="sb-name">来源替代</span><span class="sb-caret">▸</span></a>
         <div class="sb-sub"><a class="sb-item" href="#p4"><span class="ip">P4</span>进口来源切换</a></div></div>
-      <div class="sb-group"><a class="sb-sec" href="#s5"><span class="sn">05</span><span class="sb-name">方法与提醒</span><span class="sb-caret">▸</span></a>
+      <div class="sb-group"><a class="sb-sec" href="#s-explorer"><span class="sn">05</span><span class="st">自定义异动查询</span></a>
+        <div class="sb-sub"><a class="sb-item" href="#s-explorer"><span class="ip">Q</span>国家 / 品种筛选</a></div></div>
+      <div class="sb-group"><a class="sb-sec" href="#s5"><span class="sn">06</span><span class="sb-name">方法与提醒</span><span class="sb-caret">▸</span></a>
         <div class="sb-sub"><a class="sb-item" href="#p5"><span class="ip">P5</span>阈值·口径·缺口</a></div></div>
     </nav>
   </aside>
@@ -323,7 +326,7 @@ body.has-gnav{padding-top:58px!important}
 
       <section id="s2"><div class="sec-head"><span class="sec-no">02</span><h2>流向异变</h2></div>
         <article class="slide-block" id="p2"><span class="folio">P2</span>
-          <h3 class="slide-title">\g<1><div class="lead"><span class="lb">核心信号</span><b>加拿大→美国</b> 从 2024 年 595 万吨骤降至 <b>410 万吨（−31%）</b>，是全球量级最大的单条收缩流向；同时 <b>印尼→意大利 +338%</b>、<b>中国→吉布提 +123%</b> 等新通道翻倍式放量。<b>推测</b>：关税壁垒 + 转口/新兴市场承接重塑路径。</div>
+          <h3 class="slide-title">流向大迁移：传统市场退、新兴市场进</h3><div class="lead"><span class="lb">核心信号</span><b>加拿大→美国</b> 从 2024 年 595 万吨骤降至 <b>410 万吨（−31%）</b>，是全球量级最大的单条收缩流向；同时 <b>印尼→意大利 +338%</b>、<b>中国→吉布提 +123%</b> 等新通道翻倍式放量。<b>推测</b>：关税壁垒 + 转口/新兴市场承接重塑路径。</div>
           <div class="chart-card" data-key="cnindia">
             <div class="cc-tools"><button data-act="table">⊞</button><button data-act="png">⤓</button><button data-act="zoom">⤢</button></div>
             <div class="cc-title">加拿大 → 美国 出口 逐年<span class="cc-unit">万吨 · 关税下走廊收缩</span></div>
@@ -340,7 +343,7 @@ body.has-gnav{padding-top:58px!important}
 
       <section id="s3"><div class="sec-head"><span class="sec-no">03</span><h2>出口国动态</h2></div>
         <article class="slide-block" id="p3"><span class="folio">P3</span>
-          <h3 class="slide-title">\g<1><div class="lead"><span class="lb">核心信号</span>增量绝对主力是 <b>中国（+1,616 万吨，+14%）</b>，伊朗 +254、土耳其 +183 万吨跟进；<b>日本（−136）、韩国（−3）、加拿大</b>等传统出口国回落。中国份额 30.7% <span class="kw up">创新高</span>，伊朗、印尼份额亦创新高。</div>
+          <h3 class="slide-title">出口增量向中国与新兴出口国集中</h3><div class="lead"><span class="lb">核心信号</span>增量绝对主力是 <b>中国（+1,616 万吨，+14%）</b>，伊朗 +254、土耳其 +183 万吨跟进；<b>日本（−136）、韩国（−3）、加拿大</b>等传统出口国回落。中国份额 30.7% <span class="kw up">创新高</span>，伊朗、印尼份额亦创新高。</div>
           <div class="twocol">
             <div><div class="tbl-h"><span class="dot up"></span>出口增量 TOP（万吨）</div>
               <table class="dtable"><thead><tr><th>出口国</th><th>2025</th><th>增减</th><th>同比</th></tr></thead><tbody><tr><td>中国</td><td>13,098.3</td><td><span class="kw up">+1615.8</span></td><td>+14%</td></tr><tr><td>伊朗</td><td>1,320.8</td><td><span class="kw up">+254.3</span></td><td>+24%</td></tr><tr><td>土耳其</td><td>1,681.1</td><td><span class="kw up">+183.2</span></td><td>+12%</td></tr><tr><td>巴西</td><td>1,094.1</td><td><span class="kw up">+139.3</span></td><td>+15%</td></tr><tr><td>比利时</td><td>1,565.0</td><td><span class="kw up">+37.0</span></td><td>+2%</td></tr><tr><td>荷兰</td><td>875.4</td><td><span class="kw up">+31.8</span></td><td>+4%</td></tr></tbody></table></div>
@@ -376,7 +379,23 @@ body.has-gnav{padding-top:58px!important}
         </article>
       </section>
 
-      <section id="s5"><div class="sec-head"><span class="sec-no">05</span><h2>方法与提醒</h2></div>
+      <section id="s-explorer"><div class="sec-head"><span class="sec-no">05</span><h2>自定义异动查询</h2></div>
+        <article class="slide-block">
+          <h3 class="slide-title">按国家 / 品种筛选异动流向</h3>
+          <div class="lead"><span class="lb">自助</span>选择国家与品种，实时计算 2025 vs 2024 的暴增 / 暴跌流向（EXPORT 口径，样本门槛 ≥5 万吨 / 0.05 Mt）。</div>
+          <div style="display:flex;gap:14px;flex-wrap:wrap;align-items:center;margin:12px 0 16px">
+            <div><label id="exCountryLbl" style="font-size:12px;color:#5b636d;margin-right:6px"></label><select id="exCountry" class="ex-sel"></select></div>
+            <div><label id="exSideLbl" style="font-size:12px;color:#5b636d;margin-right:6px"></label><select id="exSide" class="ex-sel"></select></div>
+            <div><label id="exProdLbl" style="font-size:12px;color:#5b636d;margin-right:6px"></label><select id="exProd" class="ex-sel"></select></div>
+            <span id="exCount" style="font-size:12px;color:#5b636d;margin-left:auto"></span>
+          </div>
+          <div class="twocol">
+            <div><div class="tbl-h"><span class="dot up"></span><span id="exUpH"></span></div><table class="dtable" id="exUp"></table></div>
+            <div><div class="tbl-h"><span class="dot down"></span><span id="exDnH"></span></div><table class="dtable" id="exDn"></table></div>
+          </div>
+        </article>
+      </section>
+      <section id="s5"><div class="sec-head"><span class="sec-no">06</span><h2>方法与提醒</h2></div>
         <article class="slide-block" id="p5"><span class="folio">P5</span>
           <h3 class="slide-title">阈值、口径与数据缺口</h3>
           <div class="points">
@@ -506,6 +525,57 @@ const secs=[...document.querySelectorAll('main section')];
 const spy=new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting){const id=e.target.id;
   document.querySelectorAll('.sb-sec').forEach(a=>{const on=a.getAttribute('href')==='#'+id;a.classList.toggle('active',on);if(on)a.closest('.sb-group').classList.add('open');});}});},{rootMargin:'-40% 0px -55% 0px'});
 secs.forEach(s=>spy.observe(s));
+</script>
+<script src="./assets/signals_flows.js"></script>
+<script>
+(function(){
+  function EN(){return window.SP_LANG&&SP_LANG()==='en';}
+  function NM(x){return window.TN?TN(x):x;}
+  function PR(x){return window.TP?TP(x):String(x).replace(/\s*\(.*\)$/,'');}
+  function V(w){return window.fmtVol?fmtVol(w):(w+' 万吨');}
+  function opt(v,t){var o=document.createElement('option');o.value=v;o.textContent=t;return o;}
+  function fillSel(sel,vals,allLabel,disp){var cur=sel.value;sel.innerHTML='';sel.appendChild(opt('__all',allLabel));vals.forEach(function(v){sel.appendChild(opt(v,disp(v)));});if(cur)sel.value=cur;}
+  function tbl(id,rows){var en=EN();var h='<thead><tr><th>'+(en?'Corridor':'流向')+'</th><th>'+(en?'Product':'品类')+'</th><th>2025</th><th>2024</th><th>'+(en?'YoY':'同比')+'</th></tr></thead><tbody>';
+    if(!rows.length){h+='<tr><td colspan=5 style="color:#9aa1ae">'+(en?'No matching flows':'无匹配流向')+'</td></tr>';}
+    rows.forEach(function(r){var cls=r.yoy>=0?'up':'down';var ys=(r.yoy>=0?'+':'')+r.yoy.toFixed(0)+'%';
+      h+='<tr><td>'+NM(r.e)+'→'+NM(r.i)+'</td><td>'+PR(r.p)+'</td><td>'+V(r.v25)+'</td><td>'+V(r.v24)+'</td><td><span class="kw '+cls+'">'+ys+'</span></td></tr>';});
+    h+='</tbody>';document.getElementById(id).innerHTML=h;}
+  window.exInit=function(){
+    if(!window.SIG_FLOWS)return; var en=EN();
+    var cSel=document.getElementById('exCountry'),sSel=document.getElementById('exSide'),pSel=document.getElementById('exProd');
+    if(!cSel)return;
+    var countries=[].concat.apply([],SIG_FLOWS.map(function(f){return [f.e,f.i];}));
+    countries=countries.filter(function(v,i,a){return a.indexOf(v)===i;}).sort();
+    var prods=SIG_FLOWS.map(function(f){return f.p;}).filter(function(v,i,a){return a.indexOf(v)===i;}).sort();
+    fillSel(cSel,countries,en?'All countries':'全部国家',NM);
+    fillSel(pSel,prods,en?'All products':'全部品类',PR);
+    var sv=sSel.value; sSel.innerHTML='';
+    sSel.appendChild(opt('any',en?'As exporter or importer':'作为出口或进口国'));
+    sSel.appendChild(opt('exp',en?'As exporter':'作为出口国'));
+    sSel.appendChild(opt('imp',en?'As importer':'作为进口国'));
+    if(sv)sSel.value=sv;
+    document.getElementById('exCountryLbl').textContent=en?'Country':'国家';
+    document.getElementById('exSideLbl').textContent=en?'Role':'角色';
+    document.getElementById('exProdLbl').textContent=en?'Product':'品类';
+    document.getElementById('exUpH').textContent=en?'Top surges (YoY)':'同比暴增 TOP';
+    document.getElementById('exDnH').textContent=en?'Top slumps (YoY)':'同比暴跌 TOP';
+    function compute(){var c=cSel.value,side=sSel.value,p=pSel.value;
+      var rows=SIG_FLOWS.filter(function(f){
+        if(p!=='__all'&&f.p!==p)return false;
+        if(c!=='__all'){ if(side==='exp')return f.e===c; if(side==='imp')return f.i===c; return f.e===c||f.i===c; }
+        return true;
+      }).filter(function(f){return f.v24>=2;}).map(function(f){var o={};for(var k in f)o[k]=f[k];o.yoy=(f.v25/f.v24-1)*100;return o;}).filter(function(f){return isFinite(f.yoy);});
+      var up=rows.slice().sort(function(a,b){return b.yoy-a.yoy;}).slice(0,12);
+      var dn=rows.slice().sort(function(a,b){return a.yoy-b.yoy;}).slice(0,12);
+      tbl('exUp',up);tbl('exDn',dn);
+      document.getElementById('exCount').textContent=(en?'Matched ':'匹配 ')+rows.length+(en?' flows':' 条流向');
+    }
+    cSel.onchange=compute;sSel.onchange=compute;pSel.onchange=compute;compute();
+  };
+  var _pr=window.__relang;
+  window.__relang=function(){ try{if(_pr)_pr();}catch(e){} try{exInit();}catch(e){} };
+  if(document.readyState!=='loading') exInit(); else document.addEventListener('DOMContentLoaded',exInit);
+})();
 </script>
 <script src="./assets/i18n_dict.js"></script>
 <script src="./assets/i18n.js"></script>

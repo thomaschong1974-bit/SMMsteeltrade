@@ -111,7 +111,7 @@ main{max-width:1200px;margin:0 auto;padding:32px 32px 64px}
 .gnav-menu>a:hover,.gnav-dt:hover{background:#f4f5f7}
 .gnav-menu>a.is-active b{color:#16191d}
 .gnav-menu>a.is-active::after{content:"";position:absolute;left:13px;right:13px;bottom:2px;height:2px;background:#C00000;border-radius:2px}
-.gnav-drop{position:relative}
+.gnav-drop{position:relative}.gnav-drop::after{content:"";position:absolute;left:0;right:0;top:100%;height:14px}
 .gnav-dt{flex-direction:row;align-items:center;gap:6px}
 .gnav-dt .gx{display:flex;flex-direction:column;line-height:1.15}
 .gnav-car{font-size:9px;color:#9aa1aa}
@@ -144,7 +144,7 @@ body.has-gnav{padding-top:58px!important}
         <a href="./competition.html" data-k="comp">出口竞争 · Competition</a>
         <a href="./destination.html" data-k="dest">进口市场 · Destination</a>
         <a href="./risk.html" data-k="risk" class="is-active">风险依赖 · Risk</a>
-        <a href="./trend.html" data-k="trend">趋势诊断 · Trend</a>
+        
         <a href="./rankings.html" data-k="rank">全球榜单 · Rankings</a>
         <a href="./methodology.html" data-k="method">方法论 · Methodology</a>
       </div>
@@ -239,24 +239,10 @@ body.has-gnav{padding-top:58px!important}
   </div>
 </div>
 
-<!-- Section 5: HHI Scatter Chart -->
-<div class="sec" id="sec-chart">
-  <div class="sec-head">
-    <span class="sec-no">05</span>
-    <h2>出口量 vs 出口HHI 风险分布图</h2>
-    <span class="sec-sub">横轴=出口量（万吨），纵轴=出口目的地HHI；右上角=体量大且高度集中，风险最高</span>
-  </div>
-  <div class="chart-card">
-    <div class="chart-title">出口贸易结构风险矩阵（2025年）</div>
-    <div class="chart-sub">气泡大小 = 进口HHI；颜色深红 = 综合风险高；仅含出口≥10万吨国家</div>
-    <div class="chart-box"><canvas id="scatter-chart"></canvas></div>
-  </div>
-</div>
-
-<!-- Section 6: Method -->
+<!-- Section 5: Method -->
 <div class="sec" id="sec-method">
   <div class="sec-head">
-    <span class="sec-no">06</span>
+    <span class="sec-no">05</span>
     <h2>指标方法说明</h2>
   </div>
   <div class="method-box">
@@ -431,27 +417,45 @@ function showProfile(name) {
   if (!name) return;
   const d = RAW.find(r => r.name === name);
   if (!d) return;
-  document.getElementById('profile-name').textContent = d.name;
+  document.getElementById("profile-name").textContent = (window.TN?TN(d.name):d.name);
   document.getElementById('profile-content').style.display = 'block';
   document.getElementById('profile-empty').style.display = 'none';
+
+  // bilingual helpers
+  const en=(window.SP_LANG&&SP_LANG()==='en');
+  const NM=n=>window.TN?TN(n):n;
+  const PR=p=>window.TP?TP(p):String(p).replace(/\s*\(.*\)$/,'');
+  const V=w=>window.fmtVol?fmtVol((w||0)/1e4):((w/1e4).toFixed(1)+' 万吨');
+  const TT=(zh,e)=>en?e:zh;
+  const RT=hhi=>hhi==null?TT('无数据','no data'):hhi>=0.5?TT('高度集中','highly concentrated'):hhi>=0.25?TT('较集中','moderately concentrated'):TT('相对分散','relatively dispersed');
+  const RL={ '高风险':'High risk','中风险':'Medium risk','低风险':'Low risk' };
+  const LST=s=>s?s.split('/').map(x=>NM(x.trim())).join(en?', ':'/'):s;
 
   // Risk label
   const labelDiv = document.getElementById('profile-risk-label');
   const overallHHI = Math.max(d.exp_hhi||0, d.imp_hhi||0);
   const cls = riskClass(overallHHI);
-  const clsMap = {high:'高风险综合画像', med:'中等风险综合画像', low:'低风险综合画像'};
-  labelDiv.innerHTML = `<span class="risk-label-big ${cls}">${clsMap[cls]} · ${d.risk_label}</span>`;
+  const clsMap = en?{high:'High-risk profile',med:'Medium-risk profile',low:'Low-risk profile'}
+                   :{high:'高风险综合画像',med:'中等风险综合画像',low:'低风险综合画像'};
+  const rlbl = en?(RL[d.risk_label]||d.risk_label):d.risk_label;
+  labelDiv.innerHTML = `<span class="risk-label-big ${cls}">${clsMap[cls]} · ${rlbl}</span>`;
 
   // Risk summary text
   const summaryEl = document.getElementById('profile-risk-summary');
   let summaryParts = [];
   if (d.exp_hhi != null && d.total_exp >= 100000)
-    summaryParts.push(`出口目的地${riskText(d.exp_hhi)}（HHI=${fmtHHI(d.exp_hhi)}），最大市场<b>${d.top1_partner}</b>占 ${fmtPct(d.top1_share)}，前三合计 ${fmtPct(d.top3_share)}`);
+    summaryParts.push(en
+      ? `Export destinations ${RT(d.exp_hhi)} (HHI=${fmtHHI(d.exp_hhi)}); largest market <b>${NM(d.top1_partner)}</b> ${fmtPct(d.top1_share)}, top-3 ${fmtPct(d.top3_share)}`
+      : `出口目的地${RT(d.exp_hhi)}（HHI=${fmtHHI(d.exp_hhi)}），最大市场<b>${NM(d.top1_partner)}</b>占 ${fmtPct(d.top1_share)}，前三合计 ${fmtPct(d.top3_share)}`);
   if (d.imp_hhi != null && d.total_imp >= 100000)
-    summaryParts.push(`进口来源${riskText(d.imp_hhi)}（HHI=${fmtHHI(d.imp_hhi)}），最大来源<b>${d.imp_top1_partner}</b>占 ${fmtPct(d.imp_top1_share)}，前三合计 ${fmtPct(d.imp_top3_share)}`);
+    summaryParts.push(en
+      ? `Import sources ${RT(d.imp_hhi)} (HHI=${fmtHHI(d.imp_hhi)}); largest source <b>${NM(d.imp_top1_partner)}</b> ${fmtPct(d.imp_top1_share)}, top-3 ${fmtPct(d.imp_top3_share)}`
+      : `进口来源${RT(d.imp_hhi)}（HHI=${fmtHHI(d.imp_hhi)}），最大来源<b>${NM(d.imp_top1_partner)}</b>占 ${fmtPct(d.imp_top1_share)}，前三合计 ${fmtPct(d.imp_top3_share)}`);
   if (d.prod_hhi != null && d.total_exp >= 100000)
-    summaryParts.push(`出口产品${riskText(d.prod_hhi)}（HHI=${fmtHHI(d.prod_hhi)}），主导品类<b>${d.top1_prod}</b>占 ${fmtPct(d.top1_prod_share)}`);
-  summaryEl.innerHTML = summaryParts.join('；<br>') + '。';
+    summaryParts.push(en
+      ? `Export product mix ${RT(d.prod_hhi)} (HHI=${fmtHHI(d.prod_hhi)}); leading category <b>${PR(d.top1_prod)}</b> ${fmtPct(d.top1_prod_share)}`
+      : `出口产品${RT(d.prod_hhi)}（HHI=${fmtHHI(d.prod_hhi)}），主导品类<b>${PR(d.top1_prod)}</b>占 ${fmtPct(d.top1_prod_share)}`);
+  summaryEl.innerHTML = summaryParts.join(en?'.<br>':'；<br>') + (en?'.':'。');
 
   // KPIs
   const kpiEl = document.getElementById('profile-kpis');
@@ -465,48 +469,49 @@ function showProfile(name) {
   const impHHIcls = riskClass(d.imp_hhi)=='high'?'danger':riskClass(d.imp_hhi)=='med'?'warn':'';
   const prodHHIcls = riskClass(d.prod_hhi)=='high'?'danger':riskClass(d.prod_hhi)=='med'?'warn':'';
   kpiEl.innerHTML = [
-    makeKPI('出口HHI', d.exp_hhi!=null?fmtHHI(d.exp_hhi):'—',
-      d.total_exp!=null?`出口 ${fmt1(d.total_exp)} 万吨`:'无出口数据', expHHIcls),
-    makeKPI('进口HHI', d.imp_hhi!=null?fmtHHI(d.imp_hhi):'—',
-      d.total_imp!=null?`进口 ${fmt1(d.total_imp)} 万吨`:'无进口数据', impHHIcls),
-    makeKPI('产品HHI', d.prod_hhi!=null?fmtHHI(d.prod_hhi):'—',
-      d.top1_prod?`主导: ${d.top1_prod}`:'—', prodHHIcls),
-    makeKPI('Top1出口市场', d.top1_partner||'—',
-      d.top1_share!=null?`占出口 ${fmtPct(d.top1_share)}`:'—'),
-    makeKPI('Top3出口市场', d.top3_share!=null?fmtPct(d.top3_share):'—',
-      d.top3_partners||'—'),
-    makeKPI('Top1进口来源', d.imp_top1_partner||'—',
-      d.imp_top1_share!=null?`占进口 ${fmtPct(d.imp_top1_share)}`:'—'),
+    makeKPI(TT('出口HHI','Export HHI'), d.exp_hhi!=null?fmtHHI(d.exp_hhi):'—',
+      d.total_exp!=null?TT('出口 ','Exports ')+V(d.total_exp):TT('无出口数据','No export data'), expHHIcls),
+    makeKPI(TT('进口HHI','Import HHI'), d.imp_hhi!=null?fmtHHI(d.imp_hhi):'—',
+      d.total_imp!=null?TT('进口 ','Imports ')+V(d.total_imp):TT('无进口数据','No import data'), impHHIcls),
+    makeKPI(TT('产品HHI','Product HHI'), d.prod_hhi!=null?fmtHHI(d.prod_hhi):'—',
+      d.top1_prod?TT('主导: ','Leading: ')+PR(d.top1_prod):'—', prodHHIcls),
+    makeKPI(TT('Top1出口市场','Top-1 export market'), d.top1_partner?NM(d.top1_partner):'—',
+      d.top1_share!=null?TT('占出口 ','of exports ')+fmtPct(d.top1_share):'—'),
+    makeKPI(TT('Top3出口市场','Top-3 export markets'), d.top3_share!=null?fmtPct(d.top3_share):'—',
+      LST(d.top3_partners)||'—'),
+    makeKPI(TT('Top1进口来源','Top-1 import source'), d.imp_top1_partner?NM(d.imp_top1_partner):'—',
+      d.imp_top1_share!=null?TT('占进口 ','of imports ')+fmtPct(d.imp_top1_share):'—'),
   ].join('');
 
   // Detail panels
   const expDet = document.getElementById('profile-exp-detail');
   expDet.innerHTML = d.exp_hhi!=null ? `
     <div style="background:#fff;border:1px solid var(--line);border-radius:10px;padding:14px 16px">
-      <div style="font-size:12px;font-weight:800;color:var(--muted);margin-bottom:8px">出口结构</div>
+      <div style="font-size:12px;font-weight:800;color:var(--muted);margin-bottom:8px">${TT('出口结构','Export structure')}</div>
       <div style="font-size:13px;line-height:1.8">
-        目的地HHI: <b>${fmtHHI(d.exp_hhi)}</b><br>
-        Top1市场: <b>${d.top1_partner}</b> (${fmtPct(d.top1_share)})<br>
-        Top3市场: ${d.top3_partners}<br>
-        Top3集中度: <b>${fmtPct(d.top3_share)}</b>
+        ${TT('目的地HHI','Destination HHI')}: <b>${fmtHHI(d.exp_hhi)}</b><br>
+        ${TT('Top1市场','Top-1 market')}: <b>${NM(d.top1_partner)}</b> (${fmtPct(d.top1_share)})<br>
+        ${TT('Top3市场','Top-3 markets')}: ${LST(d.top3_partners)}<br>
+        ${TT('Top3集中度','Top-3 concentration')}: <b>${fmtPct(d.top3_share)}</b>
       </div>
-    </div>` : '<div style="color:var(--muted);font-size:13px;padding:12px">无出口数据</div>';
+    </div>` : '<div style="color:var(--muted);font-size:13px;padding:12px">'+TT('无出口数据','No export data')+'</div>';
 
   const impDet = document.getElementById('profile-imp-detail');
   impDet.innerHTML = d.imp_hhi!=null ? `
     <div style="background:#fff;border:1px solid var(--line);border-radius:10px;padding:14px 16px">
-      <div style="font-size:12px;font-weight:800;color:var(--muted);margin-bottom:8px">进口结构</div>
+      <div style="font-size:12px;font-weight:800;color:var(--muted);margin-bottom:8px">${TT('进口结构','Import structure')}</div>
       <div style="font-size:13px;line-height:1.8">
-        来源HHI: <b>${fmtHHI(d.imp_hhi)}</b><br>
-        Top1来源: <b>${d.imp_top1_partner}</b> (${fmtPct(d.imp_top1_share)})<br>
-        Top3来源: ${d.imp_top3_partners}<br>
-        Top3集中度: <b>${fmtPct(d.imp_top3_share)}</b>
+        ${TT('来源HHI','Source HHI')}: <b>${fmtHHI(d.imp_hhi)}</b><br>
+        ${TT('Top1来源','Top-1 source')}: <b>${NM(d.imp_top1_partner)}</b> (${fmtPct(d.imp_top1_share)})<br>
+        ${TT('Top3来源','Top-3 sources')}: ${LST(d.imp_top3_partners)}<br>
+        ${TT('Top3集中度','Top-3 concentration')}: <b>${fmtPct(d.imp_top3_share)}</b>
       </div>
     </div>` : '<div style="color:var(--muted);font-size:13px;padding:12px">无进口数据</div>';
 }
 
 // ── Section 5: Scatter Chart ──
 function buildScatter() {
+  if(!document.getElementById('scatter-chart')) return;
   const pts = RAW.filter(d => d.total_exp!=null && d.total_exp>=100000 && d.exp_hhi!=null);
   const datasets = [{
     label: '国家',
@@ -619,7 +624,7 @@ function buildInsights() {
 }
 
 // ── Init ──
-window.__relang=function(){ try{ buildExpTable();buildImpTable();buildProdTable();buildSelect();buildInsights();buildScatter(); }catch(e){} };
+window.__relang=function(){ try{ buildExpTable();buildImpTable();buildProdTable();buildSelect();buildInsights();buildScatter(); var cs=document.getElementById('country-select'); if(cs&&cs.value) showProfile(cs.value); }catch(e){} };
 buildExpTable();
 buildImpTable();
 buildProdTable();

@@ -127,7 +127,7 @@ footer{border-top:1px solid var(--line);padding:18px 40px;font-size:12px;color:v
 .gnav-menu>a:hover,.gnav-dt:hover{background:#f4f5f7}
 .gnav-menu>a.is-active b{color:#16191d}
 .gnav-menu>a.is-active::after{content:"";position:absolute;left:13px;right:13px;bottom:2px;height:2px;background:#C00000;border-radius:2px}
-.gnav-drop{position:relative}
+.gnav-drop{position:relative}.gnav-drop::after{content:"";position:absolute;left:0;right:0;top:100%;height:14px}
 .gnav-dt{flex-direction:row;align-items:center;gap:6px}
 .gnav-dt .gx{display:flex;flex-direction:column;line-height:1.15}
 .gnav-car{font-size:9px;color:#9aa1aa}
@@ -160,7 +160,7 @@ body.has-gnav{padding-top:58px!important}
         <a href="./competition.html" data-k="comp">出口竞争 · Competition</a>
         <a href="./destination.html" data-k="dest">进口市场 · Destination</a>
         <a href="./risk.html" data-k="risk">风险依赖 · Risk</a>
-        <a href="./trend.html" data-k="trend">趋势诊断 · Trend</a>
+        
         <a href="./rankings.html" data-k="rank">全球榜单 · Rankings</a>
         <a href="./methodology.html" data-k="method">方法论 · Methodology</a>
       </div>
@@ -296,27 +296,48 @@ function renderBilNarr(d,exp,imp){
   const first=vals[0], last=vals[vals.length-1]; let pk=-1,pky=yrs[0];
   vals.forEach((v,i)=>{if(v>pk){pk=v;pky=yrs[i];}});
   const yoy=d.yoy, cagr=d.cagr;
+  const en=(window.SP_LANG&&SP_LANG()==='en');
+  const TNx=n=>window.TN?TN(n):n, PNx=k=>window.TP?TP(k):String(k).replace(/\s*\(.*\)$/,''), V=w=>window.fmtVol?fmtVol(w):(w+' 万吨');
   const hs=Object.entries(d.hs_2025||{}).filter(x=>x[1]>0).sort((a,b)=>b[1]-a[1]);
   const tot=hs.reduce((s,x)=>s+x[1],0)||1;
-  const mix=hs.slice(0,3).map(x=>`${x[0].replace(/\s*\(.*\)$/,'')} ${(x[1]/tot*100).toFixed(0)}%`).join('、')||'—';
+  const mix=hs.slice(0,3).map(x=>`${PNx(x[0])} ${(x[1]/tot*100).toFixed(0)}%`).join(en?', ':'、')||'—';
   const de=d.dep_exp||{}, di=d.dep_imp||{};
   const de25=de['2025'],de20=de['2020'],di25=di['2025'],di20=di['2020'];
-  const dir=yoy>3?'回升':(yoy<-3?'回落':'基本持平');
-  const lead=`${exp} → ${imp} 是 2025 年全球第 ${d.global_rank} 大钢材双边流向，规模 <b>${d.qty_2025} 万吨</b>，以${(d.main_product||'').replace(/\s*\(.*\)$/,'')}为主（约占该流向 ${(hs[0]?hs[0][1]/tot*100:0).toFixed(0)}%）。`;
-  const trendTxt=`2010–2025 年贸易量由 ${first} 万吨变化至 ${last} 万吨，${pky} 年见顶 ${pk.toFixed(1)} 万吨；2025 同比 ${yoy>=0?'+':''}${yoy}%（${dir}），五年 CAGR ${cagr>=0?'+':''}${cagr}%。`;
-  let depTxt=`该流向占 ${exp} 出口的 ${de25}%（2020 年 ${de20}%）、占 ${imp} 进口的 ${di25}%（2020 年 ${di20}%）。`;
-  depTxt+= di25>=40?`${imp} 对 ${exp} 的进口依赖度高`:(di25>=20?`${imp} 对其有中等依赖`:`${imp} 对其依赖有限`);
-  depTxt+= (di25>di20+5?'，且仍在上升。':(di25<di20-5?'，但明显下降。':'，大体稳定。'));
-  const subTxt= yoy<-15?`该流向显著收缩，${imp} 很可能在向其它来源切换——是观察来源替代的重点。`
-              : yoy>15?`该流向快速放量，${exp} 正加速抢占 ${imp} 的份额。`
-              : `双边关系相对稳定，无剧烈份额转移。`;
+  const share0=(hs[0]?hs[0][1]/tot*100:0).toFixed(0);
+  const expN=TNx(exp), impN=TNx(imp), mainP=PNx(d.main_product||'');
+  let lead,trendTxt,depTxt,subTxt,prodLine,S_pos,S_size,S_prod,S_dep,S_judge,S_auto,S_head;
+  if(en){
+    const dir=yoy>3?'rebounding':(yoy<-3?'easing':'roughly flat');
+    lead=`${expN} → ${impN} is the world's #${d.global_rank} largest steel bilateral corridor in 2025, at <b>${V(d.qty_2025)}</b>, led by ${mainP} (~${share0}% of the corridor).`;
+    trendTxt=`From 2010 to 2025 the flow moved from ${V(first)} to ${V(last)}, peaking at ${V(pk)} in ${pky}; 2025 YoY ${yoy>=0?'+':''}${yoy}% (${dir}), 5-yr CAGR ${cagr>=0?'+':''}${cagr}%.`;
+    depTxt=`It accounts for ${de25}% of ${expN}'s exports (${de20}% in 2020) and ${di25}% of ${impN}'s imports (${di20}% in 2020). `;
+    depTxt+= di25>=40?`${impN} is highly dependent on ${expN}`:(di25>=20?`${impN} has moderate dependence`:`${impN} has limited dependence`);
+    depTxt+= (di25>di20+5?', and still rising.':(di25<di20-5?', but clearly falling.':', broadly stable.'));
+    subTxt= yoy<-15?`The corridor is contracting sharply; ${impN} is likely switching to other sources — a key one to watch for substitution.`
+          : yoy>15?`The corridor is expanding fast; ${expN} is rapidly gaining share in ${impN}.`
+          : `The bilateral relationship is relatively stable, with no sharp share shift.`;
+    prodLine=`The corridor is mainly composed of ${mix}.`;
+    S_head='In-depth analysis'; S_pos='Positioning'; S_size='Scale & trend'; S_prod='Product mix'; S_dep='Dependence'; S_judge='Assessment'; S_auto='(auto-derived from volume & dependence)';
+  } else {
+    const dir=yoy>3?'回升':(yoy<-3?'回落':'基本持平');
+    lead=`${expN} → ${impN} 是 2025 年全球第 ${d.global_rank} 大钢材双边流向，规模 <b>${V(d.qty_2025)}</b>，以${mainP}为主（约占该流向 ${share0}%）。`;
+    trendTxt=`2010–2025 年贸易量由 ${V(first)} 变化至 ${V(last)}，${pky} 年见顶 ${V(pk)}；2025 同比 ${yoy>=0?'+':''}${yoy}%（${dir}），五年 CAGR ${cagr>=0?'+':''}${cagr}%。`;
+    depTxt=`该流向占 ${expN} 出口的 ${de25}%（2020 年 ${de20}%）、占 ${impN} 进口的 ${di25}%（2020 年 ${di20}%）。`;
+    depTxt+= di25>=40?`${impN} 对 ${expN} 的进口依赖度高`:(di25>=20?`${impN} 对其有中等依赖`:`${impN} 对其依赖有限`);
+    depTxt+= (di25>di20+5?'，且仍在上升。':(di25<di20-5?'，但明显下降。':'，大体稳定。'));
+    subTxt= yoy<-15?`该流向显著收缩，${impN} 很可能在向其它来源切换——是观察来源替代的重点。`
+          : yoy>15?`该流向快速放量，${expN} 正加速抢占 ${impN} 的份额。`
+          : `双边关系相对稳定，无剧烈份额转移。`;
+    prodLine=`该流向以 ${mix} 为主要构成。`;
+    S_head='深度分析'; S_pos='定位'; S_size='规模与走势'; S_prod='产品结构'; S_dep='依赖度'; S_judge='关系判断'; S_auto='（基于量与依赖度自动研判）';
+  }
   el.innerHTML=`<div class="narr">
-    <div class="nh"><span class="nhn">深度分析</span><span class="nht">BILATERAL FLOW ANALYSIS</span></div>
-    <div class="nlead"><span class="nlb">定位</span>${lead}</div>
-    <div class="nb"><div class="nsub">规模与走势</div><p class="npar">${trendTxt}</p></div>
-    <div class="nb"><div class="nsub">产品结构</div><p class="npar">该流向以 ${mix} 为主要构成。</p></div>
-    <div class="nb"><div class="nsub">依赖度</div><p class="npar">${depTxt}</p></div>
-    <div class="nb"><div class="nsub">关系判断 <em>（基于量与依赖度自动研判）</em></div><p class="npar nout">${subTxt}</p></div>
+    <div class="nh"><span class="nhn">${S_head}</span><span class="nht">BILATERAL FLOW ANALYSIS</span></div>
+    <div class="nlead"><span class="nlb">${S_pos}</span>${lead}</div>
+    <div class="nb"><div class="nsub">${S_size}</div><p class="npar">${trendTxt}</p></div>
+    <div class="nb"><div class="nsub">${S_prod}</div><p class="npar">${prodLine}</p></div>
+    <div class="nb"><div class="nsub">${S_dep}</div><p class="npar">${depTxt}</p></div>
+    <div class="nb"><div class="nsub">${S_judge} <em>${S_auto}</em></div><p class="npar nout">${subTxt}</p></div>
   </div>`;
 }
 function setPairCount(){ var el=document.getElementById('pairCount'); if(el) el.textContent=(window.SP_LANG&&SP_LANG()==='en')?(Object.keys(BILATERAL).length+' active bilateral pairs'):('共 '+Object.keys(BILATERAL).length+' 个有效双边对'); }
@@ -432,34 +453,40 @@ function renderDep(d,exp,imp){
   const dep2025imp=d.dep_imp['2025']||0;
   const expTot=(TOTALS.exp[exp]&&TOTALS.exp[exp]['2025'])||'?';
   const impTot=(TOTALS.imp[imp]&&TOTALS.imp[imp]['2025'])||'?';
+  const en=(window.SP_LANG&&SP_LANG()==='en');
+  const TNx=n=>window.TN?TN(n):n, V=w=>(w==='?'?'?':(window.fmtVol?fmtVol(w):(w+' 万吨')));
+  const expN=TNx(exp), impN=TNx(imp);
+  const expNote=dep2025exp>30?(en?'⚠️ Highly concentrated in a single market — elevated risk':'⚠️ 高度依赖单一市场，风险较高'):dep2025exp>15?(en?'A significant export destination':'该市场是重要出口目标'):(en?'Moderate market concentration':'市场集中度适中');
+  const impNote=dep2025imp>50?(en?'⚠️ Very high reliance on one source — notable supply-chain concentration':'⚠️ 极高依赖单一来源，供应链集中风险显著'):dep2025imp>25?(en?'A major source; switching cost is high':'主要来源，替换成本较高'):(en?'Diversified sources; flexible substitution':'来源分散，替代灵活');
   document.getElementById('depRow').innerHTML=`
     <div class="dep-card">
-      <div class="dep-label">出口方依赖 &middot; ${exp} 视角</div>
-      <div style="font-size:13px;color:var(--muted);margin-bottom:12px">此流向占 ${exp} 2025年总出口（${expTot}万吨）的比例</div>
+      <div class="dep-label">${en?'Exporter view · '+expN:'出口方依赖 &middot; '+expN+' 视角'}</div>
+      <div style="font-size:13px;color:var(--muted);margin-bottom:12px">${en?`Share of ${expN}'s total 2025 exports (${V(expTot)})`:`此流向占 ${expN} 2025年总出口（${V(expTot)}）的比例`}</div>
       <div class="dep-bar-wrap">
-        <div class="dep-bar-label"><span style="font-weight:700">${imp} 市场</span><span style="font-weight:800;color:var(--red)">${dep2025exp.toFixed(1)}%</span></div>
+        <div class="dep-bar-label"><span style="font-weight:700">${en?impN+' market':impN+' 市场'}</span><span style="font-weight:800;color:var(--red)">${dep2025exp.toFixed(1)}%</span></div>
         <div class="dep-bar-track"><div class="dep-bar-fill" style="width:${Math.min(dep2025exp,100)}%"></div></div>
       </div>
-      <div style="font-size:12px;color:var(--muted);margin-top:8px">${dep2025exp>30?'⚠️ 高度依赖单一市场，风险较高':dep2025exp>15?'该市场是重要出口目标':'市场集中度适中'}</div>
+      <div style="font-size:12px;color:var(--muted);margin-top:8px">${expNote}</div>
     </div>
     <div class="dep-card">
-      <div class="dep-label">进口方依赖 &middot; ${imp} 视角</div>
-      <div style="font-size:13px;color:var(--muted);margin-bottom:12px">此来源占 ${imp} 2025年总进口（${impTot}万吨）的比例</div>
+      <div class="dep-label">${en?'Importer view · '+impN:'进口方依赖 &middot; '+impN+' 视角'}</div>
+      <div style="font-size:13px;color:var(--muted);margin-bottom:12px">${en?`Share of ${impN}'s total 2025 imports (${V(impTot)})`:`此来源占 ${impN} 2025年总进口（${V(impTot)}）的比例`}</div>
       <div class="dep-bar-wrap">
-        <div class="dep-bar-label"><span style="font-weight:700">${exp} 来源</span><span style="font-weight:800;color:var(--red)">${dep2025imp.toFixed(1)}%</span></div>
+        <div class="dep-bar-label"><span style="font-weight:700">${en?expN+' source':expN+' 来源'}</span><span style="font-weight:800;color:var(--red)">${dep2025imp.toFixed(1)}%</span></div>
         <div class="dep-bar-track"><div class="dep-bar-fill" style="width:${Math.min(dep2025imp,100)}%"></div></div>
       </div>
-      <div style="font-size:12px;color:var(--muted);margin-top:8px">${dep2025imp>50?'⚠️ 极高依赖单一来源，供应链集中风险显著':dep2025imp>25?'主要来源，替换成本较高':'来源分散，替代灵活'}</div>
+      <div style="font-size:12px;color:var(--muted);margin-top:8px">${impNote}</div>
     </div>`;
 }
 
 function renderDepChart(d,exp,imp){
-  document.getElementById('depChartTitle').textContent=exp+' → '+imp+' 出口/进口依赖度逐年变化（%）';
+  const en=(window.SP_LANG&&SP_LANG()==='en'); const TNx=n=>window.TN?TN(n):n;
+  document.getElementById('depChartTitle').textContent=TNx(exp)+' → '+TNx(imp)+(en?' export/import dependence by year (%)':' 出口/进口依赖度逐年变化（%）');
   const ctx=document.getElementById('chartDep').getContext('2d');
   if(chartDep)chartDep.destroy();
   chartDep=new Chart(ctx,{type:'line',data:{labels:YEARS.map(String),datasets:[
-    {label:'出口依赖度（%）',data:YEARS.map(y=>d.dep_exp[String(y)]||0),borderColor:'#C00000',backgroundColor:'rgba(192,0,0,.08)',fill:true,tension:.3,pointRadius:4,pointBackgroundColor:'#C00000',borderWidth:2},
-    {label:'进口依赖度（%）',data:YEARS.map(y=>d.dep_imp[String(y)]||0),borderColor:'#4a90d9',backgroundColor:'rgba(74,144,217,.08)',fill:true,tension:.3,pointRadius:4,pointBackgroundColor:'#4a90d9',borderWidth:2}
+    {label:en?'Export dependence (%)':'出口依赖度（%）',data:YEARS.map(y=>d.dep_exp[String(y)]||0),borderColor:'#C00000',backgroundColor:'rgba(192,0,0,.08)',fill:true,tension:.3,pointRadius:4,pointBackgroundColor:'#C00000',borderWidth:2},
+    {label:en?'Import dependence (%)':'进口依赖度（%）',data:YEARS.map(y=>d.dep_imp[String(y)]||0),borderColor:'#4a90d9',backgroundColor:'rgba(74,144,217,.08)',fill:true,tension:.3,pointRadius:4,pointBackgroundColor:'#4a90d9',borderWidth:2}
   ]},options:{responsive:true,maintainAspectRatio:false,
     plugins:{legend:{labels:{font:{size:11}}},tooltip:{callbacks:{label:c=>` ${c.dataset.label}: ${c.parsed.y.toFixed(1)}%`}}},
     scales:{x:{grid:{display:false},ticks:{font:{size:11}}},y:{grid:{color:'#eef0f2'},ticks:{font:{size:11},callback:v=>v+'%'},beginAtZero:true}}}});
@@ -467,9 +494,11 @@ function renderDepChart(d,exp,imp){
 
 function renderSubst(d,exp,imp){
   const sources=SUBST[imp]||{};
-  document.getElementById('substNote').innerHTML=
-    '<b>'+imp+'</b> 的主要钢材进口来源（EXPORT口径）：'+
-    '下表显示 '+imp+' 从各来源国进口量历史变化。若 <b>'+exp+'</b> 持续下滑而他国同期上升，则存在替代信号。';
+  const en=(window.SP_LANG&&SP_LANG()==='en'); const TNx=n=>window.TN?TN(n):n;
+  const expN=TNx(exp), impN=TNx(imp);
+  document.getElementById('substNote').innerHTML= en
+    ? '<b>'+impN+'</b> — main steel import sources (export basis): the table shows how much '+impN+' imports from each source over time. If <b>'+expN+'</b> keeps falling while others rise at the same time, that is a substitution signal.'
+    : '<b>'+impN+'</b> 的主要钢材进口来源（EXPORT口径）：下表显示 '+impN+' 从各来源国进口量历史变化。若 <b>'+expN+'</b> 持续下滑而他国同期上升，则存在替代信号。';
   const tbody=document.getElementById('substTbody');
   tbody.innerHTML='';
   let alertTexts=[];
@@ -481,14 +510,15 @@ function renderSubst(d,exp,imp){
     const yoyStr=yoy!==null?(yoy>=0?'+':'')+yoy.toFixed(1)+'%':'-';
     const yoyCls=yoy===null?'':yoy>5?'trend-up':yoy<-5?'trend-down':'trend-flat';
     const isCurr=src===exp;
+    const srcN=TNx(src);
     if(!isCurr&&d.yoy!==null&&d.yoy<-5&&yoy!==null&&yoy>5&&v2025>0.5){
-      alertTexts.push(src+'（2025: '+v2025.toFixed(1)+'万吨，'+yoyStr+'）');
+      alertTexts.push(srcN+(en?' (2025: '+(window.fmtVol?fmtVol(v2025):v2025.toFixed(1))+', '+yoyStr+')':'（2025: '+(window.fmtVol?fmtVol(v2025):v2025.toFixed(1))+'，'+yoyStr+'）'));
     }
     const v2020=yrs['2020']||0;
     const trend=v2025>v2020*1.1?'↗':v2025<v2020*0.9?'↘':'→';
     const trendCls=trend==='↗'?'trend-up':trend==='↘'?'trend-down':'trend-flat';
     tbody.innerHTML+=`<tr class="${isCurr?'curr-row':''}">
-      <td>${isCurr?'<b>'+src+'</b>（当前来源）':src}</td>
+      <td>${isCurr?'<b>'+srcN+'</b>'+(en?' (current source)':'（当前来源）'):srcN}</td>
       ${YEARS.map(y=>`<td>${(yrs[String(y)]||0).toFixed(1)}</td>`).join('')}
       <td class="${yoyCls}">${yoyStr}</td>
       <td class="${trendCls}" style="font-size:16px">${trend}</td></tr>`;
@@ -496,7 +526,9 @@ function renderSubst(d,exp,imp){
   const alertEl=document.getElementById('substAlert');
   if(alertTexts.length>0){
     alertEl.style.display='block';
-    alertEl.innerHTML='&#9889; 潜在替代信号：'+exp+' 出口同比下滑，而以下来源同期增长：'+alertTexts.join('；')+'。建议关注市场份额转移风险。';
+    alertEl.innerHTML= en
+      ? '&#9889; Potential substitution signal: '+expN+' exports fell YoY while these sources grew over the same period: '+alertTexts.join('; ')+'. Watch for market-share shift.'
+      : '&#9889; 潜在替代信号：'+expN+' 出口同比下滑，而以下来源同期增长：'+alertTexts.join('；')+'。建议关注市场份额转移风险。';
   } else {alertEl.style.display='none';}
 }
 
