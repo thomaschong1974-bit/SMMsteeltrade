@@ -190,6 +190,9 @@ Object.keys(PRODS).forEach(function(k){ PROD_SHORT[PRODS[k].zh] = PRODS[k].en; }
 
 /* ---------------- UI strings (exact text-node match) ---------------- */
 var UI = {
+"Global Trade Tracker（GTT）汇编的各国海关进出口数据库（中国海关总署 GACC、印尼 BPS/DJBC、欧盟 Eurostat COMEXT、美国 USA Trade Online、UN Comtrade/ITC 等），由 SMM 整理。":"national customs export/import databases aggregated by Global Trade Tracker (GTT) — China GACC, Indonesia BPS/DJBC, EU Eurostat COMEXT, US USA Trade Online, UN Comtrade/ITC, etc. — processed by SMM. ",
+"（出口国申报，66 报告国；2026 年月度数据覆盖其中 45 个主要报告国），单位":"(exporter-declared, 66 reporting countries; 2026 monthly data cover 45 major reporters among them); unit ",
+"2010–2026 海关贸易数据 · 66 报告国（2026 月度 45 国）· 主口径":"Customs trade data 2010–2026 · 66 reporters (45 for 2026 monthly) · primary basis",
 "主口径":"primary basis",
 "。时间覆盖":". Coverage",
 "（年/季/月）。\n        观点层综合":" (annual / quarterly / monthly). The view layer is cross-checked against",

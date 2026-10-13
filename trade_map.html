@@ -344,7 +344,11 @@ function buildUI(){
     ddP.innerHTML='';
     PERIODS.filter(p=>p.gran===state.gran).forEach(p=>{ const o=document.createElement('option'); o.value=p.id; o.textContent=p.label; ddP.appendChild(o); });
     const ids=PERIODS.filter(p=>p.gran===state.gran).map(p=>p.id);
-    if(ids.indexOf(state.period)<0) state.period=ids[ids.length-1];
+    if(ids.indexOf(state.period)<0){
+      // default to the latest month with (near-)full reporter coverage, not a partial one
+      const full=PERIODS.filter(p=>p.gran===state.gran && (!p.maxrep || p.nrep>=0.9*p.maxrep)).map(p=>p.id);
+      state.period=(full.length?full:ids)[(full.length?full:ids).length-1];
+    }
     ddP.value=state.period;
   }
   segG.querySelectorAll('button').forEach(b=>{ if(b.dataset.v===state.gran) b.classList.add('on'); });
@@ -574,14 +578,11 @@ function initMap(){
   map=new maplibregl.Map({
     container:'map',
     style:{ version:8,
-      sources:{ carto:{ type:'raster',
-        tiles:['https://a.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png',
-               'https://b.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png',
-               'https://c.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png'],
-        tileSize:256,
-        attribution:'© OpenStreetMap © CARTO' } },
+      sources:{ land:{ type:'geojson', data:(window.WORLD_GEOJSON||{type:'FeatureCollection',features:[]}),
+        attribution:'Basemap: offline world boundaries · SMM' } },
       layers:[ {id:'bg',type:'background',paint:{'background-color':'#0a0e1a'}},
-               {id:'carto',type:'raster',source:'carto',paint:{'raster-opacity':0.82}} ] },
+               {id:'land',type:'fill',source:'land',paint:{'fill-color':'#172138','fill-opacity':1}},
+               {id:'border',type:'line',source:'land',paint:{'line-color':'#2e3f62','line-width':0.6,'line-opacity':0.9}} ] },
     center:[60,28], zoom:1.6, minZoom:1, maxZoom:7,
     attributionControl:{compact:true}
   });
@@ -624,6 +625,7 @@ window.__relang=function(){ try{ refresh(); }catch(e){} };
 <script src="./assets/i18n.js"></script>
 <script src="./assets/version.js"></script>
 <script src="./assets/version_badge.js"></script>
+<script src="./assets/userguide.js"></script>
 <script src="./assets/update_banner.js"></script>
 <script src="./assets/gate.js"></script>
 

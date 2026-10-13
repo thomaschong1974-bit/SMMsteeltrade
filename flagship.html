@@ -45,7 +45,7 @@ a{color:inherit;text-decoration:none}
 .nav-brand .bdiv{width:1px;height:20px;background:rgba(255,255,255,.14)}
 .nav-brand .btxt{font-size:12.5px;font-weight:800;letter-spacing:.14em;color:#cfd7e6}
 .nav-menu{display:flex;align-items:center;gap:3px;margin-left:6px}
-.nav-item{position:relative;padding:8px 13px;border-radius:8px;cursor:pointer;display:block}
+.nav-item{position:relative;padding:8px 13px;border-radius:8px;cursor:pointer;display:block;white-space:nowrap}
 .nav-item .zh{font-size:14px;font-weight:650;color:#d7deea;line-height:1.15}
 .nav-item .en{font-size:9.5px;letter-spacing:.08em;color:#69748a;text-transform:uppercase;line-height:1.1}
 .nav-item:hover{background:rgba(255,255,255,.05)}
@@ -66,7 +66,10 @@ a{color:inherit;text-decoration:none}
 .drop-menu a:hover{background:rgba(192,0,0,.14);color:#fff}
 .drop-menu a .dot{width:5px;height:5px;border-radius:50%;background:var(--gold);flex:0 0 auto;opacity:.8}
 .nav-right{margin-left:auto;display:flex;align-items:center;gap:14px}
-.nav-live{display:flex;align-items:center;gap:7px;font-size:11px;color:#9aa6bb;font-weight:600;letter-spacing:.04em}
+.nav-live{display:flex;align-items:center;gap:7px;font-size:11px;color:#9aa6bb;font-weight:600;letter-spacing:.04em;white-space:nowrap}
+body.en .nav-item .en{display:none}
+@media(max-width:1560px){.nav-live{display:none}.nav-item{padding:8px 10px}}
+@media(max-width:1280px){.nav-item .en{display:none}.nav-item{padding:8px 8px}}
 .live-dot{width:7px;height:7px;border-radius:50%;background:#22c275;animation:pulse 2s infinite}
 @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(34,194,117,.55)}70%{box-shadow:0 0 0 7px rgba(34,194,117,0)}100%{box-shadow:0 0 0 0 rgba(34,194,117,0)}}
 
@@ -314,6 +317,35 @@ a{color:inherit;text-decoration:none}
 /* 研报区 ECharts 玻璃图卡 */
 .echart-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:24px;margin-top:8px}
 @media(max-width:900px){.echart-grid{grid-template-columns:1fr}}
+/* ============ 2026 最新动态 (Latest) ============ */
+#latest{padding-top:64px}
+.lt-badge{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:700;color:#1f9d6b;background:rgba(31,157,107,.08);
+  border:1px solid rgba(31,157,107,.25);padding:3px 10px;border-radius:20px;margin-left:10px;vertical-align:middle;letter-spacing:.02em}
+.lt-badge i{width:6px;height:6px;border-radius:50%;background:#1f9d6b;display:inline-block}
+.lt-grid{margin-top:24px}
+.lt-cor{display:grid;grid-template-columns:1fr 1fr;gap:36px;margin-top:40px}
+.lt-col h3{font-size:16px;font-weight:780;color:var(--ink);margin-bottom:4px;display:flex;align-items:center;gap:8px}
+.lt-col h3 .tag{font-size:10px;font-weight:700;letter-spacing:.1em;padding:2px 7px;border-radius:4px;background:rgba(232,161,58,.12);color:#b97a13}
+.lt-col h3 .tag.dn{background:rgba(192,0,0,.08);color:var(--red)}
+.lt-col .csub{font-size:12px;color:var(--muted);margin-bottom:12px}
+.lt-col .bil-row{grid-template-columns:20px 1fr 110px 70px 64px}
+.lt-col .bil-row .bil-bar i{background:linear-gradient(90deg,#e8a13a,#f0b860)}
+.lt-col.dn .bil-row .bil-bar i{background:linear-gradient(90deg,#8a0000,#e23b3b)}
+.lt-col .bil-row .pv{text-align:right;font-size:11.5px;color:#9aa1ab}
+.lt-note{margin-top:40px;border:1px dashed #cdd3dc;border-radius:14px;padding:22px 26px;background:#fbfbfc}
+.lt-note .nh{font-size:12px;font-weight:800;letter-spacing:.12em;color:var(--red);text-transform:uppercase;margin-bottom:10px}
+.lt-note ul{list-style:none}
+.lt-note li{position:relative;padding-left:18px;font-size:13.5px;line-height:1.75;color:#2c2f36;margin:6px 0}
+.lt-note li::before{content:"▪";position:absolute;left:0;top:0;color:var(--red)}
+.lt-note li b{color:var(--ink)}
+.lt-cov{margin-top:22px;display:grid;grid-template-columns:110px 1fr;gap:8px 16px;font-size:12px;align-items:baseline}
+.lt-cov .cm{font-weight:800;color:var(--ink);font-variant-numeric:tabular-nums}
+.lt-cov .cm span{display:inline-block;margin-left:6px;font-size:10.5px;font-weight:700;color:#fff;background:#3a4d72;border-radius:10px;padding:0 7px}
+.lt-cov .cl{color:var(--muted);line-height:1.6}
+.lt-covh{margin-top:30px;font-size:12px;font-weight:800;letter-spacing:.1em;color:#5b636d;text-transform:uppercase}
+.lt-src{margin-top:18px;font-size:11.5px;color:#9aa1ab;line-height:1.6;border-top:1px solid var(--hair);padding-top:12px}
+@media(max-width:900px){.lt-cor{grid-template-columns:1fr}.lt-col .bil-row{grid-template-columns:20px 1fr 90px 60px}.lt-col .bil-row .pv{display:none}}
+
 .echart-card{background:linear-gradient(160deg,#0c1018,#11151f);border-radius:16px;
   padding:22px 22px 14px;box-shadow:0 24px 60px rgba(10,15,30,.16);position:relative;overflow:hidden}
 .echart-card::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--red);opacity:.85}
@@ -413,7 +445,7 @@ body.en .hero-title h1{font-size:37px}
   <div class="hero-title">
     <span class="ht-tag">Global Steel Trade Radar</span>
     <h1>全球钢材<br>贸易<span class="em">脉搏</span></h1>
-    <div class="hero-sub">2010–2026 海关贸易数据（年/季/月）· 71 报告国· 主口径 <b>EXPORT</b> · 单位 <b>万吨</b><br>实时追踪全球供给重心、流向迁移与品类结构。</div>
+    <div class="hero-sub">2010–2026 海关贸易数据 · 66 报告国（2026 月度 45 国）· 主口径 <b>EXPORT</b> · 单位 <b>万吨</b><br>实时追踪全球供给重心、流向迁移与品类结构。</div>
     <div class="hero-meta">
       <div class="hm"><div class="v num"><span data-wan="43724.7">43,724.7</span><span class="u">万吨</span></div><div class="k">全球出口量 2025 <span style="color:#ff7a6e">−1.0%</span></div></div>
       <div class="hm"><div class="v num">30.6<span class="u">%</span></div><div class="k">中国出口份额 · 全球第一</div></div>
@@ -430,8 +462,8 @@ body.en .hero-title h1{font-size:37px}
     <div class="icard">
       <div class="no">01</div>
       <div class="body">
-        <div class="ti">中国独大：份额 30.7% 创新高，但拐点信号已现</div>
-        <div class="ds">2025 出口 <b>1.31 亿吨</b>（+14.1%）、份额 <b>30.7%</b>（2020 年仅 13.0%）；2026 年 1–5 月出口 4,455 万吨、同比 <b class="r">−8.1%</b>，反倾销集中落地后动能降温。</div>
+        <div class="ti" id="ic1t">中国独大：份额 30.7% 创新高，但拐点信号已现</div>
+        <div class="ds" id="ic1d">2025 出口 <b>1.31 亿吨</b>（+14.1%）、份额 <b>30.7%</b>（2020 年仅 13.0%）；2026 年 1–5 月出口 4,455 万吨、同比 <b class="r">−8.1%</b>，反倾销集中落地后动能降温。</div>
         <div class="ev"><a href="#glance">本期速览</a><a href="./country_report.html">中国画像</a></div>
       </div>
     </div>
@@ -447,15 +479,15 @@ body.en .hero-title h1{font-size:37px}
       <div class="no">03</div>
       <div class="body">
         <div class="ti">流向大迁移：传统市场退、新兴市场进</div>
-        <div class="ds">对印度 <b class="r">−29%</b>、台湾 <b class="r">−32%</b>、越南 <b class="r">−20%</b>；对吉布提 <b class="g">+123%</b>、新加坡 <b class="g">+73%</b>、尼日利亚 <b class="g">+66%</b>——2026 年海关数据中吉布提已居增量第一，趋势延续。</div>
+        <div class="ds" id="ic3d">对印度 <b class="r">−29%</b>、台湾 <b class="r">−32%</b>、越南 <b class="r">−20%</b>；对吉布提 <b class="g">+123%</b>、新加坡 <b class="g">+73%</b>、尼日利亚 <b class="g">+66%</b>——2026 年海关数据中吉布提已居增量第一，趋势延续。</div>
         <div class="ev"><a href="#moved">重点变化</a><a href="./destination.html">进口市场</a></div>
       </div>
     </div>
     <div class="icard">
       <div class="no">04</div>
       <div class="body">
-        <div class="ti">北美收缩 · 中东重排：两大区域变局</div>
-        <div class="ds">232 扩围下加↔美走廊 <b class="r">−31%/−28%</b>；美伊停战后伊朗（出口 <b class="g">+23.8%</b>）恢复方坯报价，SMM 估算中东重建可回补 <b>170–210 万吨</b>级缺口。</div>
+        <div class="ti" id="ic4t">北美收缩 · 中东重排：两大区域变局</div>
+        <div class="ds" id="ic4d">232 扩围下加↔美走廊 <b class="r">−31%/−28%</b>；美伊停战后伊朗（出口 <b class="g">+23.8%</b>）恢复方坯报价，SMM 估算中东重建可回补 <b>170–210 万吨</b>级缺口。</div>
         <div class="ev"><a href="./bilateral.html">双边流向</a><a href="./signals_report.html">市场信号</a></div>
       </div>
     </div>
@@ -523,6 +555,48 @@ body.en .hero-title h1{font-size:37px}
 
 <!-- ============ 滚动研报区 ============ -->
 <div class="report">
+
+  <!-- 0. 2026 最新动态（由 assets/latest_data.js 自动生成，随每月数据刷新） -->
+  <section class="sec rwrap" id="latest">
+    <div class="sec-head reveal">
+      <div class="sec-eyebrow" id="ltEyebrow"></div>
+      <h2 id="ltTitle"></h2>
+      <p id="ltSub"></p>
+    </div>
+    <div class="bignum-bar reveal" id="ltKpi"></div>
+    <div class="echart-grid lt-grid reveal">
+      <div class="echart-card">
+        <div class="ec-h"><div class="ec-t" id="lt1t"></div><div class="ec-tag" id="lt1g"></div></div>
+        <div class="ec-sub" id="lt1s"></div>
+        <div class="echart-box" id="ltMonthly"></div>
+      </div>
+      <div class="echart-card">
+        <div class="ec-h"><div class="ec-t" id="lt2t"></div><div class="ec-tag" id="lt2g"></div></div>
+        <div class="ec-sub" id="lt2s"></div>
+        <div class="echart-box" id="ltExpDelta"></div>
+      </div>
+    </div>
+    <div class="echart-grid lt-grid reveal">
+      <div class="echart-card">
+        <div class="ec-h"><div class="ec-t" id="lt3t"></div><div class="ec-tag" id="lt3g"></div></div>
+        <div class="ec-sub" id="lt3s"></div>
+        <div class="echart-box" id="ltProd" style="height:380px"></div>
+      </div>
+      <div class="echart-card">
+        <div class="ec-h"><div class="ec-t" id="lt4t"></div><div class="ec-tag" id="lt4g"></div></div>
+        <div class="ec-sub" id="lt4s"></div>
+        <div class="echart-box" id="ltImpDelta" style="height:380px"></div>
+      </div>
+    </div>
+    <div class="lt-cor reveal">
+      <div class="lt-col"><h3 id="ltCuH"></h3><div class="csub" id="ltCuS"></div><div id="ltCorUp"></div></div>
+      <div class="lt-col dn"><h3 id="ltCdH"></h3><div class="csub" id="ltCdS"></div><div id="ltCorDn"></div></div>
+    </div>
+    <div class="lt-note reveal"><div class="nh" id="ltNoteH"></div><ul id="ltNote"></ul></div>
+    <div class="lt-covh reveal" id="ltCovH"></div>
+    <div class="lt-cov reveal" id="ltCov"></div>
+    <div class="lt-src" id="ltSrc"></div>
+  </section>
 
   <!-- 1. 大数字情报条 -->
   <section class="sec rwrap" id="glance">
@@ -654,8 +728,8 @@ body.en .hero-title h1{font-size:37px}
       <div class="fb"><img src="./assets/SMM_logo.svg" alt="SMM" style="height:22px;width:auto"><span class="ft">TRADE INTEL</span></div>
       <div class="cap">
         <b>组内分析工具（非对外发布）：</b>本平台面向 SMM 分析师日常调用进出口数据，<b>暂不作为对外商品发布</b>。
-        <b>数据来源：</b>各国海关进出口镜像数据库（中国海关总署 GACC、印尼 BPS/DJBC、欧盟 Eurostat COMEXT、美国 USA Trade Online、UN Comtrade/ITC 等），由 SMM 整理。
-        <b>口径：</b>主口径 <b>EXPORT</b>（出口国申报，71 报告国），单位<b>万吨</b>，<b>仅含数量、不含金额</b>；EXPORT 与 IMPORT 为镜像口径，<b>请勿直接相加</b>。时间覆盖 <b>2010–2026</b>（年/季/月）。
+        <b>数据来源：</b>Global Trade Tracker（GTT）汇编的各国海关进出口数据库（中国海关总署 GACC、印尼 BPS/DJBC、欧盟 Eurostat COMEXT、美国 USA Trade Online、UN Comtrade/ITC 等），由 SMM 整理。
+        <b>口径：</b>主口径 <b>EXPORT</b>（出口国申报，66 报告国；2026 年月度数据覆盖其中 45 个主要报告国），单位<b>万吨</b>，<b>仅含数量、不含金额</b>；EXPORT 与 IMPORT 为镜像口径，<b>请勿直接相加</b>。时间覆盖 <b>2010–2026</b>（年/季/月）。
         观点层综合 <b>SMM 钢铁产业链研究报告、SMM 钢材出口专题报告（周度）、SMM 反倾销跟踪模型</b>与 <b>GEM 全球钢铁产能追踪</b>交叉验证；引用前请以官方公告与 SMM 现货/期货数据库为准。
       </div>
     </div>
@@ -687,6 +761,8 @@ body.en .hero-title h1{font-size:37px}
 </footer>
 
 <script src="./assets/flagship_data.js"></script>
+<script src="./assets/latest_data.js"></script>
+<script src="./assets/latest_render.js"></script>
 <script>
 /* ---- ECharts 数据：由 PULSE 逐年聚合预算后内联（EXPORT 口径，单位万吨/%） ---- */
 window.EC_DATA = {"years": [2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025], "globalExp": [39576.0, 41908.8, 42270.6, 41422.9, 44982.5, 46726.1, 46375.3, 44765.5, 44069.8, 43028.3, 40079.5, 45454.5, 39998.3, 41591.2, 44145.4, 43724.7], "top1Share": [10.8, 11.7, 13.2, 15.0, 20.9, 24.1, 23.5, 16.9, 15.7, 15.0, 13.4, 14.6, 16.8, 22.5, 26.6, 30.6], "top2Share": [10.8, 9.7, 9.8, 10.3, 9.2, 8.8, 8.7, 8.4, 8.1, 7.7, 7.7, 7.4, 7.9, 7.7, 7.1, 6.8], "prodShare": [19.9, 19.5, 18.8, 19.8, 20.2, 20.8, 21.2, 21.4, 20.3, 20.8, 20.5, 19.5, 19.9, 21.3, 21.1, 19.7], "top12Share": [21.6, 21.4, 23.0, 25.3, 30.0, 32.8, 32.2, 25.3, 23.9, 22.6, 21.1, 22.0, 24.8, 30.2, 33.6, 37.4], "expTop10": [["中国", 13385.6], ["日本", 2980.9], ["韩国", 2788.5], ["德国", 2232.0], ["土耳其", 1726.0], ["比利时", 1592.7], ["意大利", 1487.9], ["伊朗", 1348.7], ["印度尼西亚", 1163.3], ["越南", 1109.3]], "prodStruct": [["热轧 (Hot Rolled)", 8599.5], ["涂镀 (Coated Steel)", 7399.0], ["钢坯 (Billet)", 5664.3], ["棒材 (Steel Bar)", 3898.8], ["钢管 (Steel Pipe)", 3711.8], ["线盘 (Wire Rod)", 2737.6], ["冷轧 (Cold Rolled)", 2264.1], ["不锈钢 (Stainless Steel)", 2151.1]]};
@@ -935,7 +1011,11 @@ function buildMapUI(){
     });
     // pick latest of that granularity if current not in it
     const ids=PERIODS.filter(p=>p.gran===state.gran).map(p=>p.id);
-    if(ids.indexOf(state.period)<0) state.period=ids[ids.length-1];
+    if(ids.indexOf(state.period)<0){
+      // default to the latest month with (near-)full reporter coverage, not a partial one
+      const full=PERIODS.filter(p=>p.gran===state.gran && (!p.maxrep || p.nrep>=0.9*p.maxrep)).map(p=>p.id);
+      state.period=(full.length?full:ids)[(full.length?full:ids).length-1];
+    }
     ddP.value=state.period;
   }
   segG.querySelectorAll('button').forEach(b=>{ if(b.dataset.v===state.gran) b.classList.add('on'); });
@@ -1197,13 +1277,11 @@ function initMap(){
   map=new maplibregl.Map({
     container:'worldMap',
     style:{ version:8,
-      sources:{ carto:{ type:'raster',
-        tiles:['https://a.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png',
-               'https://b.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png',
-               'https://c.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png'],
-        tileSize:256, attribution:'© OpenStreetMap © CARTO' } },
+      sources:{ land:{ type:'geojson', data:(window.WORLD_GEOJSON||{type:'FeatureCollection',features:[]}),
+        attribution:'Basemap: offline world boundaries · SMM' } },
       layers:[ {id:'bg',type:'background',paint:{'background-color':'#0a0e1a'}},
-               {id:'carto',type:'raster',source:'carto',paint:{'raster-opacity':0.78}} ] },
+               {id:'land',type:'fill',source:'land',paint:{'fill-color':'#172138','fill-opacity':1}},
+               {id:'border',type:'line',source:'land',paint:{'line-color':'#2e3f62','line-width':0.6,'line-opacity':0.9}} ] },
     center:[60,28], zoom:1.6, minZoom:1, maxZoom:7,
     attributionControl:{compact:true}
   });
@@ -1240,6 +1318,7 @@ bootMap();
 </script>
 <script src="./assets/version.js"></script>
 <script src="./assets/version_badge.js"></script>
+<script src="./assets/userguide.js"></script>
 <script src="./assets/update_banner.js"></script>
 <script src="./assets/gate.js"></script>
 
