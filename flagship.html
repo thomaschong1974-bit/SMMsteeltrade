@@ -598,124 +598,45 @@ body.en .hero-title h1{font-size:37px}
     <div class="lt-src" id="ltSrc"></div>
   </section>
 
-  <!-- 1. 大数字情报条 -->
+  <!-- 1. 全年基准（年度） -->
   <section class="sec rwrap" id="glance">
     <div class="sec-head reveal">
-      <div class="sec-eyebrow">本期速览 · At a Glance</div>
-      <h2>一屏读懂全球钢材贸易格局</h2>
-      <p>基于 2025 完整年度海关数据（EXPORT 口径，单位万吨），刻画总量、集中度、结构与最显著的流向变化。</p>
+      <div class="sec-eyebrow" id="glEy"></div>
+      <h2 id="glH"></h2>
+      <p id="glP"></p>
     </div>
     <div class="bignum-bar reveal" id="bigBar"></div>
   </section>
 
-  <!-- 2. 全球格局 排名条 -->
+  <!-- 2. 全球格局（年内，flagship_h1.js） -->
   <section class="sec rwrap" id="landscape">
-    <div class="sec-head reveal">
-      <div class="sec-eyebrow">全球格局 · Landscape</div>
-      <h2>谁在出口，谁在进口</h2>
-      <p>出口高度集中于中国;进口需求分散，美国、意大利、德国、土耳其领跑。</p>
-    </div>
+    <div class="sec-head reveal"><div class="sec-eyebrow" id="lsEy"></div><h2 id="lsH"></h2><p id="lsP"></p></div>
     <div class="rank-grid reveal">
-      <div class="rank-col exp">
-        <h3>出口国 TOP 10 <span class="tag">EXPORT</span></h3>
-        <div class="csub">2025 全年 · 万吨 / 全球份额</div>
-        <div id="expRank"></div>
-      </div>
-      <div class="rank-col imp">
-        <h3>进口国 TOP 10 <span class="tag b">IMPORT</span></h3>
-        <div class="csub">2025 全年 · 万吨 / 全球份额</div>
-        <div id="impRank"></div>
-      </div>
+      <div class="rank-col exp"><h3 id="lsXh"></h3><div class="csub" id="lsXs"></div><div id="expRank"></div></div>
+      <div class="rank-col imp"><h3 id="lsMh"></h3><div class="csub" id="lsMs"></div><div id="impRank"></div></div>
     </div>
     <div style="margin-top:48px" class="reveal">
-      <div class="sec-head" style="margin-bottom:18px">
-        <div class="sec-eyebrow">双边流向 · Bilateral</div>
-        <h2 style="font-size:22px">最大的 20 条贸易走廊</h2>
-      </div>
+      <div class="sec-head" style="margin-bottom:18px"><div class="sec-eyebrow" id="bilEy"></div><h2 style="font-size:22px" id="bilH"></h2></div>
       <div class="bil-wrap" id="bilList"></div>
     </div>
-
     <div style="margin-top:52px" class="reveal">
-      <div class="sec-head" style="margin-bottom:20px">
-        <div class="sec-eyebrow">结构透视 · Structure</div>
-        <h2 style="font-size:22px">出口排名与品类结构</h2>
-        <p>左：2025 全年出口国 Top 10（万吨）;右：全球出口品类结构占比。</p>
-      </div>
+      <div class="sec-head" style="margin-bottom:20px"><div class="sec-eyebrow" id="stEy"></div><h2 style="font-size:22px" id="stH"></h2><p id="stP"></p></div>
       <div class="echart-grid">
-        <div class="echart-card">
-          <div class="ec-h"><div class="ec-t">出口国 TOP 10</div><div class="ec-tag">2025 · EXPORT</div></div>
-          <div class="ec-sub">单位 万吨 · 出口国申报口径</div>
-          <div class="echart-box" id="ecRank"></div>
-        </div>
-        <div class="echart-card">
-          <div class="ec-h"><div class="ec-t">出口品类结构</div><div class="ec-tag">2025 · 占比</div></div>
-          <div class="ec-sub">热轧 / 涂镀 / 钢坯 / 螺纹钢 …</div>
-          <div class="echart-box" id="ecProduct"></div>
-        </div>
+        <div class="echart-card"><div class="ec-h"><div class="ec-t" id="ecT1"></div><div class="ec-tag" id="ecG1"></div></div><div class="ec-sub" id="ecS1"></div><div class="echart-box" id="ecRank"></div></div>
+        <div class="echart-card"><div class="ec-h"><div class="ec-t" id="ecT2"></div><div class="ec-tag" id="ecG2"></div></div><div class="ec-sub" id="ecS2"></div><div class="echart-box" id="ecProduct"></div></div>
       </div>
     </div>
   </section>
 
-  <!-- 3. 情报卡片墙 -->
+  <!-- 3. 情报卡片墙（年内） -->
   <section class="sec rwrap" id="moved">
-    <div class="sec-head reveal">
-      <div class="sec-eyebrow">本期重点变化 · What Moved</div>
-      <h2>六张卡片看懂结构性变化</h2>
-      <p>基于 2025 年度海关数据与上年同期对比自动测算。</p>
-    </div>
-    <div class="card-wall reveal">
-      <a class="icw" href="#landscape">
-        <div class="ctag dn">收缩 · CONTRACTION</div>
-        <h4>加拿大→美国大幅回落</h4>
-        <div class="cstat num">409.6 万吨 <span class="dn">−31%</span></div>
-        <p>232 关税与贸易摩擦压制北美双向走廊，美国→加拿大同步 −28%。</p>
-        <div class="go">查看贸易走廊 <span class="a">&rarr;</span></div>
-      </a>
-      <a class="icw" href="#moved">
-        <div class="ctag dn">收缩 · CONTRACTION</div>
-        <h4>中国→印度持续退坡</h4>
-        <div class="cstat num">213.9 万吨 <span class="dn">−29%</span></div>
-        <p>印度贸易救济与国产替代加速，中国对台湾流向亦收缩 −32%。</p>
-        <div class="go">查看重点变化 <span class="a">&rarr;</span></div>
-      </a>
-      <a class="icw" href="#landscape">
-        <div class="ctag g">扩张 · EXPANSION</div>
-        <h4>印尼→越南放量</h4>
-        <div class="cstat num">164.3 万吨 <span class="up">+85%</span></div>
-        <p>东盟内互供提速，越南→柬埔寨 +36%，区域一体化特征强化。</p>
-        <div class="go">查看贸易走廊 <span class="a">&rarr;</span></div>
-      </a>
-      <a class="icw" href="#moved">
-        <div class="ctag g">放量 · SURGE</div>
-        <h4>中国转向非洲与拉美</h4>
-        <div class="cstat num"><span class="up">+34~66%</span></div>
-        <p>对尼日利亚 +66%、坦桑尼亚 +60%、秘鲁 +34%、新加坡 +73%，新兴市场承接中国增量。</p>
-        <div class="go">查看重点变化 <span class="a">&rarr;</span></div>
-      </a>
-      <a class="icw" href="#products">
-        <div class="ctag">品类 · PRODUCT</div>
-        <h4>热轧+涂镀占近四成</h4>
-        <div class="cstat num">38.3%</div>
-        <p>热轧 8,590.7 万吨、涂镀 7,777.6 万吨，扁平材主导全球钢材贸易结构。</p>
-        <div class="go">查看品种雷达 <span class="a">&rarr;</span></div>
-      </a>
-      <a class="icw" href="#landscape">
-        <div class="ctag dn">信号 · SIGNAL</div>
-        <h4>第一大走廊连续收缩</h4>
-        <div class="cstat num">1,009.0 万吨 <span class="dn">−20%</span></div>
-        <p>中国→越南仍为全球最大钢材走廊，但越南自产替代叠加贸易防御，量级持续回落。</p>
-        <div class="go">查看贸易走廊 <span class="a">&rarr;</span></div>
-      </a>
-    </div>
+    <div class="sec-head reveal"><div class="sec-eyebrow" id="mvEy"></div><h2 id="mvH"></h2><p id="mvP"></p></div>
+    <div class="card-wall reveal" id="cardWall"></div>
   </section>
 
-  <!-- 4. 深度入口 -->
+  <!-- 4. 品种雷达（年内） -->
   <section class="sec rwrap" id="products">
-    <div class="sec-head reveal">
-      <div class="sec-eyebrow">品种雷达 · Product Radar</div>
-      <h2>十七大钢材品种一览</h2>
-      <p>2025 年全球出口量与份额。点击任意品种，回到顶部地图查看该品种的全球流向。</p>
-    </div>
+    <div class="sec-head reveal"><div class="sec-eyebrow" id="prEy"></div><h2 id="prH"></h2><p id="prP"></p></div>
     <div class="entry-grid reveal" id="prodGrid"></div>
   </section>
 
@@ -763,6 +684,9 @@ body.en .hero-title h1{font-size:37px}
 <script src="./assets/flagship_data.js"></script>
 <script src="./assets/latest_data.js"></script>
 <script src="./assets/latest_render.js"></script>
+<script src="./assets/h1_data.js"></script>
+<script src="./assets/h1_common.js"></script>
+<script src="./assets/flagship_h1.js"></script>
 <script>
 /* ---- ECharts 数据：由 PULSE 逐年聚合预算后内联（EXPORT 口径，单位万吨/%） ---- */
 window.EC_DATA = {"years": [2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025], "globalExp": [39576.0, 41908.8, 42270.6, 41422.9, 44982.5, 46726.1, 46375.3, 44765.5, 44069.8, 43028.3, 40079.5, 45454.5, 39998.3, 41591.2, 44145.4, 43724.7], "top1Share": [10.8, 11.7, 13.2, 15.0, 20.9, 24.1, 23.5, 16.9, 15.7, 15.0, 13.4, 14.6, 16.8, 22.5, 26.6, 30.6], "top2Share": [10.8, 9.7, 9.8, 10.3, 9.2, 8.8, 8.7, 8.4, 8.1, 7.7, 7.7, 7.4, 7.9, 7.7, 7.1, 6.8], "prodShare": [19.9, 19.5, 18.8, 19.8, 20.2, 20.8, 21.2, 21.4, 20.3, 20.8, 20.5, 19.5, 19.9, 21.3, 21.1, 19.7], "top12Share": [21.6, 21.4, 23.0, 25.3, 30.0, 32.8, 32.2, 25.3, 23.9, 22.6, 21.1, 22.0, 24.8, 30.2, 33.6, 37.4], "expTop10": [["中国", 13385.6], ["日本", 2980.9], ["韩国", 2788.5], ["德国", 2232.0], ["土耳其", 1726.0], ["比利时", 1592.7], ["意大利", 1487.9], ["伊朗", 1348.7], ["印度尼西亚", 1163.3], ["越南", 1109.3]], "prodStruct": [["热轧 (Hot Rolled)", 8599.5], ["涂镀 (Coated Steel)", 7399.0], ["钢坯 (Billet)", 5664.3], ["棒材 (Steel Bar)", 3898.8], ["钢管 (Steel Pipe)", 3711.8], ["线盘 (Wire Rod)", 2737.6], ["冷轧 (Cold Rolled)", 2264.1], ["不锈钢 (Stainless Steel)", 2151.1]]};

@@ -215,136 +215,34 @@ body.has-gnav{padding-top:58px!important}
   </div>
 </nav>
 
-<!-- HERO -->
 <div class="hero">
-  <div class="hero-tag">GLOBAL STEEL STEEL TRADE INTELLIGENCE · 全球钢材贸易情报</div>
-  <h1>Trade Shift &nbsp;贸易转移分析</h1>
-  <div class="hero-en">Who replaced whom — import-country self-reported · IMPORT flow basis · 2024 vs 2025</div>
-  <div class="hero-insights">
-    <div class="insight-card">
-      <div class="ic-num">−24.8 万吨</div>
-      <div class="ic-label">印度 2025 自华进口减少，去中国化最显著<br>份额从 15.6% 降至 6.8%（−8.8pp）</div>
-    </div>
-    <div class="insight-card">
-      <div class="ic-num">−28.6 万吨</div>
-      <div class="ic-label">美国 2025 自华进口减少，关税壁垒效应<br>份额从 31.7% 降至 17.9%（−13.8pp）</div>
-    </div>
-    <div class="insight-card">
-      <div class="ic-num">印尼 系统扩张</div>
-      <div class="ic-label">印尼作为新供应方，在意大利、马来西亚、<br>中国台湾等多个市场份额同步上升</div>
-    </div>
-    <div class="insight-card">
-      <div class="ic-num">近岸替代 北美</div>
-      <div class="ic-label">美国市场印度取代中国成最大边际增量<br>墨西哥市场也呈现近岸重组迹象</div>
-    </div>
-  </div>
+  <div class="hero-tag" id="hTag"></div>
+  <h1 id="hTitle"></h1>
+  <div class="hero-en" id="hSub"></div>
+  <div class="hero-insights" id="heroIns"></div>
 </div>
-
-<!-- MAIN CONTENT -->
 <div class="main">
-
-  <!-- SECTION 1: Market Deep Dive -->
   <div class="section">
-    <div class="section-title">
-      <span class="sn">01</span> 进口市场深度分析
-    </div>
-
-    <div class="market-selector-row">
-      <span class="market-label">选择进口市场：</span>
-      <select class="market-select" id="marketSelect" onchange="updateMarket()">
-        <option value="印度">🇮🇳 印度</option>
-        <option value="美国">🇺🇸 美国</option>
-        <option value="意大利">🇮🇹 意大利</option>
-        <option value="德国">🇩🇪 德国</option>
-        <option value="越南">🇻🇳 越南</option>
-        <option value="土耳其">🇹🇷 土耳其</option>
-        <option value="泰国">🇹🇭 泰国</option>
-        <option value="韩国">🇰🇷 韩国</option>
-        <option value="中国台湾">🇹🇼 中国台湾</option>
-        <option value="西班牙">🇪🇸 西班牙</option>
-        <option value="马来西亚">🇲🇾 马来西亚</option>
-        <option value="波兰">🇵🇱 波兰</option>
-        <option value="墨西哥">🇲🇽 墨西哥</option>
-        <option value="中国">🇨🇳 中国</option>
-      </select>
-    </div>
-
-    <!-- Market Stats -->
+    <div class="section-title"><span class="sn">01</span> <span id="s1t"></span></div>
+    <div class="market-selector-row"><span class="market-label" id="lblMk"></span>
+      <select class="market-select" id="marketSelect" onchange="updateMarket()"></select></div>
     <div class="market-stats" id="marketStats"></div>
-
-    <!-- Substitution Signal -->
     <div class="signal-box" id="signalBox"></div>
-
-    <!-- Charts -->
     <div class="charts-grid">
-      <div class="chart-card">
-        <div class="chart-card-title">2025 各来源国进口量（万吨）</div>
-        <div class="chart-wrap"><canvas id="chartQty"></canvas></div>
-      </div>
-      <div class="chart-card">
-        <div class="chart-card-title">份额变化 2024→2025（百分点）</div>
-        <div class="chart-wrap"><canvas id="chartShift"></canvas></div>
-      </div>
+      <div class="chart-card"><div class="chart-card-title" id="cq"></div><div class="chart-wrap"><canvas id="chartQty"></canvas></div></div>
+      <div class="chart-card"><div class="chart-card-title" id="cs"></div><div class="chart-wrap"><canvas id="chartShift"></canvas></div></div>
     </div>
-
-    <!-- Source Table -->
-    <div class="chart-card">
-      <div class="chart-card-title">来源国详细数据</div>
-      <div class="tbl-wrap">
-        <table id="sourceTable">
-          <thead>
-            <tr>
-              <th>来源国</th>
-              <th>2024量（万吨）</th>
-              <th>2025量（万吨）</th>
-              <th>量变化</th>
-              <th>2024份额</th>
-              <th>2025份额</th>
-              <th>份额变化（pp）</th>
-              <th>2025量占比条</th>
-            </tr>
-          </thead>
-          <tbody id="sourceTbody"></tbody>
-        </table>
-      </div>
-    </div>
+    <div class="chart-card"><div class="chart-card-title" id="ct"></div>
+      <div class="tbl-wrap"><table id="sourceTable"><thead id="srcHead"></thead><tbody id="sourceTbody"></tbody></table></div></div>
   </div>
-
   <hr class="divider">
-
-  <!-- SECTION 2: Global Substitution Table -->
   <div class="section">
-    <div class="section-title">
-      <span class="sn">02</span> 全局替代机会表 TOP 15
-    </div>
-    <p style="font-size:13px;color:var(--muted);margin-bottom:18px">跨所有主要进口市场，份额上升最多的新供应方替代份额下降最多的原供应方；按替代强度降序。</p>
-    <div class="opp-table-wrap">
-      <table>
-        <thead>
-          <tr>
-            <th>#</th>
-            <th>进口市场</th>
-            <th>原供应国（降）</th>
-            <th>新供应国（升）</th>
-            <th>原降幅（pp）</th>
-            <th>新增幅（pp）</th>
-            <th>量转移（万吨）</th>
-            <th>市场总量变化</th>
-            <th>替代强度</th>
-            <th>置信</th>
-          </tr>
-        </thead>
-        <tbody id="globalOppTbody"></tbody>
-      </table>
-    </div>
+    <div class="section-title"><span class="sn">02</span> <span id="g2t"></span></div>
+    <p style="font-size:13px;color:var(--muted);margin-bottom:18px" id="g2s"></p>
+    <div class="opp-table-wrap"><table><thead id="oppHead"></thead><tbody id="globalOppTbody"></tbody></table></div>
+    <div class="h1-note" id="pgNote"></div>
   </div>
-
 </div>
-
-<footer>
-  <span>全球钢材贸易情报旗舰平台 · IMPORT 口径 · 2024 vs 2025 · 数据截至 2025 全年</span>
-  <span>Shanghai Metals Market · SMM</span>
-</footer>
 
 <script>
 /*!
@@ -363,205 +261,9 @@ body.has-gnav{padding-top:58px!important}
 //# sourceMappingURL=chart.umd.min.js.map
 
 </script>
-
-<script>
-const MARKET_DATA = {"美国": {"total24": 2638.1, "total25": 2319.9, "total_chg_pct": -12.1, "sources": [{"partner": "加拿大", "qty24": 589.32, "qty25": 407.64, "sh24": 22.3, "sh25": 17.6, "sh_chg": -4.7, "qty_chg": -181.68}, {"partner": "巴西", "qty24": 402.37, "qty25": 368.04, "sh24": 15.3, "sh25": 15.9, "sh_chg": 0.6, "qty_chg": -34.33}, {"partner": "墨西哥", "qty24": 316.05, "qty25": 255.52, "sh24": 12.0, "sh25": 11.0, "sh_chg": -1.0, "qty_chg": -60.53}, {"partner": "韩国", "qty24": 261.12, "qty25": 240.9, "sh24": 9.9, "sh25": 10.4, "sh_chg": 0.5, "qty_chg": -20.21}, {"partner": "德国", "qty24": 95.97, "qty25": 101.75, "sh24": 3.6, "sh25": 4.4, "sh_chg": 0.8, "qty_chg": 5.78}, {"partner": "中国台湾", "qty24": 93.14, "qty25": 101.22, "sh24": 3.5, "sh25": 4.4, "sh_chg": 0.9, "qty_chg": 8.07}, {"partner": "日本", "qty24": 102.72, "qty25": 100.97, "sh24": 3.9, "sh25": 4.4, "sh_chg": 0.5, "qty_chg": -1.75}, {"partner": "越南", "qty24": 122.48, "qty25": 78.33, "sh24": 4.6, "sh25": 3.4, "sh_chg": -1.2, "qty_chg": -44.15}, {"partner": "印度", "qty24": 43.61, "qty25": 75.22, "sh24": 1.7, "sh25": 3.2, "sh_chg": 1.5, "qty_chg": 31.61}, {"partner": "中国", "qty24": 60.93, "qty25": 52.16, "sh24": 2.3, "sh25": 2.2, "sh_chg": -0.1, "qty_chg": -8.77}]}, "意大利": {"total24": 1801.5, "total25": 2009.3, "total_chg_pct": 11.5, "sources": [{"partner": "中国", "qty24": 150.41, "qty25": 212.3, "sh24": 8.3, "sh25": 10.6, "sh_chg": 2.3, "qty_chg": 61.88}, {"partner": "德国", "qty24": 208.56, "qty25": 199.47, "sh24": 11.6, "sh25": 9.9, "sh_chg": -1.7, "qty_chg": -9.09}, {"partner": "印度", "qty24": 189.97, "qty25": 133.92, "sh24": 10.5, "sh25": 6.7, "sh_chg": -3.8, "qty_chg": -56.05}, {"partner": "法国", "qty24": 153.03, "qty25": 130.47, "sh24": 8.5, "sh25": 6.5, "sh_chg": -2.0, "qty_chg": -22.56}, {"partner": "土耳其", "qty24": 116.41, "qty25": 127.64, "sh24": 6.5, "sh25": 6.4, "sh_chg": -0.1, "qty_chg": 11.22}, {"partner": "越南", "qty24": 113.89, "qty25": 120.33, "sh24": 6.3, "sh25": 6.0, "sh_chg": -0.3, "qty_chg": 6.44}, {"partner": "韩国", "qty24": 98.99, "qty25": 112.07, "sh24": 5.5, "sh25": 5.6, "sh_chg": 0.1, "qty_chg": 13.08}, {"partner": "西班牙", "qty24": 95.53, "qty25": 108.32, "sh24": 5.3, "sh25": 5.4, "sh_chg": 0.1, "qty_chg": 12.79}, {"partner": "印度尼西亚", "qty24": 21.69, "qty25": 105.42, "sh24": 1.2, "sh25": 5.2, "sh_chg": 4.0, "qty_chg": 83.73}, {"partner": "奥地利", "qty24": 76.03, "qty25": 87.93, "sh24": 4.2, "sh25": 4.4, "sh_chg": 0.2, "qty_chg": 11.9}]}, "德国": {"total24": 1826.4, "total25": 1994.6, "total_chg_pct": 9.2, "sources": [{"partner": "比利时", "qty24": 291.9, "qty25": 326.67, "sh24": 16.0, "sh25": 16.4, "sh_chg": 0.4, "qty_chg": 34.78}, {"partner": "意大利", "qty24": 256.78, "qty25": 278.9, "sh24": 14.1, "sh25": 14.0, "sh_chg": -0.1, "qty_chg": 22.13}, {"partner": "法国", "qty24": 213.94, "qty25": 232.7, "sh24": 11.7, "sh25": 11.7, "sh_chg": 0.0, "qty_chg": 18.76}, {"partner": "荷兰", "qty24": 184.99, "qty25": 206.44, "sh24": 10.1, "sh25": 10.4, "sh_chg": 0.3, "qty_chg": 21.44}, {"partner": "奥地利", "qty24": 184.44, "qty25": 204.31, "sh24": 10.1, "sh25": 10.2, "sh_chg": 0.1, "qty_chg": 19.87}, {"partner": "波兰", "qty24": 92.32, "qty25": 83.17, "sh24": 5.1, "sh25": 4.2, "sh_chg": -0.9, "qty_chg": -9.14}, {"partner": "捷克", "qty24": 67.88, "qty25": 78.58, "sh24": 3.7, "sh25": 3.9, "sh_chg": 0.2, "qty_chg": 10.69}, {"partner": "瑞典", "qty24": 56.45, "qty25": 62.2, "sh24": 3.1, "sh25": 3.1, "sh_chg": 0.0, "qty_chg": 5.75}, {"partner": "西班牙", "qty24": 53.87, "qty25": 59.04, "sh24": 2.9, "sh25": 3.0, "sh_chg": 0.1, "qty_chg": 5.17}, {"partner": "芬兰", "qty24": 60.04, "qty25": 55.07, "sh24": 3.3, "sh25": 2.8, "sh_chg": -0.5, "qty_chg": -4.97}]}, "土耳其": {"total24": 1810.5, "total25": 1950.9, "total_chg_pct": 7.8, "sources": [{"partner": "中国", "qty24": 429.08, "qty25": 457.37, "sh24": 23.7, "sh25": 23.4, "sh_chg": -0.3, "qty_chg": 28.28}, {"partner": "俄罗斯", "qty24": 327.67, "qty25": 448.69, "sh24": 18.1, "sh25": 23.0, "sh_chg": 4.9, "qty_chg": 121.01}, {"partner": "韩国", "qty24": 158.38, "qty25": 201.56, "sh24": 8.7, "sh25": 10.3, "sh_chg": 1.6, "qty_chg": 43.18}, {"partner": "马来西亚", "qty24": 224.66, "qty25": 190.89, "sh24": 12.4, "sh25": 9.8, "sh_chg": -2.6, "qty_chg": -33.76}, {"partner": "阿尔及利亚", "qty24": 39.8, "qty25": 82.59, "sh24": 2.2, "sh25": 4.2, "sh_chg": 2.0, "qty_chg": 42.79}, {"partner": "埃及", "qty24": 69.28, "qty25": 50.95, "sh24": 3.8, "sh25": 2.6, "sh_chg": -1.2, "qty_chg": -18.33}, {"partner": "法国", "qty24": 40.86, "qty25": 40.47, "sh24": 2.3, "sh25": 2.1, "sh_chg": -0.2, "qty_chg": -0.39}, {"partner": "德国", "qty24": 34.16, "qty25": 36.63, "sh24": 1.9, "sh25": 1.9, "sh_chg": 0.0, "qty_chg": 2.47}, {"partner": "伊朗", "qty24": 26.0, "qty25": 32.77, "sh24": 1.4, "sh25": 1.7, "sh_chg": 0.3, "qty_chg": 6.77}, {"partner": "比利时", "qty24": 29.24, "qty25": 32.61, "sh24": 1.6, "sh25": 1.7, "sh_chg": 0.1, "qty_chg": 3.37}]}, "泰国": {"total24": 1325.2, "total25": 1523.8, "total_chg_pct": 15.0, "sources": [{"partner": "中国", "qty24": 513.4, "qty25": 662.6, "sh24": 38.7, "sh25": 43.5, "sh_chg": 4.8, "qty_chg": 149.19}, {"partner": "日本", "qty24": 425.91, "qty25": 420.1, "sh24": 32.1, "sh25": 27.6, "sh_chg": -4.5, "qty_chg": -5.81}, {"partner": "韩国", "qty24": 138.5, "qty25": 164.04, "sh24": 10.5, "sh25": 10.8, "sh_chg": 0.3, "qty_chg": 25.54}, {"partner": "中国台湾", "qty24": 40.8, "qty25": 55.32, "sh24": 3.1, "sh25": 3.6, "sh_chg": 0.5, "qty_chg": 14.52}, {"partner": "印度尼西亚", "qty24": 51.03, "qty25": 53.28, "sh24": 3.9, "sh25": 3.5, "sh_chg": -0.4, "qty_chg": 2.25}, {"partner": "阿曼", "qty24": 39.45, "qty25": 45.78, "sh24": 3.0, "sh25": 3.0, "sh_chg": 0.0, "qty_chg": 6.33}, {"partner": "埃及", "qty24": 0.0, "qty25": 30.47, "sh24": 0.0, "sh25": 2.0, "sh_chg": 2.0, "qty_chg": 30.47}, {"partner": "越南", "qty24": 14.61, "qty25": 26.6, "sh24": 1.1, "sh25": 1.7, "sh_chg": 0.6, "qty_chg": 12.0}, {"partner": "马来西亚", "qty24": 34.38, "qty25": 19.07, "sh24": 2.6, "sh25": 1.3, "sh_chg": -1.3, "qty_chg": -15.3}, {"partner": "印度", "qty24": 12.57, "qty25": 17.06, "sh24": 0.9, "sh25": 1.1, "sh_chg": 0.2, "qty_chg": 4.49}]}, "越南": {"total24": 1692.4, "total25": 1446.0, "total_chg_pct": -14.6, "sources": [{"partner": "中国", "qty24": 1106.0, "qty25": 798.81, "sh24": 65.4, "sh25": 55.2, "sh_chg": -10.2, "qty_chg": -307.19}, {"partner": "日本", "qty24": 233.21, "qty25": 204.51, "sh24": 13.8, "sh25": 14.1, "sh_chg": 0.3, "qty_chg": -28.7}, {"partner": "韩国", "qty24": 134.18, "qty25": 153.38, "sh24": 7.9, "sh25": 10.6, "sh_chg": 2.7, "qty_chg": 19.2}, {"partner": "印度尼西亚", "qty24": 75.44, "qty25": 124.98, "sh24": 4.5, "sh25": 8.6, "sh_chg": 4.1, "qty_chg": 49.54}, {"partner": "中国台湾", "qty24": 87.63, "qty25": 91.23, "sh24": 5.2, "sh25": 6.3, "sh_chg": 1.1, "qty_chg": 3.6}, {"partner": "越南", "qty24": 17.31, "qty25": 22.72, "sh24": 1.0, "sh25": 1.6, "sh_chg": 0.6, "qty_chg": 5.41}, {"partner": "马来西亚", "qty24": 1.76, "qty25": 19.64, "sh24": 0.1, "sh25": 1.4, "sh_chg": 1.3, "qty_chg": 17.88}, {"partner": "印度", "qty24": 21.6, "qty25": 12.37, "sh24": 1.3, "sh25": 0.9, "sh_chg": -0.4, "qty_chg": -9.23}, {"partner": "澳大利亚", "qty24": 3.18, "qty25": 4.45, "sh24": 0.2, "sh25": 0.3, "sh_chg": 0.1, "qty_chg": 1.27}, {"partner": "泰国", "qty24": 4.63, "qty25": 3.82, "sh24": 0.3, "sh25": 0.3, "sh_chg": 0.0, "qty_chg": -0.81}]}, "印度尼西亚": {"total24": 1279.6, "total25": 1288.3, "total_chg_pct": 0.7, "sources": [{"partner": "中国", "qty24": 609.27, "qty25": 671.69, "sh24": 47.6, "sh25": 52.1, "sh_chg": 4.5, "qty_chg": 62.42}, {"partner": "日本", "qty24": 215.7, "qty25": 206.07, "sh24": 16.9, "sh25": 16.0, "sh_chg": -0.9, "qty_chg": -9.63}, {"partner": "阿曼", "qty24": 142.36, "qty25": 130.62, "sh24": 11.1, "sh25": 10.1, "sh_chg": -1.0, "qty_chg": -11.74}, {"partner": "韩国", "qty24": 91.04, "qty25": 87.13, "sh24": 7.1, "sh25": 6.8, "sh_chg": -0.3, "qty_chg": -3.91}, {"partner": "俄罗斯", "qty24": 47.88, "qty25": 61.56, "sh24": 3.7, "sh25": 4.8, "sh_chg": 1.1, "qty_chg": 13.69}, {"partner": "越南", "qty24": 64.9, "qty25": 56.0, "sh24": 5.1, "sh25": 4.3, "sh_chg": -0.8, "qty_chg": -8.9}, {"partner": "中国台湾", "qty24": 22.91, "qty25": 21.38, "sh24": 1.8, "sh25": 1.7, "sh_chg": -0.1, "qty_chg": -1.53}, {"partner": "马来西亚", "qty24": 17.98, "qty25": 11.09, "sh24": 1.4, "sh25": 0.9, "sh_chg": -0.5, "qty_chg": -6.89}, {"partner": "印度", "qty24": 19.88, "qty25": 9.19, "sh24": 1.6, "sh25": 0.7, "sh_chg": -0.9, "qty_chg": -10.69}, {"partner": "新加坡", "qty24": 10.84, "qty25": 8.38, "sh24": 0.8, "sh25": 0.7, "sh_chg": -0.1, "qty_chg": -2.46}]}, "比利时": {"total24": 1186.5, "total25": 1270.2, "total_chg_pct": 7.1, "sources": [{"partner": "德国", "qty24": 196.39, "qty25": 209.68, "sh24": 16.6, "sh25": 16.5, "sh_chg": -0.1, "qty_chg": 13.29}, {"partner": "荷兰", "qty24": 133.1, "qty25": 173.13, "sh24": 11.2, "sh25": 13.6, "sh_chg": 2.4, "qty_chg": 40.02}, {"partner": "俄罗斯", "qty24": 137.21, "qty25": 140.76, "sh24": 11.6, "sh25": 11.1, "sh_chg": -0.5, "qty_chg": 3.55}, {"partner": "法国", "qty24": 106.08, "qty25": 117.34, "sh24": 8.9, "sh25": 9.2, "sh_chg": 0.3, "qty_chg": 11.26}, {"partner": "中国", "qty24": 67.24, "qty25": 83.43, "sh24": 5.7, "sh25": 6.6, "sh_chg": 0.9, "qty_chg": 16.19}, {"partner": "印度", "qty24": 82.01, "qty25": 77.46, "sh24": 6.9, "sh25": 6.1, "sh_chg": -0.8, "qty_chg": -4.54}, {"partner": "土耳其", "qty24": 38.16, "qty25": 68.44, "sh24": 3.2, "sh25": 5.4, "sh_chg": 2.2, "qty_chg": 30.28}, {"partner": "中国台湾", "qty24": 85.58, "qty25": 66.44, "sh24": 7.2, "sh25": 5.2, "sh_chg": -2.0, "qty_chg": -19.14}, {"partner": "韩国", "qty24": 61.6, "qty25": 59.89, "sh24": 5.2, "sh25": 4.7, "sh_chg": -0.5, "qty_chg": -1.72}, {"partner": "越南", "qty24": 88.15, "qty25": 53.97, "sh24": 7.4, "sh25": 4.2, "sh_chg": -3.2, "qty_chg": -34.18}]}, "韩国": {"total24": 1389.0, "total25": 1230.9, "total_chg_pct": -11.4, "sources": [{"partner": "中国", "qty24": 819.96, "qty25": 754.59, "sh24": 59.0, "sh25": 61.3, "sh_chg": 2.3, "qty_chg": -65.37}, {"partner": "日本", "qty24": 466.64, "qty25": 375.28, "sh24": 33.6, "sh25": 30.5, "sh_chg": -3.1, "qty_chg": -91.36}, {"partner": "越南", "qty24": 30.61, "qty25": 23.18, "sh24": 2.2, "sh25": 1.9, "sh_chg": -0.3, "qty_chg": -7.43}, {"partner": "中国台湾", "qty24": 19.92, "qty25": 21.48, "sh24": 1.4, "sh25": 1.7, "sh_chg": 0.3, "qty_chg": 1.55}, {"partner": "俄罗斯", "qty24": 3.55, "qty25": 18.91, "sh24": 0.3, "sh25": 1.5, "sh_chg": 1.2, "qty_chg": 15.37}, {"partner": "印度尼西亚", "qty24": 12.12, "qty25": 16.52, "sh24": 0.9, "sh25": 1.3, "sh_chg": 0.4, "qty_chg": 4.4}, {"partner": "印度", "qty24": 6.81, "qty25": 4.36, "sh24": 0.5, "sh25": 0.4, "sh_chg": -0.1, "qty_chg": -2.45}, {"partner": "瑞典", "qty24": 3.35, "qty25": 2.51, "sh24": 0.2, "sh25": 0.2, "sh_chg": 0.0, "qty_chg": -0.84}, {"partner": "马来西亚", "qty24": 3.5, "qty25": 1.99, "sh24": 0.3, "sh25": 0.2, "sh_chg": -0.1, "qty_chg": -1.51}, {"partner": "比利时", "qty24": 1.57, "qty25": 1.95, "sh24": 0.1, "sh25": 0.2, "sh_chg": 0.1, "qty_chg": 0.39}]}, "波兰": {"total24": 1099.8, "total25": 1203.3, "total_chg_pct": 9.4, "sources": [{"partner": "德国", "qty24": 315.75, "qty25": 314.77, "sh24": 28.7, "sh25": 26.2, "sh_chg": -2.5, "qty_chg": -0.98}, {"partner": "乌克兰", "qty24": 102.91, "qty25": 147.79, "sh24": 9.4, "sh25": 12.3, "sh_chg": 2.9, "qty_chg": 44.88}, {"partner": "意大利", "qty24": 106.5, "qty25": 98.26, "sh24": 9.7, "sh25": 8.2, "sh_chg": -1.5, "qty_chg": -8.24}, {"partner": "斯洛伐克", "qty24": 90.25, "qty25": 88.89, "sh24": 8.2, "sh25": 7.4, "sh_chg": -0.8, "qty_chg": -1.37}, {"partner": "捷克", "qty24": 54.8, "qty25": 68.96, "sh24": 5.0, "sh25": 5.7, "sh_chg": 0.7, "qty_chg": 14.17}, {"partner": "比利时", "qty24": 60.35, "qty25": 62.36, "sh24": 5.5, "sh25": 5.2, "sh_chg": -0.3, "qty_chg": 2.0}, {"partner": "奥地利", "qty24": 36.72, "qty25": 38.75, "sh24": 3.3, "sh25": 3.2, "sh_chg": -0.1, "qty_chg": 2.03}, {"partner": "中国", "qty24": 13.83, "qty25": 37.45, "sh24": 1.3, "sh25": 3.1, "sh_chg": 1.8, "qty_chg": 23.62}, {"partner": "法国", "qty24": 33.08, "qty25": 34.41, "sh24": 3.0, "sh25": 2.9, "sh_chg": -0.1, "qty_chg": 1.33}, {"partner": "巴西", "qty24": 6.07, "qty25": 30.2, "sh24": 0.6, "sh25": 2.5, "sh_chg": 1.9, "qty_chg": 24.13}]}, "法国": {"total24": 1088.8, "total25": 1076.8, "total_chg_pct": -1.1, "sources": [{"partner": "比利时", "qty24": 256.94, "qty25": 264.39, "sh24": 23.6, "sh25": 24.6, "sh_chg": 1.0, "qty_chg": 7.44}, {"partner": "德国", "qty24": 258.56, "qty25": 230.41, "sh24": 23.7, "sh25": 21.4, "sh_chg": -2.3, "qty_chg": -28.15}, {"partner": "西班牙", "qty24": 145.9, "qty25": 160.43, "sh24": 13.4, "sh25": 14.9, "sh_chg": 1.5, "qty_chg": 14.53}, {"partner": "意大利", "qty24": 120.87, "qty25": 120.87, "sh24": 11.1, "sh25": 11.2, "sh_chg": 0.1, "qty_chg": 0.0}, {"partner": "法国", "qty24": 41.87, "qty25": 42.32, "sh24": 3.8, "sh25": 3.9, "sh_chg": 0.1, "qty_chg": 0.45}, {"partner": "荷兰", "qty24": 35.02, "qty25": 39.43, "sh24": 3.2, "sh25": 3.7, "sh_chg": 0.5, "qty_chg": 4.41}, {"partner": "卢森堡", "qty24": 27.04, "qty25": 28.22, "sh24": 2.5, "sh25": 2.6, "sh_chg": 0.1, "qty_chg": 1.18}, {"partner": "巴西", "qty24": 18.41, "qty25": 24.35, "sh24": 1.7, "sh25": 2.3, "sh_chg": 0.6, "qty_chg": 5.94}, {"partner": "英国", "qty24": 22.4, "qty25": 21.13, "sh24": 2.1, "sh25": 2.0, "sh_chg": -0.1, "qty_chg": -1.27}, {"partner": "奥地利", "qty24": 21.15, "qty25": 18.51, "sh24": 1.9, "sh25": 1.7, "sh_chg": -0.2, "qty_chg": -2.64}]}, "墨西哥": {"total24": 984.6, "total25": 1023.4, "total_chg_pct": 3.9, "sources": [{"partner": "美国", "qty24": 406.86, "qty25": 498.33, "sh24": 41.3, "sh25": 48.7, "sh_chg": 7.4, "qty_chg": 91.47}, {"partner": "日本", "qty24": 165.18, "qty25": 156.15, "sh24": 16.8, "sh25": 15.3, "sh_chg": -1.5, "qty_chg": -9.03}, {"partner": "韩国", "qty24": 113.45, "qty25": 87.98, "sh24": 11.5, "sh25": 8.6, "sh_chg": -2.9, "qty_chg": -25.47}, {"partner": "中国", "qty24": 85.89, "qty25": 75.09, "sh24": 8.7, "sh25": 7.3, "sh_chg": -1.4, "qty_chg": -10.8}, {"partner": "巴西", "qty24": 3.66, "qty25": 69.15, "sh24": 0.4, "sh25": 6.8, "sh_chg": 6.4, "qty_chg": 65.49}, {"partner": "德国", "qty24": 24.85, "qty25": 26.63, "sh24": 2.5, "sh25": 2.6, "sh_chg": 0.1, "qty_chg": 1.78}, {"partner": "加拿大", "qty24": 28.52, "qty25": 26.02, "sh24": 2.9, "sh25": 2.5, "sh_chg": -0.4, "qty_chg": -2.49}, {"partner": "越南", "qty24": 63.26, "qty25": 22.31, "sh24": 6.4, "sh25": 2.2, "sh_chg": -4.2, "qty_chg": -40.95}, {"partner": "中国台湾", "qty24": 6.29, "qty25": 14.21, "sh24": 0.6, "sh25": 1.4, "sh_chg": 0.8, "qty_chg": 7.93}, {"partner": "奥地利", "qty24": 7.51, "qty25": 7.7, "sh24": 0.8, "sh25": 0.8, "sh_chg": 0.0, "qty_chg": 0.19}]}, "西班牙": {"total24": 1032.9, "total25": 1019.9, "total_chg_pct": -1.3, "sources": [{"partner": "法国", "qty24": 151.15, "qty25": 142.12, "sh24": 14.6, "sh25": 13.9, "sh_chg": -0.7, "qty_chg": -9.03}, {"partner": "葡萄牙", "qty24": 95.08, "qty25": 103.65, "sh24": 9.2, "sh25": 10.2, "sh_chg": 1.0, "qty_chg": 8.57}, {"partner": "德国", "qty24": 110.76, "qty25": 103.5, "sh24": 10.7, "sh25": 10.1, "sh_chg": -0.6, "qty_chg": -7.27}, {"partner": "意大利", "qty24": 72.64, "qty25": 78.68, "sh24": 7.0, "sh25": 7.7, "sh_chg": 0.7, "qty_chg": 6.04}, {"partner": "土耳其", "qty24": 54.25, "qty25": 67.11, "sh24": 5.3, "sh25": 6.6, "sh_chg": 1.3, "qty_chg": 12.86}, {"partner": "印度尼西亚", "qty24": 24.53, "qty25": 63.33, "sh24": 2.4, "sh25": 6.2, "sh_chg": 3.8, "qty_chg": 38.8}, {"partner": "印度", "qty24": 59.05, "qty25": 56.12, "sh24": 5.7, "sh25": 5.5, "sh_chg": -0.2, "qty_chg": -2.93}, {"partner": "荷兰", "qty24": 39.15, "qty25": 50.43, "sh24": 3.8, "sh25": 4.9, "sh_chg": 1.1, "qty_chg": 11.28}, {"partner": "中国", "qty24": 41.03, "qty25": 49.18, "sh24": 4.0, "sh25": 4.8, "sh_chg": 0.8, "qty_chg": 8.15}, {"partner": "韩国", "qty24": 45.44, "qty25": 42.47, "sh24": 4.4, "sh25": 4.2, "sh_chg": -0.2, "qty_chg": -2.96}]}, "印度": {"total24": 1121.5, "total25": 1001.4, "total_chg_pct": -10.7, "sources": [{"partner": "韩国", "qty24": 299.69, "qty25": 291.89, "sh24": 26.7, "sh25": 29.1, "sh_chg": 2.4, "qty_chg": -7.8}, {"partner": "中国", "qty24": 304.89, "qty25": 192.18, "sh24": 27.2, "sh25": 19.2, "sh_chg": -8.0, "qty_chg": -112.7}, {"partner": "日本", "qty24": 202.28, "qty25": 157.0, "sh24": 18.0, "sh25": 15.7, "sh_chg": -2.3, "qty_chg": -45.27}, {"partner": "越南", "qty24": 82.72, "qty25": 95.78, "sh24": 7.4, "sh25": 9.6, "sh_chg": 2.2, "qty_chg": 13.06}, {"partner": "印度尼西亚", "qty24": 75.12, "qty25": 80.72, "sh24": 6.7, "sh25": 8.1, "sh_chg": 1.4, "qty_chg": 5.6}, {"partner": "俄罗斯", "qty24": 20.0, "qty25": 39.52, "sh24": 1.8, "sh25": 3.9, "sh_chg": 2.1, "qty_chg": 19.52}, {"partner": "中国台湾", "qty24": 13.81, "qty25": 20.64, "sh24": 1.2, "sh25": 2.1, "sh_chg": 0.9, "qty_chg": 6.83}, {"partner": "阿联酋", "qty24": 8.8, "qty25": 15.04, "sh24": 0.8, "sh25": 1.5, "sh_chg": 0.7, "qty_chg": 6.25}, {"partner": "德国", "qty24": 13.27, "qty25": 13.16, "sh24": 1.2, "sh25": 1.3, "sh_chg": 0.1, "qty_chg": -0.11}, {"partner": "泰国", "qty24": 9.16, "qty25": 11.6, "sh24": 0.8, "sh25": 1.2, "sh_chg": 0.4, "qty_chg": 2.44}]}, "菲律宾": {"total24": 752.5, "total25": 859.8, "total_chg_pct": 14.3, "sources": [{"partner": "中国", "qty24": 526.97, "qty25": 698.33, "sh24": 70.0, "sh25": 81.2, "sh_chg": 11.2, "qty_chg": 171.36}, {"partner": "日本", "qty24": 53.43, "qty25": 53.63, "sh24": 7.1, "sh25": 6.2, "sh_chg": -0.9, "qty_chg": 0.2}, {"partner": "越南", "qty24": 17.97, "qty25": 24.87, "sh24": 2.4, "sh25": 2.9, "sh_chg": 0.5, "qty_chg": 6.9}, {"partner": "哈萨克斯坦", "qty24": 20.39, "qty25": 24.12, "sh24": 2.7, "sh25": 2.8, "sh_chg": 0.1, "qty_chg": 3.73}, {"partner": "印度尼西亚", "qty24": 76.71, "qty25": 18.89, "sh24": 10.2, "sh25": 2.2, "sh_chg": -8.0, "qty_chg": -57.82}, {"partner": "韩国", "qty24": 11.11, "qty25": 16.74, "sh24": 1.5, "sh25": 1.9, "sh_chg": 0.4, "qty_chg": 5.63}, {"partner": "中国台湾", "qty24": 10.26, "qty25": 10.97, "sh24": 1.4, "sh25": 1.3, "sh_chg": -0.1, "qty_chg": 0.71}, {"partner": "泰国", "qty24": 8.88, "qty25": 4.67, "sh24": 1.2, "sh25": 0.5, "sh_chg": -0.7, "qty_chg": -4.21}, {"partner": "马来西亚", "qty24": 18.67, "qty25": 3.81, "sh24": 2.5, "sh25": 0.4, "sh_chg": -2.1, "qty_chg": -14.86}, {"partner": "俄罗斯", "qty24": 5.07, "qty25": 0.76, "sh24": 0.7, "sh25": 0.1, "sh_chg": -0.6, "qty_chg": -4.31}]}, "中国台湾": {"total24": 885.3, "total25": 819.1, "total_chg_pct": -7.5, "sources": [{"partner": "日本", "qty24": 172.57, "qty25": 182.43, "sh24": 19.5, "sh25": 22.3, "sh_chg": 2.8, "qty_chg": 9.86}, {"partner": "中国", "qty24": 253.81, "qty25": 173.11, "sh24": 28.7, "sh25": 21.1, "sh_chg": -7.6, "qty_chg": -80.7}, {"partner": "俄罗斯", "qty24": 148.94, "qty25": 146.82, "sh24": 16.8, "sh25": 17.9, "sh_chg": 1.1, "qty_chg": -2.12}, {"partner": "印度尼西亚", "qty24": 142.1, "qty25": 122.04, "sh24": 16.1, "sh25": 14.9, "sh_chg": -1.2, "qty_chg": -20.06}, {"partner": "韩国", "qty24": 82.27, "qty25": 78.37, "sh24": 9.3, "sh25": 9.6, "sh_chg": 0.3, "qty_chg": -3.9}, {"partner": "越南", "qty24": 43.71, "qty25": 46.26, "sh24": 4.9, "sh25": 5.6, "sh_chg": 0.7, "qty_chg": 2.55}, {"partner": "印度", "qty24": 8.3, "qty25": 33.31, "sh24": 0.9, "sh25": 4.1, "sh_chg": 3.2, "qty_chg": 25.01}, {"partner": "沙特阿拉伯", "qty24": 13.75, "qty25": 16.38, "sh24": 1.6, "sh25": 2.0, "sh_chg": 0.4, "qty_chg": 2.63}, {"partner": "马来西亚", "qty24": 1.84, "qty25": 10.83, "sh24": 0.2, "sh25": 1.3, "sh_chg": 1.1, "qty_chg": 8.99}, {"partner": "泰国", "qty24": 3.77, "qty25": 2.52, "sh24": 0.4, "sh25": 0.3, "sh_chg": -0.1, "qty_chg": -1.26}]}, "荷兰": {"total24": 776.6, "total25": 791.5, "total_chg_pct": 1.9, "sources": [{"partner": "德国", "qty24": 237.87, "qty25": 265.21, "sh24": 30.6, "sh25": 33.5, "sh_chg": 2.9, "qty_chg": 27.34}, {"partner": "比利时", "qty24": 169.76, "qty25": 169.35, "sh24": 21.9, "sh25": 21.4, "sh_chg": -0.5, "qty_chg": -0.41}, {"partner": "芬兰", "qty24": 50.01, "qty25": 49.25, "sh24": 6.4, "sh25": 6.2, "sh_chg": -0.2, "qty_chg": -0.76}, {"partner": "卢森堡", "qty24": 41.87, "qty25": 45.16, "sh24": 5.4, "sh25": 5.7, "sh_chg": 0.3, "qty_chg": 3.3}, {"partner": "法国", "qty24": 47.67, "qty25": 44.51, "sh24": 6.1, "sh25": 5.6, "sh_chg": -0.5, "qty_chg": -3.16}, {"partner": "英国", "qty24": 38.68, "qty25": 35.33, "sh24": 5.0, "sh25": 4.5, "sh_chg": -0.5, "qty_chg": -3.36}, {"partner": "意大利", "qty24": 36.72, "qty25": 34.41, "sh24": 4.7, "sh25": 4.3, "sh_chg": -0.4, "qty_chg": -2.3}, {"partner": "中国", "qty24": 21.2, "qty25": 32.55, "sh24": 2.7, "sh25": 4.1, "sh_chg": 1.4, "qty_chg": 11.35}, {"partner": "西班牙", "qty24": 18.41, "qty25": 17.47, "sh24": 2.4, "sh25": 2.2, "sh_chg": -0.2, "qty_chg": -0.94}, {"partner": "印度尼西亚", "qty24": 0.86, "qty25": 15.99, "sh24": 0.1, "sh25": 2.0, "sh_chg": 1.9, "qty_chg": 15.13}]}, "马来西亚": {"total24": 745.3, "total25": 767.9, "total_chg_pct": 3.0, "sources": [{"partner": "中国", "qty24": 288.49, "qty25": 363.56, "sh24": 38.7, "sh25": 47.3, "sh_chg": 8.6, "qty_chg": 75.07}, {"partner": "印度尼西亚", "qty24": 56.93, "qty25": 69.57, "sh24": 7.6, "sh25": 9.1, "sh_chg": 1.5, "qty_chg": 12.64}, {"partner": "越南", "qty24": 91.26, "qty25": 66.59, "sh24": 12.2, "sh25": 8.7, "sh_chg": -3.5, "qty_chg": -24.66}, {"partner": "日本", "qty24": 82.26, "qty25": 65.77, "sh24": 11.0, "sh25": 8.6, "sh_chg": -2.4, "qty_chg": -16.49}, {"partner": "中国台湾", "qty24": 74.3, "qty25": 65.47, "sh24": 10.0, "sh25": 8.5, "sh_chg": -1.5, "qty_chg": -8.83}, {"partner": "韩国", "qty24": 68.43, "qty25": 57.22, "sh24": 9.2, "sh25": 7.5, "sh_chg": -1.7, "qty_chg": -11.22}, {"partner": "新加坡", "qty24": 26.41, "qty25": 28.54, "sh24": 3.5, "sh25": 3.7, "sh_chg": 0.2, "qty_chg": 2.14}, {"partner": "泰国", "qty24": 22.3, "qty25": 24.63, "sh24": 3.0, "sh25": 3.2, "sh_chg": 0.2, "qty_chg": 2.33}, {"partner": "阿曼", "qty24": 15.4, "qty25": 11.92, "sh24": 2.1, "sh25": 1.6, "sh_chg": -0.5, "qty_chg": -3.48}, {"partner": "瑞典", "qty24": 0.97, "qty25": 4.71, "sh24": 0.1, "sh25": 0.6, "sh_chg": 0.5, "qty_chg": 3.74}]}, "沙特阿拉伯": {"total24": 663.0, "total25": 757.5, "total_chg_pct": 14.3, "sources": [{"partner": "中国", "qty24": 364.7, "qty25": 459.83, "sh24": 55.0, "sh25": 60.7, "sh_chg": 5.7, "qty_chg": 95.13}, {"partner": "阿曼", "qty24": 55.23, "qty25": 68.04, "sh24": 8.3, "sh25": 9.0, "sh_chg": 0.7, "qty_chg": 12.82}, {"partner": "巴林", "qty24": 44.45, "qty25": 44.91, "sh24": 6.7, "sh25": 5.9, "sh_chg": -0.8, "qty_chg": 0.47}, {"partner": "印度", "qty24": 32.07, "qty25": 32.77, "sh24": 4.8, "sh25": 4.3, "sh_chg": -0.5, "qty_chg": 0.7}, {"partner": "韩国", "qty24": 24.35, "qty25": 22.49, "sh24": 3.7, "sh25": 3.0, "sh_chg": -0.7, "qty_chg": -1.86}, {"partner": "俄罗斯", "qty24": 9.09, "qty25": 22.46, "sh24": 1.4, "sh25": 3.0, "sh_chg": 1.6, "qty_chg": 13.37}, {"partner": "日本", "qty24": 18.46, "qty25": 19.79, "sh24": 2.8, "sh25": 2.6, "sh_chg": -0.2, "qty_chg": 1.33}, {"partner": "阿联酋", "qty24": 18.63, "qty25": 16.68, "sh24": 2.8, "sh25": 2.2, "sh_chg": -0.6, "qty_chg": -1.95}, {"partner": "埃及", "qty24": 15.63, "qty25": 14.4, "sh24": 2.4, "sh25": 1.9, "sh_chg": -0.5, "qty_chg": -1.23}, {"partner": "土耳其", "qty24": 6.95, "qty25": 8.13, "sh24": 1.0, "sh25": 1.1, "sh_chg": 0.1, "qty_chg": 1.18}]}, "英国": {"total24": 660.2, "total25": 739.2, "total_chg_pct": 12.0, "sources": [{"partner": "印度", "qty24": 76.47, "qty25": 105.0, "sh24": 11.6, "sh25": 14.2, "sh_chg": 2.6, "qty_chg": 28.53}, {"partner": "荷兰", "qty24": 80.99, "qty25": 96.52, "sh24": 12.3, "sh25": 13.1, "sh_chg": 0.8, "qty_chg": 15.52}, {"partner": "法国", "qty24": 37.08, "qty25": 70.09, "sh24": 5.6, "sh25": 9.5, "sh_chg": 3.9, "qty_chg": 33.0}, {"partner": "韩国", "qty24": 31.25, "qty25": 64.98, "sh24": 4.7, "sh25": 8.8, "sh_chg": 4.1, "qty_chg": 33.73}, {"partner": "土耳其", "qty24": 49.52, "qty25": 58.75, "sh24": 7.5, "sh25": 7.9, "sh_chg": 0.4, "qty_chg": 9.23}, {"partner": "德国", "qty24": 62.56, "qty25": 50.9, "sh24": 9.5, "sh25": 6.9, "sh_chg": -2.6, "qty_chg": -11.66}, {"partner": "西班牙", "qty24": 57.83, "qty25": 50.11, "sh24": 8.8, "sh25": 6.8, "sh_chg": -2.0, "qty_chg": -7.72}, {"partner": "比利时", "qty24": 45.81, "qty25": 41.84, "sh24": 6.9, "sh25": 5.7, "sh_chg": -1.2, "qty_chg": -3.98}, {"partner": "中国", "qty24": 23.74, "qty25": 19.66, "sh24": 3.6, "sh25": 2.7, "sh_chg": -0.9, "qty_chg": -4.08}, {"partner": "巴西", "qty24": 17.65, "qty25": 19.11, "sh24": 2.7, "sh25": 2.6, "sh_chg": -0.1, "qty_chg": 1.46}]}};
-const SUBS_DATA = [{"market": "韩国", "loser": "日本", "gainer": "中国", "loser_sh_chg": -3.1, "gainer_sh_chg": 2.3, "loser_qty_chg": -91.4, "gainer_qty_chg": -65.4, "sub_score": -65.4, "total_chg_pct": -11.4, "total25": 1230.9, "conf": "中"}, {"market": "菲律宾", "loser": "印度尼西亚", "gainer": "中国", "loser_sh_chg": -8.0, "gainer_sh_chg": 11.2, "loser_qty_chg": -57.8, "gainer_qty_chg": 171.4, "sub_score": 57.8, "total_chg_pct": 14.3, "total25": 859.8, "conf": "强"}, {"market": "意大利", "loser": "印度", "gainer": "印度尼西亚", "loser_sh_chg": -3.8, "gainer_sh_chg": 4.0, "loser_qty_chg": -56.0, "gainer_qty_chg": 83.7, "sub_score": 56.0, "total_chg_pct": 11.5, "total25": 2009.3, "conf": "强"}, {"market": "越南", "loser": "中国", "gainer": "印度尼西亚", "loser_sh_chg": -10.2, "gainer_sh_chg": 4.1, "loser_qty_chg": -307.2, "gainer_qty_chg": 49.5, "sub_score": 49.5, "total_chg_pct": -14.6, "total25": 1446.0, "conf": "强"}, {"market": "墨西哥", "loser": "越南", "gainer": "美国", "loser_sh_chg": -4.2, "gainer_sh_chg": 7.4, "loser_qty_chg": -41.0, "gainer_qty_chg": 91.5, "sub_score": 41.0, "total_chg_pct": 3.9, "total25": 1023.4, "conf": "强"}, {"market": "比利时", "loser": "越南", "gainer": "荷兰", "loser_sh_chg": -3.2, "gainer_sh_chg": 2.4, "loser_qty_chg": -34.2, "gainer_qty_chg": 40.0, "sub_score": 34.2, "total_chg_pct": 7.1, "total25": 1270.2, "conf": "中"}, {"market": "土耳其", "loser": "马来西亚", "gainer": "俄罗斯", "loser_sh_chg": -2.6, "gainer_sh_chg": 4.9, "loser_qty_chg": -33.8, "gainer_qty_chg": 121.0, "sub_score": 33.8, "total_chg_pct": 7.8, "total25": 1950.9, "conf": "中"}, {"market": "美国", "loser": "加拿大", "gainer": "印度", "loser_sh_chg": -4.7, "gainer_sh_chg": 1.5, "loser_qty_chg": -181.7, "gainer_qty_chg": 31.6, "sub_score": 31.6, "total_chg_pct": -12.1, "total25": 2319.9, "conf": "中"}, {"market": "中国台湾", "loser": "中国", "gainer": "印度", "loser_sh_chg": -7.6, "gainer_sh_chg": 3.2, "loser_qty_chg": -80.7, "gainer_qty_chg": 25.0, "sub_score": 25.0, "total_chg_pct": -7.5, "total25": 819.1, "conf": "强"}, {"market": "马来西亚", "loser": "越南", "gainer": "中国", "loser_sh_chg": -3.5, "gainer_sh_chg": 8.6, "loser_qty_chg": -24.7, "gainer_qty_chg": 75.1, "sub_score": 24.7, "total_chg_pct": 3.0, "total25": 767.9, "conf": "强"}, {"market": "法国", "loser": "德国", "gainer": "西班牙", "loser_sh_chg": -2.3, "gainer_sh_chg": 1.5, "loser_qty_chg": -28.1, "gainer_qty_chg": 14.5, "sub_score": 14.5, "total_chg_pct": -1.1, "total25": 1076.8, "conf": "中"}, {"market": "印度尼西亚", "loser": "阿曼", "gainer": "中国", "loser_sh_chg": -1.0, "gainer_sh_chg": 4.5, "loser_qty_chg": -11.7, "gainer_qty_chg": 62.4, "sub_score": 11.7, "total_chg_pct": 0.7, "total25": 1288.3, "conf": "中"}, {"market": "英国", "loser": "德国", "gainer": "韩国", "loser_sh_chg": -2.6, "gainer_sh_chg": 4.1, "loser_qty_chg": -11.7, "gainer_qty_chg": 33.7, "sub_score": 11.7, "total_chg_pct": 12.0, "total25": 739.2, "conf": "中"}, {"market": "印度", "loser": "中国", "gainer": "韩国", "loser_sh_chg": -8.0, "gainer_sh_chg": 2.4, "loser_qty_chg": -112.7, "gainer_qty_chg": -7.8, "sub_score": -7.8, "total_chg_pct": -10.7, "total25": 1001.4, "conf": "中"}, {"market": "泰国", "loser": "日本", "gainer": "中国", "loser_sh_chg": -4.5, "gainer_sh_chg": 4.8, "loser_qty_chg": -5.8, "gainer_qty_chg": 149.2, "sub_score": 5.8, "total_chg_pct": 15.0, "total25": 1523.8, "conf": "强"}, {"market": "波兰", "loser": "德国", "gainer": "乌克兰", "loser_sh_chg": -2.5, "gainer_sh_chg": 2.9, "loser_qty_chg": -1.0, "gainer_qty_chg": 44.9, "sub_score": 1.0, "total_chg_pct": 9.4, "total25": 1203.3, "conf": "中"}];
-
-let chartQtyInst = null;
-let chartShiftInst = null;
-
-function shClass(v) {
-  if (v > 0.5) return 'sh-up';
-  if (v < -0.5) return 'sh-down';
-  return 'sh-flat';
-}
-function shSign(v) {
-  return v > 0 ? '+' + v.toFixed(1) : v.toFixed(1);
-}
-function confBadge(c) {
-  var L=function(z){return window.LGT?LGT(z):z;};
-  if (c === '强') return '<span class="conf-badge conf-strong">'+L('强')+'</span>';
-  if (c === '中') return '<span class="conf-badge conf-mid">'+L('中')+'</span>';
-  return '<span class="conf-badge conf-weak">'+L('弱')+'</span>';
-}
-function oppBadge(score) {
-  var L=function(z){return window.LGT?LGT(z):z;};
-  if (score >= 5) return '<span class="opp-badge-strong">'+L('强')+'</span>';
-  if (score >= 2) return '<span class="opp-badge-mid">'+L('中')+'</span>';
-  return '<span class="opp-badge-weak">'+L('弱')+'</span>';
-}
-
-function updateMarket() {
-  const market = document.getElementById('marketSelect').value;
-  const d = MARKET_DATA[market];
-  if (!d) return;
-
-  // Stats
-  const totalChg = d.total_chg_pct;
-  const statsHtml = `
-    <div class="stat-box">
-      <div class="sv">${window.fmtVol?fmtVol(d.total24):d.total24.toFixed(1)+" 万吨"}</div>
-      <div class="sl">2024 总进口量</div>
-    </div>
-    <div class="stat-box">
-      <div class="sv">${window.fmtVol?fmtVol(d.total25):d.total25.toFixed(1)+" 万吨"}</div>
-      <div class="sl">2025 总进口量</div>
-      <div class="sc ${totalChg>=0?'pos':'neg'}">${totalChg>=0?'+':''}${totalChg.toFixed(1)}%</div>
-    </div>
-    <div class="stat-box">
-      <div class="sv">${d.sources.length}</div>
-      <div class="sl">主要来源国（>100吨）</div>
-    </div>
-  `;
-  document.getElementById('marketStats').innerHTML = statsHtml;
-
-  // Find top gainer and top loser
-  const sorted = [...d.sources].filter(s => s.qty24+s.qty25 > 0.01);
-  const gainers = [...sorted].sort((a,b) => b.sh_chg - a.sh_chg);
-  const decliners = [...sorted].sort((a,b) => a.sh_chg - b.sh_chg);
-  const topGain = gainers[0];
-  const topDecl = decliners[0];
-
-  let signalHtml = '<h3>替代信号 &amp; 判断</h3>';
-  if (topGain && topDecl && topGain.partner !== topDecl.partner) {
-    const score = Math.min(Math.abs(topGain.qty_chg), Math.abs(topDecl.qty_chg)).toFixed(1);
-    const conf = parseFloat(score) >= 5 ? '强' : parseFloat(score) >= 2 ? '中' : '弱';
-    const marketStable = totalChg > -5;
-    signalHtml += `
-      <div class="signal-row">
-        <div class="signal-badge">${window.LGT?LGT("替代强度"):"替代强度"} ${window.fmtVol?fmtVol(score):score+" 万吨"}</div>
-        ${confBadge(conf)}
-        ${marketStable ? '<span style="color:var(--down);font-size:12px;font-weight:600">市场稳定/增长 ✓</span>' : '<span style="color:var(--muted);font-size:12px">市场收缩 −</span>'}
-      </div>
-      <div class="signal-desc">${(window.SP_LANG&&SP_LANG()==='en') ?
-        `<b>${window.TN?TN(market):market}</b>: imports from <b>${window.TN?TN(topDecl.partner):topDecl.partner}</b> ${topDecl.qty_chg>0?'+':''}${window.fmtVol?fmtVol(topDecl.qty_chg):topDecl.qty_chg} (share ${shSign(topDecl.sh_chg)}pp), shifting to <b style="color:var(--red)">${window.TN?TN(topGain.partner):topGain.partner}</b> ${topGain.qty_chg>0?'+':''}${window.fmtVol?fmtVol(topGain.qty_chg):topGain.qty_chg} (share +${topGain.sh_chg.toFixed(1)}pp). Substitution score = min(|new-source gain|, |old-source loss|) = <b>${window.fmtVol?fmtVol(score):score}</b>, confidence ${confBadge(conf)}`
-        :
-        `<b>${market}</b>：自 <b>${topDecl.partner}</b> 进口 ${topDecl.qty_chg > 0 ? '+' : ''}${topDecl.qty_chg.toFixed(1)} 万吨（份额 ${shSign(topDecl.sh_chg)}pp），
-        转向 <b style="color:var(--red)">${topGain.partner}</b> 进口 ${topGain.qty_chg > 0 ? '+' : ''}${topGain.qty_chg.toFixed(1)} 万吨（份额 +${topGain.sh_chg.toFixed(1)}pp）。
-        替代分 = min(|新来源增量|, |原来源减量|) = <b>${score} 万吨</b>，置信 ${confBadge(conf)}`}
-      </div>
-    `;
-  } else {
-    signalHtml += '<div class="signal-desc">'+((window.SP_LANG&&SP_LANG()==='en')?'No clear substitution signal detected in this market.':'该市场未检测到明显替代信号。')+'</div>';
-  }
-  document.getElementById('signalBox').innerHTML = signalHtml;
-
-  // Charts
-  const top8 = [...d.sources].sort((a,b) => b.qty25 - a.qty25).slice(0, 8);
-  const labels = top8.map(s => s.partner);
-  const qty25 = top8.map(s => s.qty25);
-
-  // Qty chart
-  if (chartQtyInst) chartQtyInst.destroy();
-  const ctxQ = document.getElementById('chartQty').getContext('2d');
-  chartQtyInst = new Chart(ctxQ, {
-    type: 'bar',
-    data: {
-      labels,
-      datasets: [
-        {
-          label: '2024',
-          data: top8.map(s => s.qty24),
-          backgroundColor: '#e9ebee',
-          borderRadius: 3,
-          barPercentage: 0.7,
-        },
-        {
-          label: '2025',
-          data: qty25,
-          backgroundColor: '#C00000',
-          borderRadius: 3,
-          barPercentage: 0.7,
-        }
-      ]
-    },
-    options: {
-      responsive: true, maintainAspectRatio: false,
-      plugins: { legend: { position: 'top', labels: { font: { size: 11 }, boxWidth: 12 } }, tooltip: { callbacks: { label: ctx => ctx.dataset.label + ': ' + ctx.parsed.y.toFixed(1) + ' 万吨' } } },
-      scales: {
-        x: { grid: { display: false }, ticks: { font: { size: 11 } } },
-        y: { grid: { color: '#eef0f2' }, ticks: { font: { size: 11 }, callback: v => v + ' 万吨' } }
-      }
-    }
-  });
-
-  // Shift chart — show all with significant change
-  const shiftData = [...d.sources].filter(s => Math.abs(s.sh_chg) > 0.3).sort((a,b) => b.sh_chg - a.sh_chg).slice(0, 10);
-  const shLabels = shiftData.map(s => s.partner);
-  const shVals = shiftData.map(s => s.sh_chg);
-  const shColors = shVals.map(v => v > 0 ? '#C00000' : '#1f9d6b');
-
-  if (chartShiftInst) chartShiftInst.destroy();
-  const ctxS = document.getElementById('chartShift').getContext('2d');
-  chartShiftInst = new Chart(ctxS, {
-    type: 'bar',
-    data: {
-      labels: shLabels,
-      datasets: [{
-        label: '份额变化（pp）',
-        data: shVals,
-        backgroundColor: shColors,
-        borderRadius: 3,
-        barPercentage: 0.65,
-      }]
-    },
-    options: {
-      responsive: true, maintainAspectRatio: false,
-      plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => (ctx.parsed.y > 0 ? '+' : '') + ctx.parsed.y.toFixed(1) + ' pp' } } },
-      scales: {
-        x: { grid: { display: false }, ticks: { font: { size: 11 } } },
-        y: { grid: { color: '#eef0f2' }, ticks: { font: { size: 11 }, callback: v => (v>0?'+':'')+v+'pp' } }
-      }
-    }
-  });
-
-  // Source table
-  const maxQty = Math.max(...d.sources.map(s => s.qty25), 0.01);
-  const tbody = document.getElementById('sourceTbody');
-  tbody.innerHTML = d.sources.map(s => `
-    <tr>
-      <td style="font-weight:600">${s.partner}</td>
-      <td>${s.qty24.toFixed(1)}</td>
-      <td style="font-weight:700">${s.qty25.toFixed(1)}</td>
-      <td class="${s.qty_chg >= 0 ? 'pos' : 'neg'}">${s.qty_chg >= 0 ? '+' : ''}${s.qty_chg.toFixed(1)}</td>
-      <td>${s.sh24.toFixed(1)}%</td>
-      <td style="font-weight:700">${s.sh25.toFixed(1)}%</td>
-      <td class="${shClass(s.sh_chg)}">${shSign(s.sh_chg)}</td>
-      <td>
-        <div class="bar-cell">
-          <div class="mini-bar" style="width:${Math.max(2,(s.qty25/maxQty*120)).toFixed(0)}px;background:${s.sh_chg>0.5?'#C00000':s.sh_chg<-0.5?'#1f9d6b':'#bcc1c9'}"></div>
-          <span style="font-size:11px;color:var(--muted)">${(s.qty25/d.total25*100).toFixed(1)}%</span>
-        </div>
-      </td>
-    </tr>
-  `).join('');
-}
-
-// Build global opp table
-function buildGlobalTable() {
-  const tbody = document.getElementById('globalOppTbody');
-  tbody.innerHTML = SUBS_DATA.slice(0, 15).map((r, i) => `
-    <tr>
-      <td style="color:var(--muted);font-weight:700">${i+1}</td>
-      <td style="font-weight:700">${window.TN?TN(r.market):r.market}</td>
-      <td style="color:#1f9d6b;font-weight:600">${window.TN?TN(r.loser):r.loser}</td>
-      <td style="color:var(--red);font-weight:600">${window.TN?TN(r.gainer):r.gainer}</td>
-      <td class="neg">${r.loser_sh_chg.toFixed(1)}pp</td>
-      <td class="pos">+${r.gainer_sh_chg.toFixed(1)}pp</td>
-      <td class="pos" style="font-weight:700">${r.sub_score.toFixed(1)}</td>
-      <td class="${r.total_chg_pct >= 0 ? 'pos' : 'neg'}">${r.total_chg_pct >= 0 ? '+' : ''}${r.total_chg_pct.toFixed(1)}%</td>
-      <td>${oppBadge(r.sub_score)}</td>
-      <td>${confBadge(r.conf)}</td>
-    </tr>
-  `).join('');
-}
-
-// Init
-window.__relang=function(){ try{ updateMarket(); }catch(e){} };
-updateMarket();
-buildGlobalTable();
-</script>
+<script src="./assets/h1_data.js"></script>
+<script src="./assets/h1_common.js"></script>
+<script src="./assets/pg_trade_shift.js"></script>
 <script src="./assets/i18n_dict.js"></script>
 <script src="./assets/i18n.js"></script>
 <script src="./assets/version.js"></script>

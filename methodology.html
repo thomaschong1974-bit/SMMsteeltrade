@@ -353,31 +353,10 @@ body.has-gnav{padding-top:58px!important}
   </div>
 
   <!-- 4. 同比/份额算法 -->
-  <div class="meth-section">
-    <h2><span class="sec-n">04</span>同比与份额算法 · YoY & Share Calculation</h2>
-    <ul>
-      <li><b>同比增速</b>：(当年累计量 − 上年同期累计量) / 上年同期累计量 × 100%</li>
-      <li><b>市场份额</b>：某国（或品类）当期出口量 / 全球 EXPORT 总量 × 100%</li>
-      <li><b>年内对比</b>：2026 年采用上半年（1–6 月）对比 2025 年上半年（Q1+Q2）；全年对比仅使用完整年度</li>
-      <li><b>双边流向增速</b>：reporter→partner 组合的年度量同比，需注意低基数效应放大比例变化</li>
-      <li><b>滚动月均</b>：部分图表使用 3 个月滚动均值平滑季节性波动</li>
-    </ul>
-  </div>
+  <div class="meth-section" id="m04"></div>
 
   <!-- 5. 低基数与不完整月份 -->
-  <div class="meth-section">
-    <h2><span class="sec-n">05</span>低基数与数据缺口 · Low Base & Data Gaps</h2>
-    <div class="warn-box">
-      <div class="wt">注意：低基数效应</div>
-      <p>部分双边流向（如墨西哥→美国）2024年基数极低（&lt;16万吨），导致2025年同比增速（+169%）数字显著放大，需结合绝对量判断实际影响。</p>
-    </div>
-    <ul>
-      <li>部分小国或新兴贸易路线的早期数据（2020–2021年）存在<b>漏报或延迟上报</b>，会导致信号模块异常标记</li>
-      <li>中国对台湾的贸易数据在部分来源中可能归并至"中国大陆"，本平台按各国报告口径原样记录</li>
-      <li>阿联酋、新加坡等转口枢纽的数据包含转口量，其进口量可能高于实际最终消费</li>
-      <li>2026 年月度数据为各国最新已公布数据，最近 1–2 个月仅含部分报告国，尚不代表全年趋势</li>
-    </ul>
-  </div>
+  <div class="meth-section" id="m05"></div>
 
   <!-- 6. 无金额说明 -->
   <div class="meth-section">
@@ -387,29 +366,12 @@ body.has-gnav{padding-top:58px!important}
   </div>
 
   <!-- 7. 信号检测方法 -->
-  <div class="meth-section">
-    <h2><span class="sec-n">07</span>市场信号检测 · Signal Detection Methodology</h2>
-    <ul>
-      <li><b>量类异常</b>：以各国/品类 12 个月滚动均值为基准，当月量偏离均值 ±2σ（标准差）以上标记为异常</li>
-      <li><b>新流向识别</b>：某双边流向在过去 6 个月内首次出现，或从零跃升至明显规模（&gt;5,000 吨），标记为新兴流向</li>
-      <li><b>增速异常</b>：同比增速绝对值 &gt;80%，且绝对量 &gt;10,000 吨，触发增速信号</li>
-      <li><b>信号强度</b>：综合量级、增速、持续性三维度加权评分，划分为高/中/低三档</li>
-    </ul>
-  </div>
+  <div class="meth-section" id="m07"></div>
 
   <!-- 8. 平台导航 -->
-  <div class="meth-section">
-    <h2><span class="sec-n">08</span>平台模块说明 · Platform Modules</h2>
-    <ul>
-      <li><b>Global Pulse（全球脉搏）</b>：旗舰首页，世界地图飞线 + 核心 KPI + 执行摘要</li>
-      <li><b>Countries（国家画像）</b>：各国出口/进口排行、时序趋势、品类结构</li>
-      <li><b>Products（品类透视）</b>：七大 HS 品类贸易量、份额、流向分解</li>
-      <li><b>Flows / Data Lab（贸易分析平台）</b>：自由筛选双边流向，支持任意国家对时序查询</li>
-      <li><b>Signals（市场信号）</b>：量类异常、新流向、增速异常自动标记</li>
-      <li><b>Trade Shift / Competition / Destination / Risk / Trend / Rankings</b>：规划中，敬请期待</li>
-    </ul>
-  </div>
+  <div class="meth-section" id="m08"></div>
 
+  <div class="meth-section" id="dqSection"></div>
 </main>
 
 <footer>
@@ -420,6 +382,9 @@ body.has-gnav{padding-top:58px!important}
   2026
 </footer>
 
+<script src="./assets/h1_data.js"></script>
+<script src="./assets/h1_common.js"></script>
+<script src="./assets/pg_method_dq.js"></script>
 <script src="./assets/i18n_dict.js"></script>
 <script src="./assets/i18n.js"></script>
 <script src="./assets/version.js"></script>
