@@ -17,7 +17,7 @@
       ['高级分析','Advanced','贸易转移、出口竞争、进口市场、风险依赖、全球榜单、方法论。','Trade Shift, Export Competition, Import Markets, Risk, Rankings, Methodology.']
     ];
     var faq = [
-      ['需要登录 / 安装吗？','Login or install?','不用，浏览器打开链接 + 口令即可。','No — just the link + code in a browser.'],
+      ['需要登录 / 安装吗？','Login or install?','不用，浏览器打开链接即可。','No — just open the link in a browser.'],
       ['多久更新？','How often updated?','数据更新后即时发布；打开或刷新即最新。','Published on refresh; open/refresh for the latest.'],
       ['单位？','Units?','中文「万吨」，英文 Mt（百万吨，1 Mt = 100 万吨）。','万吨 in Chinese, Mt in English (1 Mt = 100 万吨).'],
       ['手机能看吗？','Mobile?','可以。交互工具在电脑上体验最佳。','Yes; interactive tools are best on a computer.']
@@ -25,9 +25,9 @@
     var S = en
       ? {title:'User guide',sub:'For first-time users — no technical background needed.',
          qs:'Quick start (3 steps)',
-         q1:'① Enter the access code, then click “Enter”.',
+         q1:'① Open the link in any browser (bookmark it for next time).',
          q2:'② Use the top menu to switch between pages.',
-         q3:'③ Toggle 中文 / EN at the top-right; your choice is remembered. Bookmark the link.',
+         q3:'③ Toggle 中文 / EN at the top-right; your choice is remembered.',
          nav:'Top navigation',navd:'The same menu is on every page. The bottom-left badge shows the data build date; when data updates, an open page shows a “📡 New data available · Refresh” banner.',
          pg:'What each page does',act:'Handy tips',
          a1:'Hover any chart / bubble / flow line for a detail tooltip.',
@@ -36,9 +36,9 @@
          faqh:'FAQ',close:'Close'}
       : {title:'使用教程',sub:'面向第一次使用的同事，照着看即可，无需技术背景。',
          qs:'三步快速上手',
-         q1:'① 输入访问口令，点「进入平台」。',
+         q1:'① 用浏览器打开平台链接（建议加入收藏夹）。',
          q2:'② 用顶部菜单在各页面之间切换。',
-         q3:'③ 右上角「中文 / EN」一键切换语言（会被记住）。建议把链接加入收藏夹。',
+         q3:'③ 右上角「中文 / EN」一键切换语言（会被记住）。',
          nav:'顶部导航',navd:'每一页顶部菜单都一样。左下角小标签是数据版本日期；数据更新后，开着的页面会自动弹「📡 数据已更新 · 刷新」。',
          pg:'各页面用途',act:'常用操作',
          a1:'把鼠标放到图表 / 气泡 / 流线上，会显示明细提示。',
