@@ -158,6 +158,14 @@
       var mm = parseInt(m.slice(5),10);
       h += '<div class="cm">'+(E?MON_EN[mm-1]+' '+m.slice(0,4):m)+'<span>'+cov[m].length+'</span></div><div class="cl">'+cov[m].map(function(c){ return esc(nm(c)); }).join(E?' · ':'、')+'</div>';
     });
+    var fh='';
+    (M.flash||[]).forEach(function(f){
+      var mm = parseInt(f.m.slice(5),10);
+      fh += '<div class="cm" style="color:#C00000">'+(E?'Flash · '+MON_EN[mm-1]+' '+f.m.slice(0,4):f.m+' 快报')+'<span>'+f.n+'/'+f.N+'</span></div><div class="cl">'+
+        f.reps.map(function(c){ return esc(nm(c))+' '+(E?(c.x/100).toFixed(2)+' Mt':c.x.toLocaleString('en-US',{minimumFractionDigits:1,maximumFractionDigits:1})+' 万吨')+(c.mom==null?'':' ('+(E?'m/m ':'环比 ')+(c.mom>=0?'+':'−')+Math.abs(c.mom).toFixed(1)+'%)'); }).join(E?' · ':'、')+
+        '<br><span style="color:#8a919c">'+(E?'Exports incl. billet. Published by fewer than half of the reporters, so not yet in the aggregate analysis.':'出口量（含钢坯）。发布国家不足半数，暂不纳入汇总分析。')+'</span></div>';
+    });
+    h = fh + h;
     set('ltCov', h);
     set('ltSrc', E
       ? 'Source: Global Trade Tracker (GTT), national customs authorities; compiled by SMM. Basis: reporter-declared volumes (mirror data excluded), SMM 17-product steel taxonomy (HS 6-digit). H1 '+PY+' = Q1+Q2 of the quarterly series. Release lags differ by country; '+CY+' monthly totals for the latest months are therefore partial.'

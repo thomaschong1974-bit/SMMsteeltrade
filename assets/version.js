@@ -1,2 +1,2 @@
 /* Auto-stamped by work/rebuild.py on each data refresh. */
-window.DATA_VERSION = {"coverage": "2010–2026.08", "built": "2026-10-13"};
+window.DATA_VERSION = {"coverage": "2010–2026.08", "built": "2026-10-21"};
